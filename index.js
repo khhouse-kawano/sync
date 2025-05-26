@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get("/", async (req, res) => {
-    conmsole.log('start');
+    console.log('start');
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
     const page = await context.newPage();
