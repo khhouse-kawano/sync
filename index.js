@@ -4,18 +4,18 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get("/", async (req, res) => {
-  // Heroku 環境では --no-sandbox オプションが必須
+  // PlaywrightでChromiumを起動（Herokuでは--no-sandboxの指定が必須）
   const browser = await chromium.launch({ args: ['--no-sandbox'] });
   const context = await browser.newContext();
   const page = await context.newPage();
 
   try {
-    await page.goto("https://www.nikkei.com/", {
+    await page.goto("https://m.yahoo.co.jp/", {
       waitUntil: "networkidle",
       timeout: 30000
     });
 
-    const selector = "body > div.base_bpdb78d > div > k2-market-bar > ul > li:nth-child(1) > a > span.currentPrice_cgg8w9n.indexBigMovement_ikx75iv";
+    const selector = "#log-header-body > div > ul > li:nth-child(1) > section > a > span";
     await page.waitForSelector(selector, { timeout: 15000 });
     const price = await page.$eval(selector, el => el.textContent.trim());
 
