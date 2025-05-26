@@ -15,7 +15,7 @@ app.get("/", async (req, res) => {
       timeout: 30000
     });
 
-    const selector = "body > div.base_bpdb78d > div > k2-market-bar > ul > li:nth-child(1) > a > span.currentPrice_cgg8w9n";
+    const selector = "body > div.base_bpdb78d > div > k2-market-bar > ul > li:nth-child(1) > a > span.currentPrice_cgg8w9n.indexBigMovement_ikx75iv";
     await page.waitForSelector(selector, { timeout: 15000 });
     const price = await page.$eval(selector, el => el.textContent.trim());
 
