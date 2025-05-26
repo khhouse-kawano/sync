@@ -1,5 +1,9 @@
 const express = require("express");
 const { chromium } = require("playwright-chromium");
+require('dotenv').config();
+const url = process.env.URL;
+
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -9,7 +13,7 @@ app.get("/", async (req, res) => {
   const page = await context.newPage();
 
   try {
-    await page.goto("https://www.nikkei.com/", {
+    await page.goto(url, {
       waitUntil: "networkidle",
       timeout: 30000
     });
