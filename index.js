@@ -24,7 +24,7 @@ app.get("/", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "スクレイピング中にエラーが発生しました" });
+    res.status(500).json({ error: "スクレイピング中にエラーが発生しました!" });
   } finally {
     await browser.close();
   }
