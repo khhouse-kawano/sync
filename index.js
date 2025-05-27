@@ -38,7 +38,7 @@ app.post("/", async (req, res) => {
     const fillform= async ()=> {
         await page.click('//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a');
         await page.waitForLoadState('networkidle');
-        await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', registerDate.fistName);
+        await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', registerDate.firstName);
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button'); // 登録ボタン
         // await page.waitForTimeout(4500); // 4秒待機 ※詳細編集画面が現れないため
         await page.waitForLoadState('networkidle');
