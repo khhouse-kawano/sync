@@ -1,451 +1,52 @@
 const express = require("express");
 const { chromium } = require("playwright-chromium");
 require('dotenv').config();
-const fs = require('fs');
-const Encoding = require('encoding-japanese');
-const csv = require('csv-parser');
-const axios = require('axios');
 
-const shops = [
-    { brand: 'KH', shop: 'KH鹿児島店' , area: '鹿児島市' },
-    { brand: 'KH', shop: 'KH鹿屋店' , area: '鹿屋市' },
-    { brand: 'KH', shop: 'KH加世田店' , area: '枕崎市' },
-    { brand: 'KH', shop: 'KH出水阿久根店' , area: '阿久根市' },
-    { brand: 'KH', shop: 'KH出水阿久根店' , area: '出水市' },
-    { brand: 'KH', shop: 'KH加世田店' , area: '指宿市' },
-    { brand: 'KH', shop: 'KH鹿屋店' , area: '垂水市' },
-    { brand: 'KH', shop: 'KH薩摩川内店' , area: '薩摩川内市' },
-    { brand: 'KH', shop: 'KH鹿児島店' , area: '日置市' },
-    { brand: 'KH', shop: 'KH霧島店' , area: '曽於市' },
-    { brand: 'KH', shop: 'KH霧島店' , area: '霧島市' },
-    { brand: 'KH', shop: 'KH薩摩川内店' , area: 'いちき串木野市' },
-    { brand: 'KH', shop: 'KH加世田店' , area: '南さつま市' },
-    { brand: 'KH', shop: 'KH鹿屋店' , area: '志布志市' },
-    { brand: 'KH', shop: 'KH加世田店' , area: '南九州市' },
-    { brand: 'KH', shop: 'KH姶良店' , area: '伊佐市' },
-    { brand: 'KH', shop: 'KH姶良店' , area: '姶良市' },
-    { brand: 'KH', shop: 'KH薩摩川内店' , area: 'さつま町' },
-    { brand: 'KH', shop: 'KH出水阿久根店' , area: '長島町' },
-    { brand: 'KH', shop: 'KH霧島店' , area: '湧水町' },
-    { brand: 'KH', shop: 'KH鹿屋店' , area: '大崎町' },
-    { brand: 'KH', shop: 'KH鹿屋店' , area: '東串良町' },
-    { brand: 'KH', shop: 'KH鹿屋店' , area: '錦江町' },
-    { brand: 'KH', shop: 'KH鹿屋店' , area: '南大隅町' },
-    { brand: 'KH', shop: 'KH鹿屋店' , area: '肝付町' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '宮崎市' },
-    { brand: 'KH', shop: 'KH都城店' , area: '都城市' },
-    { brand: 'KH', shop: 'KH延岡店' , area: '延岡市' },
-    { brand: 'KH', shop: 'KH都城店' , area: '日南市' },
-    { brand: 'KH', shop: 'KH都城店' , area: '小林市' },
-    { brand: 'KH', shop: 'KH延岡店' , area: '日向市' },
-    { brand: 'KH', shop: 'KH都城店' , area: '串間市' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '西都市' },
-    { brand: 'KH', shop: 'KH都城店' , area: 'えびの市' },
-    { brand: 'KH', shop: 'KH都城店' , area: '三股町' },
-    { brand: 'KH', shop: 'KH都城店' , area: '高原町' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '国富町' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '綾町' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '高鍋町' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '新富町' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '西米良村' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '木城町' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '川南町' },
-    { brand: 'KH', shop: 'KH宮崎店' , area: '都農町' },
-    { brand: 'KH', shop: 'KH延岡店' , area: '門川町' },
-    { brand: 'KH', shop: 'KH延岡店' , area: '諸塚村' },
-    { brand: 'KH', shop: 'KH延岡店' , area: '椎葉村' },
-    { brand: 'KH', shop: 'KH延岡店' , area: '美郷町' },
-    { brand: 'KH', shop: 'KH延岡店' , area: '高千穂町' },
-    { brand: 'KH', shop: 'KH延岡店' , area: '日之影町' },
-    { brand: 'KH', shop: 'KH延岡店' , area: '五ヶ瀬町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '熊本市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '八代市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '人吉市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '荒尾市' },
-    { brand: 'KH', shop: 'KH出水阿久根店' , area: '水俣市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '玉名市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '山鹿市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '菊池市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '宇土市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '上天草市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '宇城市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '阿蘇市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '天草市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '合志市' },
-    { brand: 'KH', shop: 'KH八代店' , area: '美里町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '玉東町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '南関町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '長洲町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '和水町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '大津町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '菊陽町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '南小国町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '小国町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '産山村' },
-    { brand: 'KH', shop: 'KH八代店' , area: '高森町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '西原村' },
-    { brand: 'KH', shop: 'KH八代店' , area: '南阿蘇村' },
-    { brand: 'KH', shop: 'KH八代店' , area: '御船町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '嘉島町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '益城町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '甲佐町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '山都町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '氷川町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '芦北町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '津奈木町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '錦町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '多良木町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '湯前町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '水上村' },
-    { brand: 'KH', shop: 'KH八代店' , area: '相良村' },
-    { brand: 'KH', shop: 'KH八代店' , area: '五木村' },
-    { brand: 'KH', shop: 'KH八代店' , area: '山江村' },
-    { brand: 'KH', shop: 'KH八代店' , area: '球磨村' },
-    { brand: 'KH', shop: 'KH八代店' , area: 'あさぎり町' },
-    { brand: 'KH', shop: 'KH八代店' , area: '苓北町' },
-    { brand: 'KH', shop: 'KH大分店' , area: '大分市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '別府市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '中津市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '日田市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '佐伯市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '臼杵市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '津久見市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '竹田市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '豊後高田市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '杵築市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '宇佐市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '豊後大野市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '由布市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '国東市' },
-    { brand: 'KH', shop: 'KH大分店' , area: '姫島村' },
-    { brand: 'KH', shop: 'KH大分店' , area: '日出町' },
-    { brand: 'KH', shop: 'KH大分店' , area: '九重町' },
-    { brand: 'KH', shop: 'KH大分店' , area: '玖珠町' },
-    { brand: 'DJH', shop: 'DJH鹿児島北店' , area: '鹿児島市' },
-    { brand: 'DJH', shop: 'DJH鹿屋店' , area: '鹿屋市' },
-    { brand: 'DJH', shop: 'DJH鹿児島北店' , area: '枕崎市' },
-    { brand: 'DJH', shop: 'DJH薩摩川内店' , area: '阿久根市' },
-    { brand: 'DJH', shop: 'DJH薩摩川内店' , area: '出水市' },
-    { brand: 'DJH', shop: 'DJH鹿児島北店' , area: '指宿市' },
-    { brand: 'DJH', shop: 'DJH鹿屋店' , area: '垂水市' },
-    { brand: 'DJH', shop: 'DJH薩摩川内店' , area: '薩摩川内市' },
-    { brand: 'DJH', shop: 'DJH鹿児島北店' , area: '日置市' },
-    { brand: 'DJH', shop: 'DJH霧島店' , area: '曽於市' },
-    { brand: 'DJH', shop: 'DJH霧島店' , area: '霧島市' },
-    { brand: 'DJH', shop: 'DJH薩摩川内店' , area: 'いちき串木野市' },
-    { brand: 'DJH', shop: 'DJH鹿児島北店' , area: '南さつま市' },
-    { brand: 'DJH', shop: 'DJH鹿屋店' , area: '志布志市' },
-    { brand: 'DJH', shop: 'DJH鹿児島北店' , area: '南九州市' },
-    { brand: 'DJH', shop: 'DJH霧島店' , area: '伊佐市' },
-    { brand: 'DJH', shop: 'DJH霧島店' , area: '姶良市' },
-    { brand: 'DJH', shop: 'DJH薩摩川内店' , area: 'さつま町' },
-    { brand: 'DJH', shop: 'DJH薩摩川内店' , area: '長島町' },
-    { brand: 'DJH', shop: 'DJH霧島店' , area: '湧水町' },
-    { brand: 'DJH', shop: 'DJH鹿屋店' , area: '大崎町' },
-    { brand: 'DJH', shop: 'DJH鹿屋店' , area: '東串良町' },
-    { brand: 'DJH', shop: 'DJH鹿屋店' , area: '錦江町' },
-    { brand: 'DJH', shop: 'DJH鹿屋店' , area: '南大隅町' },
-    { brand: 'DJH', shop: 'DJH鹿屋店' , area: '肝付町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '宮崎市' },
-    { brand: 'DJH', shop: 'DJH都城店' , area: '都城市' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '延岡市' },
-    { brand: 'DJH', shop: 'DJH都城店' , area: '日南市' },
-    { brand: 'DJH', shop: 'DJH都城店' , area: '小林市' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '日向市' },
-    { brand: 'DJH', shop: 'DJH都城店' , area: '串間市' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '西都市' },
-    { brand: 'DJH', shop: 'DJH都城店' , area: 'えびの市' },
-    { brand: 'DJH', shop: 'DJH都城店' , area: '三股町' },
-    { brand: 'DJH', shop: 'DJH都城店' , area: '高原町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '国富町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '綾町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '高鍋町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '新富町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '西米良村' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '木城町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '川南町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '都農町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '門川町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '諸塚村' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '椎葉村' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '美郷町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '高千穂町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '日之影町' },
-    { brand: 'DJH', shop: 'DJH宮崎店' , area: '五ヶ瀬町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '熊本市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '八代市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '人吉市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '荒尾市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '水俣市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '玉名市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '山鹿市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '菊池市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '宇土市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '上天草市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '宇城市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '阿蘇市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '天草市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '合志市' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '美里町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '玉東町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '南関町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '長洲町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '和水町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '大津町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '菊陽町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '南小国町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '小国町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '産山村' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '高森町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '西原村' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '南阿蘇村' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '御船町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '嘉島町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '益城町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '甲佐町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '山都町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '氷川町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '芦北町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '津奈木町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '錦町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '多良木町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '湯前町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '水上村' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '相良村' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '五木村' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '山江村' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '球磨村' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: 'あさぎり町' },
-    { brand: 'DJH', shop: 'DJH八代店' , area: '苓北町' },
-    { brand: 'Nagomi', shop: 'なごみ鹿児島店' , area: '鹿児島市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '鹿屋市' },
-    { brand: 'Nagomi', shop: 'なごみ鹿児島店' , area: '枕崎市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '阿久根市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '出水市' },
-    { brand: 'Nagomi', shop: 'なごみ鹿児島店' , area: '指宿市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '垂水市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '薩摩川内市' },
-    { brand: 'Nagomi', shop: 'なごみ鹿児島店' , area: '日置市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '曽於市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '霧島市' },
-    { brand: 'Nagomi', shop: 'なごみ鹿児島店' , area: 'いちき串木野市' },
-    { brand: 'Nagomi', shop: 'なごみ鹿児島店' , area: '南さつま市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '志布志市' },
-    { brand: 'Nagomi', shop: 'なごみ鹿児島店' , area: '南九州市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '伊佐市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '姶良市' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: 'さつま町' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '長島町' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '湧水町' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '大崎町' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '東串良町' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '錦江町' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '南大隅町' },
-    { brand: 'Nagomi', shop: 'なごみ姶良霧島店' , area: '肝付町' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '鹿児島市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '鹿屋市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '枕崎市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '阿久根市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '出水市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '指宿市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '垂水市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '薩摩川内市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '日置市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '曽於市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '霧島市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: 'いちき串木野市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '南さつま市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '志布志市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '南九州市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '伊佐市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '姶良市' },
-    { brand: '2L', shop: '2L鹿児島店' , area: 'さつま町' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '長島町' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '湧水町' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '大崎町' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '東串良町' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '錦江町' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '南大隅町' },
-    { brand: '2L', shop: '2L鹿児島店' , area: '肝付町' },
-    { brand: 'FH', shop: 'FH鹿児島店' , area: '鹿児島市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '鹿屋市' },
-    { brand: 'FH', shop: 'FH鹿児島店' , area: '枕崎市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '阿久根市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '出水市' },
-    { brand: 'FH', shop: 'FH鹿児島店' , area: '指宿市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '垂水市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '薩摩川内市' },
-    { brand: 'FH', shop: 'FH鹿児島店' , area: '日置市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '曽於市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '霧島市' },
-    { brand: 'FH', shop: 'FH鹿児島店' , area: 'いちき串木野市' },
-    { brand: 'FH', shop: 'FH鹿児島店' , area: '南さつま市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '志布志市' },
-    { brand: 'FH', shop: 'FH鹿児島店' , area: '南九州市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '伊佐市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '姶良市' },
-    { brand: 'FH', shop: 'FH霧島店' , area: 'さつま町' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '長島町' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '湧水町' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '大崎町' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '東串良町' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '錦江町' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '南大隅町' },
-    { brand: 'FH', shop: 'FH霧島店' , area: '肝付町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '宮崎市' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '都城市' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '延岡市' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '日南市' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '小林市' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '日向市' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '串間市' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '西都市' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: 'えびの市' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '三股町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '高原町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '国富町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '綾町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '高鍋町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '新富町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '西米良村' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '木城町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '川南町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '都農町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '門川町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '諸塚村' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '椎葉村' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '美郷町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '高千穂町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '日之影町' },
-    { brand: 'PGH', shop: 'PG HOUSE宮崎店' , area: '五ヶ瀬町' }]
-
-console.log(typeof shops);
-console.log(Array.isArray(shops)); // 配列かどうかをチェック
-console.log(shops); // 実際の値を確認
 const app = express();
+app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
-app.get("/", async (req, res) => {
+app.post("/", async (req, res) => {
     console.log('start');
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    try {
-        await page.goto('https://www.town-life.jp/home/kanri/');
-        await page.fill('#login', 'kh-t@kh-house.jp');
-        await page.fill('#pw', '4081Kokubu');
-        await page.click('#main_container > div.login_form > div > form > fieldset > dl.submit > input[type=button]');
-        await page.waitForLoadState('load');
+    const main = async (mail, password) => {
+        try {
+            await login(mail, password);
+            await fillform();
 
-        console.log('ログイン完了');
-
-        const downloadPromise = page.waitForEvent('download');
-        await page.goto('https://www.town-life.jp/home/kanri/index.php?action_AdminInquiryList=true');
-        await page.click('#main_container > div.main_content > div.center_content > form:nth-child(4) > div.btnArea > input[type=button]');
-        const download = await downloadPromise;
-
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        const fileName = `./download/KH_${year}${month}${day}_townlife.csv`;
-        await download.saveAs(fileName);
-
-        const sjisBuffer = fs.readFileSync(fileName);
-        const unicodeArray = Encoding.convert(sjisBuffer, { to: 'UNICODE', from: 'SJIS', });
-        const unicodeString = Encoding.codeToString(unicodeArray);
-        fs.writeFileSync(fileName, unicodeString);
-
-        const records= [];
-        const columnMapping= {
-            '問い合わせID': 'id_townlife',
-            '顧客氏名': 'name_townlife',
-            'ふりがな': 'kana_townlife',
-            '年齢': 'age_townlife',
-            '郵便番号': 'zip_townlife',
-            '住所都道府県': 'pref_townlife',
-            '住所市区町村': 'city_townlife',
-            '住所詳細': 'address_townlife',
-            'メールアドレス': 'mail_townlife',
-            '電話番号': 'phone_townlife',
-            '建設予定地': 'place_townlife',
-            '建設予定地詳細': 'place_detail_townlife',
-            '希望階数': 'floor_townlife',
-            '予定人数（大人）': 'adult_townlife',
-            '予定人数（子ども）': 'child_townlife',
-            '間取り（LDK）': 'ldk_townlife',
-            '建物予算': 'budget_townlife',
-            '土地の大きさ': 'large_townlife',
-            '土地予算': 'budget_estate_townlife',
-            '土地に関するご希望': 'demand_estate_townlife',
-            '敷地図・土地図面等の添付': 'image_townlife',
-            '家のこだわり': 'demand_house_townlife',
-            'その他': 'note_townlife',
-            'お問合せ日時': 'response_date_townlife',
-            '店舗': 'shop_townlife',
-            '状況': 'status_townlife',
-        }
-
-        fs.createReadStream(fileName)
-            .pipe(csv()).on('data', (row) => {
-                const mappedRecord = {};
-                for (const [key, value] of Object.entries(row)) {
-                    mappedRecord[columnMapping[key] || key] = value;
-                }
-                records.push(mappedRecord);
-            })
-            .on('end', async () => {
-                for (const record of records) {
-                    if( record['name_townlife'] !== '取消処理されました'){
-                    record['shop_townlife'] = 'KH';
-                    if(record['response_date_townlife']){
-                        record['response_date_townlife'] = record['response_date_townlife'].replace( /-/g, '/').split(" ")[0];
-                    }
-                    if(record['address_townlife']) {
-                        record['address_townlife'] = record['address_townlife'].replace(/"/g, '').replace('=', '');
-                    }
-                    if (record['place_detail_townlife']) {
-                        const matchedShop = shops.find(
-                            shop => shop.brand === record['shop_townlife'] && record['place_detail_townlife'].includes(shop.area)
-                        );
-                    
-                        if(matchedShop){
-                            record['shop'] = matchedShop.shop;
-                        }
-                    }
-                    if (!record['response_date_townlife'] || record['shop'] === undefined ){
-                        const matchedShop = shops.find(
-                            shop => shop.brand === record['shop_townlife'] && record['city_townlife'].includes(shop.area)
-                        );
-                        record['shop'] = matchedShop ? matchedShop.shop : `${record['shop_townlife'].replace('Nagomi', 'なごみ')}店舗未設定`;
-                    }
-                    const data = new URLSearchParams(record);
-                    try {
-                        const response = await axios.post(
-                            'https://khg-marketing.info/api/townlife.php',
-                            data,
-                            {
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded'
-                                }
-                            }
-                        );
-                        console.log(record);
-                        console.log('Data sent successfully:', response.data);
-                    } catch (error) {
-                        console.error('Error sending data for record:', record, error);
-                    }
-                }
-            }
-            });
             await browser.close();
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "スクレイピング中にエラーが発生しました!" });
-    } finally {
-        await browser.close();
+        } catch (error) {
+            console.error('データ登録中にエラーが発生', error);
+        }
+    };
+
+    const login = async(mail, password) => {
+        await page.goto('https://pg-cloud.jp/login');
+        await page.fill('#form_email', mail);
+        await page.fill('#form_password', password);
+        await page.click('//html/body/main/div/form[1]/div/div[2]/input[2]');
+        await page.waitForLoadState('networkidle');
     }
+
+    const fillform= async ()=> {
+        await page.click('//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a');
+        await page.waitForLoadState('networkidle');
+        await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', 'ダッシュボードテスト');
+        await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button'); // 登録ボタン
+        // await page.waitForTimeout(4500); // 4秒待機 ※詳細編集画面が現れないため
+        await page.waitForLoadState('networkidle');
+    }
+    
+    const pg_mail = process.env.MAIL;
+    const pg_pass = process.env.PASS;
+
+    await main(pg_mail, pg_pass);
+
+    res.send("処理が完了");
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
