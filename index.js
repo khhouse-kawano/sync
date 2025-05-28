@@ -19,7 +19,7 @@ app.post("/", async (req, res) => {
     const main = async (mail, password) => {
         try {
             await login(mail, password);
-            await fillform();
+            await fillForm();
 
             await browser.close();
         } catch (error) {
@@ -35,10 +35,41 @@ app.post("/", async (req, res) => {
         await page.waitForLoadState('networkidle');
     }
 
-    const fillform= async ()=> {
+    const fillForm= async ()=> {
         await page.click('//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a');
         await page.waitForLoadState('networkidle');
-        await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', registerDate.firstName);
+        if (registerDate.firstName ) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerDate.firstName)); // 姓
+        if (registerDate.lastName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerDate.lastName)); // 名
+        if (registerDate.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerDate.firstKana)); // セイ
+        if (registerDate.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerDate.lastKana)); // メイ        
+        
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]'); // 連絡先入力画面を出す
+
+        // 電話番号のフォーマット
+        if (registerDate.mobile) {
+            const mobileValue = registerDate.mobile.replace(/=|"| /g, '').trim();
+            if ( mobileValue.charAt(0) === '0') await page.fill('#customer_customer_contacts_attributes_0_mobile_phone_number', String(mobileValue)); 
+        }
+        if (registerDate.mail && registerDate.mail.includes('@')) await page.fill('#customer_customer_contacts_attributes_0_email', String(registerDate.mail)); // Eメール
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]'); // 連絡先入力画面を閉じる
+
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]'); // 住所入力画面を出す
+        if (registerDate.zip) {
+            await page.fill('#customer_postal_code', String(registerDate.zip)); // 郵便番号
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]/a'); // 郵便番号検索ボタン
+            await page.waitForTimeout(1500);
+        }
+        if (registerDate.street) await page.fill('#customer_address_detail', String(registerDate.street)); // 番地
+
+        // 住所データのフォーマット
+        const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
+        const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
+        const buildingValue = registerDate.buildingValue.replaceAll(prefValue, '').replaceAll(cityValue, '');
+        
+        if ( buildingValue ) await page.fill('#customer_address_building', buildingValue); // 建物
+        
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]'); // 住所入力画面を閉じる
+        
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button'); // 登録ボタン
         // await page.waitForTimeout(4500); // 4秒待機 ※詳細編集画面が現れないため
         await page.waitForLoadState('networkidle');
