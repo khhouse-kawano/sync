@@ -62,11 +62,12 @@ app.post("/", async (req, res) => {
         if (registerDate.street) await page.fill('#customer_address_detail', String(registerDate.street)); // 番地
 
         // 住所データのフォーマット
-        const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
-        const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
-        const buildingValue = registerDate.buildingValue.replaceAll(prefValue, '').replaceAll(cityValue, '');
-        
-        if ( buildingValue ) await page.fill('#customer_address_building', buildingValue); // 建物
+        if ( registerDate.buildingValue ) {
+            const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
+            const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
+            const buildingValue = registerDate.buildingValue.replaceAll(prefValue, '').replaceAll(cityValue, '');
+            await page.fill('#customer_address_building', buildingValue); // 建物
+        }
         
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]'); // 住所入力画面を閉じる
         
