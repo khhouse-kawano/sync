@@ -193,6 +193,7 @@ const runDataRegistration = async (registerData) => {
                 body: JSON.stringify(postData)
                 });
                 const data = await response.json();
+                console.log(data);
                 if ( data ) console.log("POST完了");
             } catch (error) {
                 console.error("エラー:", error);
