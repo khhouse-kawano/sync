@@ -187,7 +187,7 @@ const runDataRegistration = async (registerData) => {
         };
     
         try {
-            const response = await fetch("/dashboard/api/changeShop.php", {
+            const response = await fetch("https://khg-marketing.info/dashboard/api/changeShop.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(postData)
