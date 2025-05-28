@@ -81,7 +81,9 @@ const runDataRegistration = async (registerData) => {
             const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
             const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
             const townValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input', el => el.value);
+            const streetValue = registerData.street.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
             const buildingValue = registerData.building.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
+            await page.fill('#customer_address_detail', streetValue);
             await page.fill('#customer_address_building', buildingValue);
         }
 
@@ -177,9 +179,27 @@ const runDataRegistration = async (registerData) => {
     if (pg_id) {
         const url = pg_id.replace('edit', 'summary');
         console.log("処理完了:", url);
-    } else {
-        console.log("pg_idが取得できませんでした。");
-    }
+
+        const postData = {
+            inquiry_id: id,
+            demand: 'sync',
+            pg_id: url
+        };
+    
+        try {
+            const response = await fetch("/dashboard/api/changeShop.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(postData)
+                });
+                const data = await response.json();
+                if ( data ) console.log("POST完了");
+            } catch (error) {
+                console.error("エラー:", error);
+            }
+        } else {
+            console.log("pg_idが取得できませんでした。");
+        }
 };
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
