@@ -41,7 +41,14 @@ app.post("/", async (req, res) => {
         if (registerDate.firstName ) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerDate.firstName)); // 姓
         if (registerDate.lastName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerDate.lastName)); // 名
         if (registerDate.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerDate.firstKana)); // セイ
-        if (registerDate.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerDate.lastKana)); // メイ        
+        if (registerDate.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerDate.lastKana)); // メイ
+
+
+        if(registerDate.medium) {
+            const mediumValue = registerDate.medium === 'ALLGRIT' ? '公式LINE' : registerDate.medium ;
+            await page.click('//html/body/main/div/div[2]/div/form/div[1]/div[3]/div[3]/div/div/div[1]'); // 販促媒体名のリストを出す
+            await page.click(`div[data-label="${mediumValue}"]`);
+        }
         
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]'); // 連絡先入力画面を出す
 
@@ -64,7 +71,7 @@ app.post("/", async (req, res) => {
         if (registerDate.street) await page.fill('#customer_address_detail', String(registerDate.street)); // 番地
 
         // 住所データのフォーマット
-        if ( registerDate.buildingValue ) {
+        if ( registerDate.building ) {
             const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
             const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
             const townValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input', el => el.value);
