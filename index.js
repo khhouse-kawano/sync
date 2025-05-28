@@ -19,8 +19,6 @@ app.post("/", async (req, res) => {
 
     const main = async (mail, password) => {
         try {
-            page.setDefaultTimeout(300000); // 5分にタイムアウトを設定
-
             await login(mail, password);
             await fillForm();
             await detailSave();
