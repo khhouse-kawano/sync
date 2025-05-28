@@ -86,7 +86,7 @@ app.post("/", async (req, res) => {
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]'); // 住所入力画面を閉じる
         
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button'); // 登録ボタン
-        // await page.waitForTimeout(4500); // 4秒待機 ※詳細編集画面が現れないため
+        await page.waitForTimeout(4500); // 4秒待機 ※詳細編集画面が現れないため
         await page.waitForLoadState('networkidle');
     };
 
