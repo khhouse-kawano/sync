@@ -188,18 +188,19 @@ const runDataRegistration = async (registerData) => {
             pg_id: url
         };
     
-        try {
-            const response = await fetch("https://khg-marketing.info/dashboard/api/changeShop.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(postData)
-                });
-                const data = await response.json();
-                await console.log(data);
-                if ( data ) console.log("POST完了");
-            } catch (error) {
-                console.error("エラー:", error);
-            }
+    try {
+        const response = await fetch("https://khg-marketing.info/dashboard/api/changeShop.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(postData)
+        });
+
+    const data = await response.json();
+    console.log("レスポンス:", data);
+    if (data) console.log("POST完了");
+} catch (error) {
+    console.error("エラー:", error);
+}
         } else {
             console.log("pg_idが取得できませんでした。");
         }
