@@ -41,11 +41,11 @@ app.post("/", async (req, res) => {
     const fillForm= async ()=> {
         await page.click('//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a');
         await page.waitForLoadState('networkidle');
-        pg_id = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[1]/div[1]/div[2]/span', el=>el.textContent.trim())
         if (registerDate.firstName ) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerDate.firstName)); // 姓
         if (registerDate.lastName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerDate.lastName)); // 名
         if (registerDate.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerDate.firstKana)); // セイ
         if (registerDate.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerDate.lastKana)); // メイ
+        pg_id = await page.url();
 
 
         if(registerDate.medium) {
@@ -161,11 +161,10 @@ app.post("/", async (req, res) => {
 
     await main(pg_mail, pg_pass);
 
-    const url = `https://pg-cloud.jp/customers/${ pg_id }/summary`
 
     res.send({
         "message" : "処理が終了",
-        "pg_id" : url
+        "pg_id" : pg_id
     });
 });
 
