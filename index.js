@@ -55,6 +55,8 @@ app.post("/", async (req, res) => {
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]'); // 住所入力画面を出す
         if (registerDate.zip) {
+            const zipValue = await registerDate.zip.replaceAll('-', '');
+            if ( String(zipValue).length !== 7 ) return;
             await page.fill('#customer_postal_code', String(registerDate.zip)); // 郵便番号
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]/a'); // 郵便番号検索ボタン
             await page.waitForTimeout(1500);
@@ -65,7 +67,8 @@ app.post("/", async (req, res) => {
         if ( registerDate.buildingValue ) {
             const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
             const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
-            const buildingValue = registerDate.buildingValue.replaceAll(prefValue, '').replaceAll(cityValue, '');
+            const townValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input', el => el.value);
+            const buildingValue = registerDate.buildingValue.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
             await page.fill('#customer_address_building', buildingValue); // 建物
         }
         
