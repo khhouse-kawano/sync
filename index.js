@@ -195,11 +195,9 @@ const runDataRegistration = async (registerData) => {
     try {
         const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
             headers: { "Content-Type": "application/json" }
-});
-
-    const data = await response.json();
-    console.log("レスポンス:", data);
-    if (data) console.log("POST完了");
+    });
+    console.log("レスポンス:",response.data);
+    console.log("POST完了");
 } catch (error) {
     console.error("エラー:", error);
 }
