@@ -2,6 +2,7 @@ const express = require("express");
 const { chromium } = require("playwright-chromium");
 require('dotenv').config();
 const cors = require('cors');
+const fetch = require("node-fetch");
 
 const app = express();
 app.use(cors());
@@ -176,6 +177,7 @@ const runDataRegistration = async (registerData) => {
     }
     
     await browser.close();
+
     if (pg_id) {
         const url = pg_id.replace('edit', 'summary');
         console.log("処理完了:", url);
@@ -193,7 +195,7 @@ const runDataRegistration = async (registerData) => {
                 body: JSON.stringify(postData)
                 });
                 const data = await response.json();
-                console.log(data);
+                await console.log(data);
                 if ( data ) console.log("POST完了");
             } catch (error) {
                 console.error("エラー:", error);
