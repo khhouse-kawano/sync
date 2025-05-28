@@ -10,27 +10,24 @@ const PORT = process.env.PORT || 3000;
 
 app.post("/", async (req, res) => {
     console.log('start');
+    const registerData = req.body;
+    
+    res.send({
+        "message": "処理を開始しました",
+        "status": "processing"
+    });
+    
+    // バックグラウンド処理を開始
+    process.nextTick(() => runDataRegistration(registerData));
+});
+
+const runDataRegistration = async (registerData) => {
+    let pg_id;
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    const registerDate = req.body;
-    let pg_id;
-
-    const main = async (mail, password) => {
-        try {
-            await login(mail, password);
-            await fillForm();
-            await detailSave();
-            await dataCheck();
-
-            await browser.close();
-        } catch (error) {
-            console.error('データ登録中にエラーが発生', error);
-        }
-    };
-
-    const login = async(mail, password) => {
+    const login = async (mail, password) => {
         await page.goto('https://pg-cloud.jp/login');
         await page.fill('#form_email', mail);
         await page.fill('#form_password', password);
@@ -38,138 +35,151 @@ app.post("/", async (req, res) => {
         await page.waitForLoadState('networkidle');
     };
 
-    const fillForm= async ()=> {
+    const fillForm = async () => {
         await page.click('//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a');
         await page.waitForLoadState('networkidle');
-        if (registerDate.firstName ) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerDate.firstName)); // 姓
-        if (registerDate.lastName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerDate.lastName)); // 名
-        if (registerDate.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerDate.firstKana)); // セイ
-        if (registerDate.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerDate.lastKana)); // メイ
+        if (registerData.firstName)
+            await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.firstName));
+        if (registerData.lastName)
+            await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerData.lastName));
+        if (registerData.firstKana)
+            await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerData.firstKana));
+        if (registerData.lastKana)
+            await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerData.lastKana));
 
-
-        if(registerDate.medium) {
-            const mediumValue = registerDate.medium === 'ALLGRIT' ? '公式LINE' : registerDate.medium ;
-            await page.click('//html/body/main/div/div[2]/div/form/div[1]/div[3]/div[3]/div/div/div[1]'); // 販促媒体名のリストを出す
+        if (registerData.medium) {
+            const mediumValue = registerData.medium === 'ALLGRIT' ? '公式LINE' : registerData.medium;
+            await page.click('//html/body/main/div/div[2]/div/form/div[1]/div[3]/div[3]/div/div/div[1]');
             await page.click(`div[data-label="${mediumValue}"]`);
         }
-        
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]'); // 連絡先入力画面を出す
+
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
 
         // 電話番号のフォーマット
-        if (registerDate.mobile) {
-            const mobileValue = registerDate.mobile.replace(/=|"| /g, '').trim();
-            if ( mobileValue.charAt(0) === '0') await page.fill('#customer_customer_contacts_attributes_0_mobile_phone_number', String(mobileValue)); 
+        if (registerData.mobile) {
+            const mobileValue = registerData.mobile.replace(/=|"| /g, '').trim();
+            if (mobileValue.charAt(0) === '0')
+                await page.fill('#customer_customer_contacts_attributes_0_mobile_phone_number', String(mobileValue));
         }
-        if (registerDate.mail && registerDate.mail.includes('@')) await page.fill('#customer_customer_contacts_attributes_0_email', String(registerDate.mail)); // Eメール
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]'); // 連絡先入力画面を閉じる
+        if (registerData.mail && registerData.mail.includes('@'))
+            await page.fill('#customer_customer_contacts_attributes_0_email', String(registerData.mail));
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
 
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]'); // 住所入力画面を出す
-        if (registerDate.zip) {
-            const zipValue = await registerDate.zip.replaceAll('-', '');
-            if ( String(zipValue).length !== 7 ) return;
-            await page.fill('#customer_postal_code', String(registerDate.zip)); // 郵便番号
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]/a'); // 郵便番号検索ボタン
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]');
+        if (registerData.zip) {
+            const zipValue = registerData.zip.replaceAll('-', '');
+            if (String(zipValue).length !== 7) return;
+            await page.fill('#customer_postal_code', String(registerData.zip));
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]/a');
             await page.waitForTimeout(1500);
         }
-        if (registerDate.street) await page.fill('#customer_address_detail', String(registerDate.street)); // 番地
+        if (registerData.street)
+            await page.fill('#customer_address_detail', String(registerData.street));
 
         // 住所データのフォーマット
-        if ( registerDate.building ) {
+        if (registerData.building) {
             const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
             const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
             const townValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input', el => el.value);
-            const buildingValue = registerDate.building.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
-            await page.fill('#customer_address_building', buildingValue); // 建物
+            const buildingValue = registerData.building.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
+            await page.fill('#customer_address_building', buildingValue);
         }
-        
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]'); // 住所入力画面を閉じる
-        
-        await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button'); // 登録ボタン
-        await page.waitForTimeout(4500); // 4秒待機 ※詳細編集画面が現れないため
+
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+
+        await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
+        await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
         await page.waitForLoadState('networkidle');
     };
 
-    const detailSave = async() =>{
-        await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/a[1]'); // 詳細編集画面へ
+    const detailSave = async () => {
+        await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/a[1]');
         await page.waitForLoadState('networkidle');
 
         // 店舗入力
-        if ( registerDate.shop && !registerDate.shop.includes('店舗未設定') ) {
-            await page.click('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]'); // 店舗ドロップダウンを表示
-            const shopValue = registerDate.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerDate.shop;
-            await page.fill('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', String( shopValue )); // 店舗名を入力
+        if (registerData.shop && !registerData.shop.includes('店舗未設定')) {
+            await page.click('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]');
+            const shopValue = registerData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
+            await page.fill('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', String(shopValue));
             await page.waitForSelector(`div[data-label="${shopValue}"]`);
             await page.click(`div[data-label="${shopValue}"]`);
             const selectedShop = await page.$eval('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', el => el.value);
-            if ( selectedShop === '' ) {
-                await page.click('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]'); // 店舗ドロップダウンを表示
-                const shopValue = registerDate.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerDate.shop;
-                await page.fill('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', String( shopValue )); // 店舗名を入力
-                await page.waitForSelector(`div[data-label="${shopValue}"]`);
-                await page.click(`div[data-label="${shopValue}"]`);
+            if (selectedShop === '') {
+                await page.click('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]');
+                const shopValue2 = registerData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
+                await page.fill('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', String(shopValue2));
+                await page.waitForSelector(`div[data-label="${shopValue2}"]`);
+                await page.click(`div[data-label="${shopValue2}"]`);
             }
         }
 
         // 日付入力
-        if ( registerDate.date ) {
-            const formattedDate = registerDate.date.replace(/\//g, '-');
+        if (registerData.date) {
+            const formattedDate = registerData.date.replace(/\//g, '-');
             await page.fill('#calendar_item_0_scheduled_at', formattedDate);
-            await page.waitForTimeout(500);  
+            await page.waitForTimeout(500);
             await page.fill('#calendar_item_0_start_at', formattedDate);
-            await page.waitForTimeout(500); 
+            await page.waitForTimeout(500);
             const formattedDateRetry = await page.$eval('#calendar_item_0_start_at', el => el.value);
             const selectedShopRetry = await page.$eval('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', el => el.value);
-            if ( formattedDateRetry === "" ){
+            if (formattedDateRetry === "") {
                 await page.fill('#calendar_item_0_scheduled_at', formattedDate);
-                await page.waitForTimeout(500);  
+                await page.waitForTimeout(500);
             }
-            if (selectedShopRetry === "" ){
+            if (selectedShopRetry === "") {
                 await page.fill('#calendar_item_0_start_at', formattedDate);
-                await page.waitForTimeout(500); 
+                await page.waitForTimeout(500);
             }
         }
 
         pg_id = await page.url();
 
-        await page.click('//html/body/main/div[1]/div[3]/form/div[4]/div[2]/div[2]/div[1]/button'); // 保存ボタン
-        await page.waitForTimeout(1000); // 
+        await page.click('//html/body/main/div[1]/div[3]/form/div[4]/div[2]/div[2]/div[1]/button');
+        await page.waitForTimeout(1000);
     };
 
-    const dataCheck = async() => {
+    const dataCheck = async () => {
         const selectedShop = await page.$eval('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', el => el.value);
-        if ( selectedShop === '' ) {
-            await page.click('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]'); // 店舗ドロップダウンを表示
-            const shopValue = registerDate.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerDate.shop;
-            await page.fill('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', String( shopValue )); // 店舗名を入力
+        if (selectedShop === '') {
+            await page.click('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]');
+            const shopValue = registerData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
+            await page.fill('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', String(shopValue));
             await page.waitForSelector(`div[data-label="${shopValue}"]`);
             await page.click(`div[data-label="${shopValue}"]`);
         }
 
-        const formattedDate = registerDate.date.replace(/\//g, '-');
+        const formattedDate = registerData.date.replace(/\//g, '-');
         const formattedDateRetry = await page.$eval('#calendar_item_0_start_at', el => el.value);
         const selectedShopRetry = await page.$eval('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', el => el.value);
-        if ( formattedDateRetry === "" ){
+        if (formattedDateRetry === "") {
             await page.fill('#calendar_item_0_scheduled_at', formattedDate);
-            await page.waitForTimeout(500);  
+            await page.waitForTimeout(500);
         }
-        if (selectedShopRetry === "" ){
+        if (selectedShopRetry === "") {
             await page.fill('#calendar_item_0_start_at', formattedDate);
-            await page.waitForTimeout(500); 
+            await page.waitForTimeout(500);
         }
     };
-    
+
     const pg_mail = process.env.MAIL;
     const pg_pass = process.env.PASS;
 
-    await main(pg_mail, pg_pass);
-
-    const url = pg_id.replace('edit', 'summary');
-
-    res.send({
-        "message" : "処理が終了",
-        "pg_id" : url
-    });
-});
+    try {
+        await login(pg_mail, pg_pass);
+        await fillForm();
+        await detailSave();
+        await dataCheck();
+    } catch (error) {
+        console.error('データ登録中にエラーが発生', error);
+    }
+    
+    await browser.close();
+    if (pg_id) {
+        const url = pg_id.replace('edit', 'summary');
+        console.log("処理完了:", url);
+    } else {
+        console.log("pg_idが取得できませんでした。");
+    }
+};
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
