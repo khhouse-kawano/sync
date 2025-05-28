@@ -79,7 +79,7 @@ app.post("/", async (req, res) => {
             const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
             const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
             const townValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input', el => el.value);
-            const buildingValue = registerDate.buildingValue.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
+            const buildingValue = registerDate.building.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
             await page.fill('#customer_address_building', buildingValue); // 建物
         }
         
