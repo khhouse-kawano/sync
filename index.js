@@ -112,8 +112,8 @@ app.post("/", async (req, res) => {
         }
 
         // 日付入力
-        if ( registerDate.inquiry_date ) {
-            const formattedDate = registerDate.inquiry_date.replace(/\//g, '-');
+        if ( registerDate.date ) {
+            const formattedDate = registerDate.date.replace(/\//g, '-');
             await page.fill('#calendar_item_0_scheduled_at', formattedDate);
             await page.waitForTimeout(500);  
             await page.fill('#calendar_item_0_start_at', formattedDate);
@@ -144,7 +144,7 @@ app.post("/", async (req, res) => {
             await page.click(`div[data-label="${shopValue}"]`);
         }
 
-        const formattedDate = registerDate.inquiry_date.replace(/\//g, '-');
+        const formattedDate = registerDate.date.replace(/\//g, '-');
         const formattedDateRetry = await page.$eval('#calendar_item_0_start_at', el => el.value);
         const selectedShopRetry = await page.$eval('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', el => el.value);
         if ( formattedDateRetry === "" ){
