@@ -2,7 +2,7 @@ const express = require("express");
 const { chromium } = require("playwright-chromium");
 require('dotenv').config();
 const cors = require('cors');
-const fetch = require("node-fetch");
+const axios = require("axios");
 
 const app = express();
 app.use(cors());
@@ -189,10 +189,8 @@ const runDataRegistration = async (registerData) => {
         };
     
     try {
-        const response = await fetch("https://khg-marketing.info/dashboard/api/changeShop.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(postData)
+        const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
+            headers: { "Content-Type": "application/json" }
         });
 
     const data = await response.json();
