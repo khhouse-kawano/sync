@@ -47,7 +47,6 @@ app.post("/", async (req, res) => {
         if (registerDate.lastName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerDate.lastName)); // 名
         if (registerDate.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerDate.firstKana)); // セイ
         if (registerDate.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerDate.lastKana)); // メイ
-        pg_id = await page.url();
 
 
         if(registerDate.medium) {
@@ -132,6 +131,8 @@ app.post("/", async (req, res) => {
             }
         }
 
+        pg_id = await page.url();
+
         await page.click('//html/body/main/div[1]/div[3]/form/div[4]/div[2]/div[2]/div[1]/button'); // 保存ボタン
         await page.waitForTimeout(1000); // 
     };
@@ -164,10 +165,11 @@ app.post("/", async (req, res) => {
 
     await main(pg_mail, pg_pass);
 
+    const url = pg_id.replace('edit', 'summary');
 
     res.send({
         "message" : "処理が終了",
-        "pg_id" : pg_id
+        "pg_id" : url
     });
 });
 
