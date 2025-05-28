@@ -181,7 +181,7 @@ const runDataRegistration = async (registerData) => {
         console.log("処理完了:", url);
 
         const postData = {
-            inquiry_id: id,
+            inquiry_id: registerData.id,
             demand: 'sync',
             pg_id: url
         };
