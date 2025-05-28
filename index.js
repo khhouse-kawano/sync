@@ -192,6 +192,8 @@ const runDataRegistration = async (registerData) => {
             pg_id: url
         };
     
+    console.log(postData);
+    
     try {
         const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
             headers: { "Content-Type": "application/json" }
