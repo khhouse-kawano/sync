@@ -230,17 +230,33 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
             pg_id: url
         };
     
-    console.log(postData);
+        console.log(postData);
     
-    try {
-        const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
-            headers: { "Content-Type": "application/json" }
-    });
-    console.log("POST完了");
-} catch (error) {
-    console.error("エラー:", error);
-}
+        try {
+            const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("POST完了");
+        } catch (error) {
+            console.error("エラー:", error);
+        }
         } else {
+        const postData = {
+            inquiry_id: registerData.id,
+            demand: 'sync_error',
+        };
+    
+        console.log(postData);
+    
+        try {
+            const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("POST完了");
+        } catch (error) {
+            console.error("エラー:", error);
+        }
+
             console.log("pg_idが取得できませんでした。");
         }
 };
