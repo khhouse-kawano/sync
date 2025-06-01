@@ -20,6 +20,7 @@ app.post("/", async (req, res) => {
             { shop: 'DJH都城店', mail : 'djh-miyakonojo@example.com' },
             { shop: 'DJH霧島店', mail : 'djh-kirishima@example.com' },
             { shop: 'DJH鹿児島北店', mail : 'djh-kagoshima-kita@example.com' },
+            { shop: 'DJH薩摩川内店', mail : 'djh-sendai@example.com' },
             { shop: 'FH霧島店', mail : 'fh-kirishima@example.com' },
             { shop: 'FH鹿児島店', mail : 'fh-kagoshima@example.com' },
             { shop: 'KH出水阿久根店', mail : 'kh-izumi-akune@example.com' },
@@ -256,7 +257,6 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
         } catch (error) {
             console.error("エラー:", error);
         }
-
             console.log("pg_idが取得できませんでした。");
         }
 };
