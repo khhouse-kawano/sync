@@ -37,6 +37,7 @@ app.post("/", async (req, res) => {
             { shop: 'なごみ鹿児島店', mail : 'ngm-kagoshima@example.com' },
             { shop: 'KH加世田店', mail : 'kh-kaseda@example.com' },
             { shop: 'KH八代店', mail : 'kh-yatsushiro@example.com' },
+            { shop: 'KH佐賀店', mail : 'kh-saga@example.com' },
             { shop: 'DJH鹿屋店', mail : 'djh-kanoya@example.com' },
             { shop: 'PG HOUSE宮崎店', mail : 'pgh-miyazaki@example.com' }
         ]
