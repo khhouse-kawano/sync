@@ -59,7 +59,7 @@ app.post("/", async (req, res) => {
 app.post("/api/update", async (req, res) => {
     console.log('start');
     const updateData = req.body;
-    const shopValue = updateData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
+    const shopValue = updateData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : updateData.shop;
     
     const selectedShop = idList.find(item => item.shop === shopValue);
 
