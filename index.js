@@ -9,38 +9,38 @@ app.use(cors());
 app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
+const idList = [
+        { shop: '2L鹿児島店', mail : '2l-kagoshima@example.com' },
+        { shop: 'DJH宮崎店', mail : 'djh-miyazaki@example.com' },
+        { shop: 'DJH都城店', mail : 'djh-miyakonojo@example.com' },
+        { shop: 'DJH霧島店', mail : 'djh-kirishima@example.com' },
+        { shop: 'DJH鹿児島北店', mail : 'djh-kagoshima-kita@example.com' },
+        { shop: 'DJH薩摩川内店', mail : 'djh-sendai@example.com' },
+        { shop: 'FH霧島店', mail : 'fh-kirishima@example.com' },
+        { shop: 'FH鹿児島店', mail : 'fh-kagoshima@example.com' },
+        { shop: 'KH出水阿久根店', mail : 'kh-izumi-akune@example.com' },
+        { shop: 'KH大分店', mail : 'kh-ooita@example.com' },
+        { shop: 'KH姶良店', mail : 'kh-aira@example.com' },
+        { shop: 'KH宮崎店', mail : 'kh-miyazaki@example.com' },
+        { shop: 'KH延岡店', mail : 'kh-nobeoka@example.com' },
+        { shop: 'KH薩摩川内店', mail : 'kh-sendai@example.com' },
+        { shop: 'KH都城店', mail : 'kh-miyakonojo@example.com' },
+        { shop: 'KH霧島店', mail : 'kh-kirishima@example.com' },
+        { shop: 'KH鹿児島店', mail : 'kh-kagoshima@example.com' },
+        { shop: 'KH鹿屋店', mail : 'kh-kanoya@example.com' },
+        { shop: 'なごみ姶良霧島店', mail : 'ngm-aira-kirishima@example.com' },
+        { shop: 'なごみ鹿児島店', mail : 'ngm-kagoshima@example.com' },
+        { shop: 'KH加世田店', mail : 'kh-kaseda@example.com' },
+        { shop: 'KH八代店', mail : 'kh-yatsushiro@example.com' },
+        { shop: 'KH佐賀店', mail : 'kh-saga@example.com' },
+        { shop: 'DJH鹿屋店', mail : 'djh-kanoya@example.com' },
+        { shop: 'PG HOUSE宮崎店', mail : 'pgh-miyazaki@example.com' }
+    ]
+
 app.post("/", async (req, res) => {
     console.log('start');
     const registerData = req.body;
     const shopValue = registerData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
-    
-    const idList = [
-            { shop: '2L鹿児島店', mail : '2l-kagoshima@example.com' },
-            { shop: 'DJH宮崎店', mail : 'djh-miyazaki@example.com' },
-            { shop: 'DJH都城店', mail : 'djh-miyakonojo@example.com' },
-            { shop: 'DJH霧島店', mail : 'djh-kirishima@example.com' },
-            { shop: 'DJH鹿児島北店', mail : 'djh-kagoshima-kita@example.com' },
-            { shop: 'DJH薩摩川内店', mail : 'djh-sendai@example.com' },
-            { shop: 'FH霧島店', mail : 'fh-kirishima@example.com' },
-            { shop: 'FH鹿児島店', mail : 'fh-kagoshima@example.com' },
-            { shop: 'KH出水阿久根店', mail : 'kh-izumi-akune@example.com' },
-            { shop: 'KH大分店', mail : 'kh-ooita@example.com' },
-            { shop: 'KH姶良店', mail : 'kh-aira@example.com' },
-            { shop: 'KH宮崎店', mail : 'kh-miyazaki@example.com' },
-            { shop: 'KH延岡店', mail : 'kh-nobeoka@example.com' },
-            { shop: 'KH薩摩川内店', mail : 'kh-sendai@example.com' },
-            { shop: 'KH都城店', mail : 'kh-miyakonojo@example.com' },
-            { shop: 'KH霧島店', mail : 'kh-kirishima@example.com' },
-            { shop: 'KH鹿児島店', mail : 'kh-kagoshima@example.com' },
-            { shop: 'KH鹿屋店', mail : 'kh-kanoya@example.com' },
-            { shop: 'なごみ姶良霧島店', mail : 'ngm-aira-kirishima@example.com' },
-            { shop: 'なごみ鹿児島店', mail : 'ngm-kagoshima@example.com' },
-            { shop: 'KH加世田店', mail : 'kh-kaseda@example.com' },
-            { shop: 'KH八代店', mail : 'kh-yatsushiro@example.com' },
-            { shop: 'KH佐賀店', mail : 'kh-saga@example.com' },
-            { shop: 'DJH鹿屋店', mail : 'djh-kanoya@example.com' },
-            { shop: 'PG HOUSE宮崎店', mail : 'pgh-miyazaki@example.com' }
-        ]
     
     const selectedShop = idList.find(item => item.shop === shopValue);
 
@@ -53,6 +53,25 @@ app.post("/", async (req, res) => {
     });
     
     process.nextTick(() => runDataRegistration(registerData, shopValue, pg_mail, pg_pass));
+});
+
+
+app.post("/api/update", async (req, res) => {
+    console.log('start');
+    const updateData = req.body;
+    const shopValue = updateData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
+    
+    const selectedShop = idList.find(item => item.shop === shopValue);
+
+    const pg_mail = selectedShop ? selectedShop.mail : null;
+    const pg_pass = '4081Marketing';
+    
+    res.send({
+        "message": "処理を開始しました",
+        "status": "processing"
+    });
+    
+    process.nextTick(() => runDataUpdate(updateData, shopValue, pg_mail, pg_pass));
 });
 
 const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) => {
@@ -260,6 +279,95 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
         }
             console.log("pg_idが取得できませんでした。");
         }
+};
+
+
+const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
+    const browser = await chromium.launch({ args: ['--no-sandbox'] });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const login = async () => {
+        await page.goto('https://pg-cloud.jp/login');
+        await page.fill('#form_email', pg_mail);
+        await page.fill('#form_password', pg_pass);
+        await page.click('//html/body/main/div/form[1]/div/div[2]/input[2]');
+        await page.waitForLoadState('networkidle');
+    };
+
+    const fillForm = async () => {
+        await page.goto(`https://pg-cloud.jp/customers/${updateData.id}/summary`);
+        await page.waitForLoadState('networkidle');
+
+        if (updateData.medium) {
+            const mediumValue = updateData.medium === 'ALLGRIT' ? '公式LINE' : updateData.medium;
+            await page.click('//html/body/main/div/div[2]/div/form/div[1]/div[3]/div[3]/div/div/div[1]');
+            await page.click(`div[data-label="${mediumValue}"]`);
+        }
+
+        if ( updateData.staff && updateData.staff !== '') {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div[2]/div/div[1]');
+            await page.click(`div[data-label="${updateData.staff}"]`);
+        }
+
+        if ( updateData.estate ){
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[2]/div[2]/div/div[1]');
+            await page.click(`div[data-label="${updateData.estate}"]`);
+        }
+
+        if ( updateData.period && updateData.period !== '') {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[1]');
+            await page.click(`div[data-label="${updateData.period}"]`);
+        }
+
+        if ( updateData.importance && updateData.importance !== '') {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]');
+            await page.click(`div[data-label="${updateData.importance}"]`);
+        }
+        const formattedBudget = updateData.budget.replace(',', '').replace('万円', '')
+        if ( formattedBudget !== '' ) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[8]/div[1]/div[2]/input', formattedBudget);
+
+        if ( updateData.rival && updateData.rival !== '') await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', updateData.rival);
+
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[1]');
+        if( updateData.register && updateData.register !== '') await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', updateData.register); //名簿取得日
+        if( updateData.line_group && updateData.line_group !== '') await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', updateData.line_group); //LINEグループ
+        if( updateData.screening && updateData.screening !== '') await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', updateData.screening); //事前審査
+        if( updateData.appointment && updateData.appointment !== '') await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', updateData.appointment); //次回アポ
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[2]/button[1]');
+
+        // 事前アンケート
+        if (updateData.survey && updateData.survey !== ''){
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', updateData.survey);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+        }
+
+        // 商談メモ
+        if ( updateData.note && updateData.note !== ''){
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', updateData.note);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
+        }        
+
+
+        await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
+        await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
+        await page.waitForLoadState('networkidle');
+    };
+
+
+    try {
+        await login();
+        await fillForm();
+    } catch (error) {
+        console.error('データ登録中にエラーが発生', error);
+        return;
+    }
+
+    console.log('処理完了');
+    
+    await browser.close();
 };
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
