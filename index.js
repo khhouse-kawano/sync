@@ -34,8 +34,9 @@ const idList = [
         { shop: 'KH八代店', mail : 'kh-yatsushiro@example.com' },
         { shop: 'KH佐賀店', mail : 'kh-saga@example.com' },
         { shop: 'DJH鹿屋店', mail : 'djh-kanoya@example.com' },
-        { shop: 'PG HOUSE宮崎店', mail : 'pgh-miyazaki@example.com' }
-    ]
+        { shop: 'PG HOUSE宮崎店', mail : 'pgh-miyazaki@example.com' },
+        { shop: 'JH熊本店', mail : 'jh-kumamoto@example.com' },
+        { shop: 'JH八代店', mail : 'jh-yatsushiro@example.com' }    ]
 
 app.post("/", async (req, res) => {
     console.log('start');
