@@ -15,7 +15,8 @@
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
-                    }
+                    },
+                    body: JSON.stringify({ key: "value" }) // 必要ならデータを送信
                 });
 
                 const result = await response.json();
