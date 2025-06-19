@@ -9,6 +9,9 @@ app.use(cors());
 app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
+const today = new Date();
+const formattedDate = today.toDateString();
+
 const idList = [
         { shop: '2L鹿児島店', mail : '2l-kagoshima@example.com' },
         { shop: 'DJH宮崎店', mail : 'djh-miyazaki@example.com' },
@@ -49,7 +52,7 @@ app.post("/", async (req, res) => {
     const pg_pass = '4081Marketing';
     
     res.send({
-        "message": "処理を開始しました",
+        "message": `${formattedDate}_同期処理を開始しました`,
         "status": "processing"
     });
     
@@ -68,7 +71,7 @@ app.post("/api/update", async (req, res) => {
     const pg_pass = '4081Marketing';
     
     res.send({
-        "message": "処理を開始しました",
+        "message": `${formattedDate}_アップデートを開始しました`,
         "status": "processing"
     });
     
@@ -243,8 +246,10 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
     await browser.close();
 
     if (pg_id) {
+        const now = new Date();
+        const nowString = now.toDateString();
         const url = pg_id.replace('edit', 'summary');
-        console.log("処理完了:", url);
+        console.log(`${nowString}_同期処理完了:`, url);
 
         const postData = {
             inquiry_id: registerData.id,
@@ -368,11 +373,12 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         await login();
         await fillForm();
     } catch (error) {
-        console.error('データ登録中にエラーが発生', error);
+        console.error('アップデート中にエラーが発生', error);
         return;
     }
-
-    console.log('処理完了');
+    const now = new Date();
+    const nowString = now.toDateString();
+    console.log(`${nowString}_アップデート完了:`);
     
     await browser.close();
 };
