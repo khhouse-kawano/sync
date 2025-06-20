@@ -250,14 +250,17 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             await page.click(`div[data-label="${mediumValue}"]`);
         }
 
-        if ( updateData.staff ) {
+        if ( updateData.staff && updateData.staff !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.staff}"]`);
         }
 
-        if( updateData.rank ) {
+        if( updateData.rank && updateData.rank !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div');
             await page.click(`div[data-label="${updateData.rank}"]`);
+        } else {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div');
+            await page.click(`div[data-label=""]`);            
         }
 
         if ( updateData.estate ){
@@ -265,41 +268,90 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             await page.click(`div[data-label="${updateData.estate}"]`);
         }
 
-        if ( updateData.period ) {
+        if ( updateData.period && updateData.period !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.period}"]`);
+        } else {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[1]');
+            await page.click(`div[data-label=""]`);
         }
 
-        if ( updateData.importance ) {
+        if ( updateData.importance && updateData.importance !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.importance}"]`);
+        } else {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]');
+            await page.click(`div[data-label=""]`);
         }
+
+
         const formattedBudget = updateData.budget.replace(',', '').replace('万円', '')
-        if ( formattedBudget !== '' ) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[8]/div[1]/div[2]/input', formattedBudget);
+        if ( formattedBudget !== '' ) {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[8]/div[1]/div[2]/input', formattedBudget);
+        } else {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[8]/div[1]/div[2]/input', '');
+        }
 
-        if ( updateData.rival ) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', updateData.rival);
+        if ( updateData.rival && updateData.rival !== '')  {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', updateData.rival);
+        } else {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', '');
+        }
 
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[1]');
-        if( updateData.register ) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', updateData.register); //名簿取得日
-        if( updateData.reserve ) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', updateData.reserve);
-        if( updateData.line_group ) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', updateData.line_group); //LINEグループ
-        if( updateData.screening ) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', updateData.screening); //事前審査
-        if( updateData.appointment ) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', updateData.appointment); //次回アポ
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[1]'); // ステップの入力
+
+        if( updateData.register && updateData.register !== '') {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', updateData.register);
+        } else {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', '');  
+        }
+
+        if( updateData.reserve && updateData.reserve !== '') {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', updateData.reserve);
+        } else {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', '');   
+        }
+
+        if( updateData.line_group && updateData.line_group !== '') {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', updateData.line_group);
+        } else {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', '');
+        }
+
+        if( updateData.screening && updateData.screening !== '') {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', updateData.screening); 
+        } else {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', ''); 
+        }
+        if( updateData.appointment && updateData.appointment !== '') {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', updateData.appointment);
+        } else {
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', '');
+        }
+
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[2]/button[1]');
 
         // 事前アンケート
-        if (updateData.survey ){
+        if (updateData.survey && updateData.survey !== ''){
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', updateData.survey);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+        } else {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', '');
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         }
 
         // 商談メモ
-        if ( updateData.note ){
+        if ( updateData.note && updateData.note !== ''){
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', updateData.note);
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
-        }        
+        } else {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', '');
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
+        }  
 
 
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
