@@ -10,7 +10,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 const today = new Date();
-const formattedDate = today.toDateString();
+const formattedDate = today.toISOString();
 
 const idList = [
         { shop: '2L鹿児島店', mail : '2l-kagoshima@example.com' },
@@ -42,7 +42,7 @@ const idList = [
         { shop: 'JH八代店', mail : 'jh-yatsushiro@example.com' }    ]
 
 app.post("/", async (req, res) => {
-    console.log('start');
+    console.log(`${formattedDate}_同期処理受付開始`);
     const registerData = req.body;
     const shopValue = registerData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
     
@@ -61,7 +61,7 @@ app.post("/", async (req, res) => {
 
 
 app.post("/api/update", async (req, res) => {
-    console.log('start');
+    console.log(`${formattedDate}_アップデート処理受付開始`);
     const updateData = req.body;
     const shopValue = updateData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : updateData.shop;
     
