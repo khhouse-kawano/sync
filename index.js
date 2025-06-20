@@ -166,81 +166,20 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
         pg_id = await page.url();
     };
 
-    // const detailSave = async () => {
-    //     await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/a[1]');
-    //     await page.waitForLoadState('networkidle');
-
-    //     // 店舗入力
-    //     if (shopValue && !shopValue.includes('店舗未設定')) {
-    //         await page.click('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]');
-    //         await page.fill('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', String(shopValue));
-    //         await page.waitForSelector(`div[data-label="${shopValue}"]`);
-    //         await page.click(`div[data-label="${shopValue}"]`);
-    //         const selectedShop = await page.$eval('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', el => el.value);
-    //         if (selectedShop === '') {
-    //             await page.click('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]');
-    //             const shopValue2 = registerData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
-    //             await page.fill('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', String(shopValue2));
-    //             await page.waitForSelector(`div[data-label="${shopValue2}"]`);
-    //             await page.click(`div[data-label="${shopValue2}"]`);
-    //         }
-    //     }
-
-    //     // 日付入力
-    //     if (registerData.date) {
-    //         const formattedDate = registerData.date.replace(/\//g, '-');
-    //         await page.fill('#calendar_item_0_scheduled_at', formattedDate);
-    //         await page.waitForTimeout(500);
-    //         await page.fill('#calendar_item_0_start_at', formattedDate);
-    //         await page.waitForTimeout(500);
-    //         const formattedDateRetry = await page.$eval('#calendar_item_0_start_at', el => el.value);
-    //         const selectedShopRetry = await page.$eval('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', el => el.value);
-    //         if (formattedDateRetry === "") {
-    //             await page.fill('#calendar_item_0_scheduled_at', formattedDate);
-    //             await page.waitForTimeout(500);
-    //         }
-    //         if (selectedShopRetry === "") {
-    //             await page.fill('#calendar_item_0_start_at', formattedDate);
-    //             await page.waitForTimeout(500);
-    //         }
-    //     }
-
-    //     pg_id = await page.url();
-
-    //     await page.click('//html/body/main/div[1]/div[3]/form/div[4]/div[2]/div[2]/div[1]/button');
-    //     await page.waitForTimeout(1000);
-    // };
-
-    // const dataCheck = async () => {
-    //     const selectedShop = await page.$eval('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', el => el.value);
-    //     if (selectedShop === '') {
-    //         await page.click('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]');
-    //         const shopValue = registerData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
-    //         await page.fill('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', String(shopValue));
-    //         await page.waitForSelector(`div[data-label="${shopValue}"]`);
-    //         await page.click(`div[data-label="${shopValue}"]`);
-    //     }
-
-    //     const formattedDate = registerData.date.replace(/\//g, '-');
-    //     const formattedDateRetry = await page.$eval('#calendar_item_0_start_at', el => el.value);
-    //     const selectedShopRetry = await page.$eval('//html/body/main/div[1]/div[3]/form/div[2]/div[1]/div[11]/div[1]/input', el => el.value);
-    //     if (formattedDateRetry === "") {
-    //         await page.fill('#calendar_item_0_scheduled_at', formattedDate);
-    //         await page.waitForTimeout(500);
-    //     }
-    //     if (selectedShopRetry === "") {
-    //         await page.fill('#calendar_item_0_start_at', formattedDate);
-    //         await page.waitForTimeout(500);
-    //     }
-    // };
-
     try {
         await login();
+        console.log('ログイン成功')
+    } catch (err) {
+        console.error("ログイン失敗:", err);
+        return;
+    }
+
+    try {
         await fillForm();
-        // await detailSave();
-        // await dataCheck();
-    } catch (error) {
-        console.error('データ登録中にエラーが発生', error);
+        console.log('入力成功')
+    } catch (err) {
+        console.error("フォーム入力失敗:", err);
+        return;
     }
     
     await browser.close();
@@ -371,11 +310,20 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
 
     try {
         await login();
-        await fillForm();
-    } catch (error) {
-        console.error('アップデート中にエラーが発生', error);
+        console.log('ログイン成功')
+    } catch (err) {
+        console.error("ログイン失敗:", err);
         return;
     }
+
+    try {
+        await fillForm();
+        console.log('入力成功')
+    } catch (err) {
+        console.error("フォーム入力失敗:", err);
+        return;
+    }
+
     const now = new Date();
     const nowString = now.toDateString();
     console.log(`${nowString}_アップデート完了:`);
