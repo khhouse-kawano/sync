@@ -258,9 +258,6 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         if( updateData.rank && updateData.rank !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div');
             await page.click(`div[data-label="${updateData.rank}"]`);
-        } else {
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div');
-            await page.click(`div[data-label=""]`);            
         }
 
         if ( updateData.estate ){
@@ -271,25 +268,17 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         if ( updateData.period && updateData.period !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.period}"]`);
-        } else {
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[1]');
-            await page.click(`div[data-label=""]`);
-        }
+        } 
 
         if ( updateData.importance && updateData.importance !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.importance}"]`);
-        } else if ( updateData.importance && updateData.importance === '') {
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]');
-            await page.click(`div[data-label=""]`);
         }
 
 
         const formattedBudget = updateData.budget.replace(',', '').replace('万円', '')
         if ( formattedBudget !== '' ) {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[8]/div[1]/div[2]/input', formattedBudget);
-        } else {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[8]/div[1]/div[2]/input', '');
         }
 
         if ( updateData.rival && updateData.rival !== '')  {
