@@ -304,7 +304,7 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', updateData.register);
         } else {
             await page.evaluate(() => {
-                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                const el = document.getElementById('calendar_item_0_start_at');
                 if (el) el.remove();
             });
         }
@@ -313,7 +313,7 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', updateData.reserve);
         } else {
             await page.evaluate(() => {
-                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                const el = document.getElementById('calendar_item_2_start_at');
                 if (el) el.remove();
             });
         }
@@ -322,7 +322,7 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', updateData.line_group);
         } else {
             await page.evaluate(() => {
-                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                const el = document.getElementById('calendar_item_3_start_at');
                 if (el) el.remove();
             });
         }
@@ -331,7 +331,7 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', updateData.screening); 
         } else {
             await page.evaluate(() => {
-                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                const el = document.getElementById('calendar_item_5_start_at');
                 if (el) el.remove();
             });
         }
@@ -340,7 +340,7 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', updateData.appointment);
         } else {
             await page.evaluate(() => {
-                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                const el = document.getElementById('calendar_item_8_start_at');
                 if (el) el.remove();
             });
         }
