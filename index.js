@@ -279,7 +279,7 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         if ( updateData.importance && updateData.importance !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.importance}"]`);
-        } else {
+        } else if ( updateData.importance && updateData.importance === '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label=""]`);
         }
@@ -303,30 +303,46 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         if( updateData.register && updateData.register !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', updateData.register);
         } else {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', '');  
+            await page.evaluate(() => {
+                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                if (el) el.remove();
+            });
         }
 
         if( updateData.reserve && updateData.reserve !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', updateData.reserve);
         } else {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', '');   
+            await page.evaluate(() => {
+                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                if (el) el.remove();
+            });
         }
 
         if( updateData.line_group && updateData.line_group !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', updateData.line_group);
         } else {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', '');
+            await page.evaluate(() => {
+                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                if (el) el.remove();
+            });
         }
 
         if( updateData.screening && updateData.screening !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', updateData.screening); 
         } else {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', ''); 
+            await page.evaluate(() => {
+                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                if (el) el.remove();
+            });
         }
+
         if( updateData.appointment && updateData.appointment !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', updateData.appointment);
         } else {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', '');
+            await page.evaluate(() => {
+                const el = document.evaluate('/html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                if (el) el.remove();
+            });
         }
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[2]/button[1]');
@@ -352,7 +368,6 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', '');
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
         }  
-
 
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
         await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
