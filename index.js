@@ -303,63 +303,34 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         if( updateData.register && updateData.register !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', updateData.register);
         } else if( updateData.register && updateData.register === ''){
-            const input = page.locator('#calendar_item_0_start_at');
-await input.click();
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
+            await page.locator('#calendar_item_0_start_at').fill('');
+
         }
 
         if( updateData.reserve && updateData.reserve !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', updateData.reserve);
         } else if( updateData.reserve && updateData.reserve === '') {
-            const input = page.locator('#calendar_item_2_start_at');
-await input.click();
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
+            await page.locator('#calendar_item_2_start_at').fill('');
+
         }
 
         if( updateData.line_group && updateData.line_group !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', updateData.line_group);
         } else if( updateData.line_group && updateData.line_group === '') {
-            const input = page.locator('#calendar_item_3_start_at');
-await input.click();
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
+            await page.locator('#calendar_item_3_start_at').fill('');
+
         }
 
         if( updateData.screening && updateData.screening !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', updateData.screening); 
         } else if( updateData.screening && updateData.screening === ''){
-            const input = page.locator('#calendar_item_5_start_at');
-await input.click();
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
-
+            await page.locator('#calendar_item_5_start_at').fill('');
         }
 
         if( updateData.appointment && updateData.appointment !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', updateData.appointment);
         } else if( updateData.appointment && updateData.appointment === ''){
-            const input = page.locator('#calendar_item_8_start_at');
-await input.click();
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
-await page.keyboard.press('ArrowRight');
-await page.keyboard.press('Delete');
-
+            await page.locator('#calendar_item_8_start_at').fill('');
         }
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[2]/button[1]');
