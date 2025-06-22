@@ -275,9 +275,16 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             await page.click(`div[data-label="${updateData.importance}"]`);
         }
 
+        function toHalfWidthNumber(str) {
+            return str.replace(/[０-９]/g, s =>
+            String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
+            );
+        }
 
-        const formattedBudget = updateData.budget.replace(',', '').replace('万円', '')
-        if ( formattedBudget !== '' ) {
+        const rawBudget = updateData.budget || '';
+        const formattedBudget = toHalfWidthNumber(rawBudget).replace(/,/g, '').replace('万円', '');
+
+        if (formattedBudget !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[8]/div[1]/div[2]/input', formattedBudget);
         }
 
