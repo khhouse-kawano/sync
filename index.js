@@ -101,7 +101,14 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
         if (registerData.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerData.lastKana));
 
         if (registerData.medium) {
-            const mediumValue = registerData.medium === 'ALLGRIT' ? '公式LINE' : registerData.medium;
+            let mediumValue;
+            if ( registerData.medium === 'ALLGRIT' ){
+                mediumValue = '公式LINE';
+            } else if (registerData.medium === 'ホームページ反響' ){
+                mediumValue = 'インターネット検索';
+            } else {
+                mediumValue = registerData.medium;
+            }
             await page.click('//html/body/main/div/div[2]/div/form/div[1]/div[3]/div[3]/div/div/div[1]');
             await page.click(`div[data-label="${mediumValue}"]`);
         }
