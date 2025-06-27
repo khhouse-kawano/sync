@@ -39,7 +39,9 @@ const idList = [
         { shop: 'DJH鹿屋店', mail : 'djh-kanoya@example.com' },
         { shop: 'PG HOUSE宮崎店', mail : 'pgh-miyazaki@example.com' },
         { shop: 'JH熊本店', mail : 'jh-kumamoto@example.com' },
-        { shop: 'JH八代店', mail : 'jh-yatsushiro@example.com' }    ]
+        { shop: 'JH八代店', mail : 'jh-yatsushiro@example.com' },
+        { shop: 'KH熊本店', mail : 'kh-kumamoto@example.com' }    
+    ]
 
 app.post("/", async (req, res) => {
     console.log(`${formattedDate}_同期処理受付開始`);
