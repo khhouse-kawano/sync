@@ -212,7 +212,7 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
         const now = new Date();
         const nowString = now.toDateString();
         const url = pg_id.replace('edit', 'summary');
-        console.log(`${nowString}_同期処理完了:`, url);
+        console.log(`${nowString}_${registerData.shop}_${registerData.firstName}_同期処理完了:`, url);
 
         const postData = {
             inquiry_id: registerData.id,
@@ -413,7 +413,7 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
 
     const now = new Date();
     const nowString = now.toDateString();
-    console.log(`${nowString}_アップデート完了:`);
+    console.log(`${nowString}_${updateData.staff}_アップデート完了:`);
     
     await browser.close();
 };
@@ -598,7 +598,7 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
     if (mhl_id) {
             const now = new Date();
             const nowString = now.toDateString();
-            console.log(`${nowString}_同期処理完了:`, url);
+            console.log(`${nowString}_同期処理完了:`, `${updateData.firstName}様`);
 
             const postData = {
                 inquiry_id: updateData.id,
