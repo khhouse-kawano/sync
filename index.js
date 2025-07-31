@@ -253,9 +253,7 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
             inquiry_id: registerData.id,
             demand: 'sync_error',
         };
-    
-        console.log(postData);
-    
+        
         try {
             const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
                 headers: { "Content-Type": "application/json" }
@@ -688,9 +686,24 @@ const runBeforeSurvey = async (updateData, shopValue, pg_mail, pg_pass) => {
 
     const now = new Date();
     const nowString = now.toDateString();
-    console.log(`${nowString}_${updateData.shopValue}_アップデート完了:`);
+    console.log(`${nowString}_${updateData.shop}_アップデート完了:`);
     
     await browser.close();
+
+    const postData = {
+        sbid: updateData.sbid,
+        demand: 'before_survey',
+        };
+    
+        try {
+            const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
+                headers: { "Content-Type": "application/json" }
+            });
+            console.log("POST完了");
+        } catch (error) {
+            console.error("エラー:", error);
+        }
+    
 };
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
