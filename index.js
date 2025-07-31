@@ -651,7 +651,7 @@ const runBeforeSurvey = async (updateData, shopValue, pg_mail, pg_pass) => {
     };
 
     const fillForm = async () => {
-        await page.goto(`https://pg-cloud.jp/customers/${updateData.id}/summary`);
+        await page.goto(`${updateData.id}`);
         await page.waitForLoadState('networkidle');
 
         // 商談メモ
