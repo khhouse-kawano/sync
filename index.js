@@ -653,7 +653,7 @@ const runBeforeSurvey = async (updateData, shopValue, pg_mail, pg_pass) => {
     const fillForm = async () => {
         await page.goto(`${updateData.id}`);
         await page.waitForLoadState('networkidle');
-
+        await console.log('入力画面到達')
         // 商談メモ
         if ( updateData.note && updateData.note !== ''){
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
