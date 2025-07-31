@@ -670,7 +670,7 @@ const runBeforeSurvey = async (updateData, shopValue, pg_mail, pg_pass) => {
 
     try {
         await login();
-        console.log('ログイン成功')
+        console.log(`ログイン成功${updateData.id}`)
     } catch (err) {
         console.error("ログイン失敗:", err);
         return;
