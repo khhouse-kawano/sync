@@ -652,7 +652,7 @@ const runBeforeSurvey = async (updateData, shopValue, pg_mail, pg_pass) => {
 
     const fillForm = async () => {
         await page.goto(`${updateData.id}`);
-        await page.waitForLoadState('networkidle');
+        await page.waitForSelector('body > main > div.edit.customers-edit.customers-summary.simple-summary__container > div.simple-summary__left > div > form > div.simple-summary > div:nth-child(14) > div > div > div > div.modalInput__btn');
         await console.log('入力画面到達')
         // 商談メモ
         if ( updateData.note && updateData.note !== ''){
