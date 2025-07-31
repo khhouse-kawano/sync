@@ -201,6 +201,15 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[2]/button[1]');
         }
 
+        // 商談メモ
+        if ( registerData.note && registerData.note !== ''){
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
+            const currentNote = await page.inputValue('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea');
+            const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n${updateData.note}\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${currentNote}`;
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', newNote);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
+        }  
+
 
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
         await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
