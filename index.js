@@ -95,6 +95,24 @@ app.post("/api/robo", async (req, res) => {
     process.nextTick(() => runMyHomeRobo(updateData, robo_id, robo_pass));
 });
 
+app.post("/api/before_survey", async (req, res) => {
+    console.log(`${formattedDate}_アップデート処理受付開始`);
+    const updateData = req.body;
+    const shopValue = updateData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : updateData.shop;
+    
+    const selectedShop = idList.find(item => item.shop === shopValue);
+
+    const pg_mail = selectedShop ? selectedShop.mail : null;
+    const pg_pass = '4081Marketing';
+    
+    res.send({
+        "message": `${formattedDate}_アップデートを開始しました`,
+        "status": "processing"
+    });
+    
+    process.nextTick(() => runBeforeSurvey(updateData, shopValue, pg_mail, pg_pass));
+});
+
 const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) => {
     let pg_id;
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
@@ -620,6 +638,60 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
                 console.log("pg_idが取得できませんでした。");
             }
     };
+
+const runBeforeSurvey = async (updateData, shopValue, pg_mail, pg_pass) => {
+    const browser = await chromium.launch({ args: ['--no-sandbox'] });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+
+    const login = async () => {
+        await page.goto('https://pg-cloud.jp/login');
+        await page.fill('#form_email', pg_mail);
+        await page.fill('#form_password', pg_pass);
+        await page.click('//html/body/main/div/form[1]/div/div[2]/input[2]');
+        await page.waitForLoadState('networkidle');
+    };
+
+    const fillForm = async () => {
+        await page.goto(`https://pg-cloud.jp/customers/${updateData.id}/summary`);
+        await page.waitForLoadState('networkidle');
+
+        // 商談メモ
+        if ( updateData.note && updateData.note !== ''){
+            const currentNote = await page.inputValue('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
+            const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n${updateData.note}\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${currentNote}`;
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', newNote);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
+        }  
+
+        await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
+        await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
+        await page.waitForLoadState('networkidle');
+    };
+
+    try {
+        await login();
+        console.log('ログイン成功')
+    } catch (err) {
+        console.error("ログイン失敗:", err);
+        return;
+    }
+
+    try {
+        await fillForm();
+        console.log('入力成功')
+    } catch (err) {
+        console.error("フォーム入力失敗:", err);
+        return;
+    }
+
+    const now = new Date();
+    const nowString = now.toDateString();
+    console.log(`${nowString}_${updateData.shopValue}_アップデート完了:`);
+    
+    await browser.close();
+};
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
