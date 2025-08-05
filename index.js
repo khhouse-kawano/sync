@@ -396,7 +396,7 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
             if ( updateData.request === 'after_survey'){
                 await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
                 const current = await page.inputValue('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea');
-                const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n${updateData.survey}\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${current}`;
+                const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n${updateData.survey}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n${current}`;
                 await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', newNote);
                 await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
             }else{
@@ -673,7 +673,7 @@ const runBeforeSurvey = async (updateData, shopValue, pg_mail, pg_pass) => {
         if ( updateData.note && updateData.note !== ''){
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
             const currentNote = await page.inputValue('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea');
-            const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n${updateData.note}\n\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${currentNote}`;
+            const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n${updateData.note}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n${currentNote}`;
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', newNote);
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
         }  
