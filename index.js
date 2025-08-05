@@ -203,7 +203,7 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
 
 
         // 事前アンケート
-        if (updateData.survey && updateData.survey !== ''){
+        if (registerData.survey && registerData.survey !== ''){
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', updateData.survey);
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
