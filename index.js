@@ -152,11 +152,11 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         }
         console.log('販促媒体の入力完了');
 
-        if ( registerData.staff ) {
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
-            await page.click(`div[data-label="${registerData.staff}"]`);
-        }
-        console.log('担当営業の入力完了');
+        // if ( registerData.staff ) {
+        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
+        //     await page.click(`div[data-label="${registerData.staff}"]`);
+        // }
+        // console.log('担当営業の入力完了');
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
 
@@ -200,32 +200,32 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         console.log('住所の入力完了');
 
-        // // 名簿取得日を入力
-        // if ( registerData.date){
-        //     const formattedDate = registerData.date.replace(/\//g, '-');
-        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]');
-        //     await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', formattedDate);
-        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]');
-        // }
-        // console.log('名簿取得日の入力完了');
+        // 名簿取得日を入力
+        if ( registerData.date){
+            const formattedDate = registerData.date.replace(/\//g, '-');
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]');
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', formattedDate);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]');
+        }
+        console.log('名簿取得日の入力完了');
 
 
-        // // 事前アンケート
-        // if (registerData.survey && registerData.survey !== ''){
-        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
-        //     await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', registerData.survey);
-        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
-        // }
-        // console.log('事前アンケートの入力完了');
+        // 事前アンケート
+        if (registerData.survey && registerData.survey !== ''){
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', registerData.survey);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+        }
+        console.log('事前アンケートの入力完了');
 
-        // // 商談メモ
-        // if ( registerData.note && registerData.note !== ''){
-        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
-        //     const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n来場前アンケート\n${registerData.note}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`;
-        //     await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', newNote);
-        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
-        // }  
-        // console.log('備考欄の入力完了');
+        // 商談メモ
+        if ( registerData.note && registerData.note !== ''){
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
+            const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n来場前アンケート\n${registerData.note}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`;
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', newNote);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
+        }  
+        console.log('備考欄の入力完了');
 
 
 const saveButton = await page.waitForSelector('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button', { state: 'visible' });
