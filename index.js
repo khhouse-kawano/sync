@@ -147,7 +147,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             } else {
                 mediumValue = registerData.medium;
             }
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div');
             await page.click(`div[data-label="${mediumValue}"]`);
         }
         console.log('販促媒体の入力完了');
