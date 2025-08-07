@@ -131,11 +131,11 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         await page.click('//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a');
         await page.waitForLoadState('networkidle');
         console.log('ログイン成功');
-        if (registerData.firstName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.firstName));
-        if (registerData.lastName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerData.lastName));
-        if (registerData.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerData.firstKana));
-        if (registerData.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerData.lastKana));
-        if (registerData.name) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.name));
+        if (registerData.firstName) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.firstName));
+        if (registerData.lastName) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerData.lastName));
+        if (registerData.firstKana) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerData.firstKana));
+        if (registerData.lastKana) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerData.lastKana));
+        if (registerData.name) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.name));
         console.log('名前の入力完了');
 
         if (registerData.medium) {
