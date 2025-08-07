@@ -230,16 +230,11 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
 
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
         await console.log('保存ボタン');
+        await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
+        await page.waitForLoadState('networkidle');
+        await console.log(pg_id);
 
 
-        while (true) {
-            pg_id = await page.url();
-            if (!pg_id.includes('new')) {
-            break;
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 500)); // 0.5秒待機
-        }
     };
 
     try {
