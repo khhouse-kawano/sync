@@ -122,9 +122,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
     const login = async () => {
         await page.goto('https://pg-cloud.jp/login');
         await page.fill('#form_email', pg_mail);
-        console.log(`#form_email${pg_mail}`);
         await page.fill('#form_password', pg_pass);
-        console.log(`#form_password${pg_pass}`);
         await page.click('//html/body/main/div/form[1]/div/div[2]/input[2]');
         await page.waitForLoadState('networkidle');
     };
@@ -138,6 +136,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         if (registerData.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerData.firstKana));
         if (registerData.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerData.lastKana));
         if (registerData.name) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.name));
+        console.log('名前の入力完了');
 
         if (registerData.medium) {
             let mediumValue;
@@ -151,11 +150,13 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
             await page.click(`div[data-label="${mediumValue}"]`);
         }
+        console.log('販促媒体の入力完了');
 
         if ( registerData.staff ) {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${registerData.staff}"]`);
         }
+        console.log('担当営業の入力完了');
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
 
@@ -168,6 +169,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
 
         if (registerData.mail && registerData.mail.includes('@')) await page.fill('#customer_customer_contacts_attributes_0_email', String(registerData.mail));
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+        console.log('連絡先の入力完了');
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]');
         if (registerData.zip) {
@@ -196,6 +198,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         }
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+        console.log('住所の入力完了');
 
         // 名簿取得日を入力
         if ( registerData.date){
@@ -204,6 +207,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', formattedDate);
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]');
         }
+        console.log('名簿取得日の入力完了');
 
 
         // 事前アンケート
@@ -212,6 +216,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', registerData.survey);
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         }
+        console.log('事前アンケートの入力完了');
 
         // 商談メモ
         if ( registerData.note && registerData.note !== ''){
@@ -220,6 +225,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', newNote);
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
         }  
+        console.log('備考欄の入力完了');
 
 
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
