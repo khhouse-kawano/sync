@@ -171,34 +171,34 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         console.log('連絡先の入力完了');
 
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]');
-        if (registerData.zip) {
-            const zipValue = registerData.zip.replaceAll('-', '');
-            if (String(zipValue).length !== 7) return;
-            await page.fill('#customer_postal_code', String(registerData.zip));
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]/a');
-            await page.waitForTimeout(1500);
-        }
-        if (registerData.street)
-            await page.fill('#customer_address_detail', String(registerData.street));
+        // await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]');
+        // if (registerData.zip) {
+        //     const zipValue = registerData.zip.replaceAll('-', '');
+        //     if (String(zipValue).length !== 7) return;
+        //     await page.fill('#customer_postal_code', String(registerData.zip));
+        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]/a');
+        //     await page.waitForTimeout(1500);
+        // }
+        // if (registerData.street)
+        //     await page.fill('#customer_address_detail', String(registerData.street));
 
-        // 住所データのフォーマット
-        const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
-        const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
-        const townValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input', el => el.value);
+        // // 住所データのフォーマット
+        // const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
+        // const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
+        // const townValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input', el => el.value);
 
-        if (registerData.street) {
-            const streetValue = registerData.street.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
-            await page.fill('#customer_address_detail', streetValue);
-        }
+        // if (registerData.street) {
+        //     const streetValue = registerData.street.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
+        //     await page.fill('#customer_address_detail', streetValue);
+        // }
 
-        if (registerData.building) {
-            const buildingValue = registerData.building.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
-            await page.fill('#customer_address_building', buildingValue);
-        }
+        // if (registerData.building) {
+        //     const buildingValue = registerData.building.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
+        //     await page.fill('#customer_address_building', buildingValue);
+        // }
 
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
-        console.log('住所の入力完了');
+        // await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+        // console.log('住所の入力完了');
 
         // 名簿取得日を入力
         if ( registerData.date){
