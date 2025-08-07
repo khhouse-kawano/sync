@@ -135,22 +135,22 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         if (registerData.lastName) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerData.lastName));
         if (registerData.firstKana) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerData.firstKana));
         if (registerData.lastKana) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerData.lastKana));
-        // if (registerData.name) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.name));
-        // console.log('名前の入力完了');
+        if (registerData.name) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.name));
+        console.log('名前の入力完了');
 
-        // if (registerData.medium) {
-        //     let mediumValue;
-        //     if ( registerData.medium === 'ALLGRIT' ){
-        //         mediumValue = '公式LINE';
-        //     } else if (registerData.medium === 'ホームページ反響' ){
-        //         mediumValue = 'インターネット検索';
-        //     } else {
-        //         mediumValue = registerData.medium;
-        //     }
-        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
-        //     await page.click(`div[data-label="${mediumValue}"]`);
-        // }
-        // console.log('販促媒体の入力完了');
+        if (registerData.medium) {
+            let mediumValue;
+            if ( registerData.medium === 'ALLGRIT' ){
+                mediumValue = '公式LINE';
+            } else if (registerData.medium === 'ホームページ反響' ){
+                mediumValue = 'インターネット検索';
+            } else {
+                mediumValue = registerData.medium;
+            }
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
+            await page.click(`div[data-label="${mediumValue}"]`);
+        }
+        console.log('販促媒体の入力完了');
 
         // if ( registerData.staff ) {
         //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
