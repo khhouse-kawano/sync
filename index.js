@@ -145,12 +145,12 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
             } else {
                 mediumValue = registerData.medium;
             }
-            await page.click('//html/body/main/div/div[2]/div/form/div[1]/div[3]/div[3]/div/div/div[1]');
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
             await page.click(`div[data-label="${mediumValue}"]`);
         }
 
         if ( registerData.staff ) {
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div[2]/div/div[1]');
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${registerData.staff}"]`);
         }
 
@@ -197,9 +197,9 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
         // 名簿取得日を入力
         if ( registerData.date){
             const formattedDate = registerData.date.replace(/\//g, '-');
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[1]');
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', formattedDate);
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[2]/button[1]');
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]');
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', formattedDate);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]');
         }
 
 
