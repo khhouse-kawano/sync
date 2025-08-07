@@ -135,7 +135,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         if (registerData.lastName) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerData.lastName));
         if (registerData.firstKana) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerData.firstKana));
         if (registerData.lastKana) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerData.lastKana));
-        if (registerData.name) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.name));
+        // if (registerData.name) await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.name));
         console.log('名前の入力完了');
 
         if (registerData.medium) {
@@ -147,18 +147,21 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             } else {
                 mediumValue = registerData.medium;
             }
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');        await page.waitForTimeout(500); 
+
             await page.click(`div[data-label="${mediumValue}"]`);
         }
         console.log('販促媒体の入力完了');
 
-        // if ( registerData.staff ) {
-        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
-        //     await page.click(`div[data-label="${registerData.staff}"]`);
-        // }
-        // console.log('担当営業の入力完了');
+        if ( registerData.staff ) {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');        await page.waitForTimeout(500); 
+
+            await page.click(`div[data-label="${registerData.staff}"]`);
+        }
+        console.log('担当営業の入力完了');
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
+        await page.waitForTimeout(500); 
 
         // 電話番号のフォーマット
         if (registerData.mobile) {
@@ -170,6 +173,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         if (registerData.mail && registerData.mail.includes('@')) await page.fill('#customer_customer_contacts_attributes_0_email', String(registerData.mail));
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         console.log('連絡先の入力完了');
+        await page.waitForTimeout(500); 
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]');
         if (registerData.zip) {
@@ -181,6 +185,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         }
         if (registerData.street)
             await page.fill('#customer_address_detail', String(registerData.street));
+        await page.waitForTimeout(500); 
 
         // 住所データのフォーマット
         const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
@@ -191,14 +196,17 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             const streetValue = registerData.street.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
             await page.fill('#customer_address_detail', streetValue);
         }
+        await page.waitForTimeout(500); 
 
         if (registerData.building) {
             const buildingValue = registerData.building.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
             await page.fill('#customer_address_building', buildingValue);
         }
+        await page.waitForTimeout(500); 
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         console.log('住所の入力完了');
+        await page.waitForTimeout(500); 
 
         // 名簿取得日を入力
         if ( registerData.date){
@@ -208,6 +216,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]');
         }
         console.log('名簿取得日の入力完了');
+        await page.waitForTimeout(500); 
 
 
         // 事前アンケート
@@ -217,6 +226,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         }
         console.log('事前アンケートの入力完了');
+        await page.waitForTimeout(500); 
 
         // 商談メモ
         if ( registerData.note && registerData.note !== ''){
@@ -226,6 +236,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
         }  
         console.log('備考欄の入力完了');
+        await page.waitForTimeout(500); 
 
 
 const saveButton = await page.waitForSelector('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button', { state: 'visible' });
