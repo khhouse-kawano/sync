@@ -228,7 +228,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         console.log('備考欄の入力完了');
 
 
-        await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button');
         console.log('保存ボタン');
         await page.waitForTimeout(7500); // 詳細編集画面が現れるまで待機
         await page.waitForLoadState('networkidle');
