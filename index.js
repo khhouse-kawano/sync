@@ -77,7 +77,7 @@ app.post("/api/update", async (req, res) => {
         "status": "processing"
     });
     
-    process.nextTick(() => runDataUpdate(updateData, shopValue, pg_mail, pg_pass));
+    process.nextTick(() => runDataUpdate(updateData, pg_mail, pg_pass));
 });
 
 app.post("/api/robo", async (req, res) => {
@@ -113,7 +113,7 @@ app.post("/api/before_survey", async (req, res) => {
     process.nextTick(() => runBeforeSurvey(updateData, shopValue, pg_mail, pg_pass));
 });
 
-const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) => {
+const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
     let pg_id;
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
@@ -220,13 +220,8 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
 
 
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
-        while (true) {
-            pg_id = await page.url();
-            if (!pg_id.includes('new')) {
-            break;
-            }
-            await new Promise(resolve => setTimeout(resolve, 500)); // 0.5秒待機
-        }
+        await page.waitForTimeout(5500); // 詳細編集画面が現れるまで待機
+        await page.waitForLoadState('networkidle');
         while (true) {
             pg_id = await page.url();
             if (!pg_id.includes('new')) {
