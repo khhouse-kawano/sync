@@ -231,9 +231,6 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             break;
             }
 
-            if (Date.now() - startTime > 30000){
-                throw new Error('登録できませんでした');
-            }
             await new Promise(resolve => setTimeout(resolve, 500)); // 0.5秒待機
         }
     };
