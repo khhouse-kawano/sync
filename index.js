@@ -58,7 +58,7 @@ app.post("/", async (req, res) => {
         "status": "processing"
     });
     
-    process.nextTick(() => runDataRegistration(registerData, shopValue, pg_mail, pg_pass));
+    process.nextTick(() => runDataRegistration(registerData, pg_mail, pg_pass));
 });
 
 
