@@ -167,7 +167,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
                 await page.fill('#customer_customer_contacts_attributes_0_mobile_phone_number', String(mobileValue));
         }
 
-        if (registerData.mail && registerData.mail.includes('@')) await page.fill('#customer_customer_contacts_attributes_0_email', String(registerData.mail));
+        // if (registerData.mail && registerData.mail.includes('@')) await page.fill('#customer_customer_contacts_attributes_0_email', String(registerData.mail));
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         console.log('連絡先の入力完了');
 
