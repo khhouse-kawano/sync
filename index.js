@@ -220,7 +220,7 @@ const runDataRegistration = async (registerData, shopValue, pg_mail, pg_pass) =>
 
 
         await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
-        await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
+        await page.waitForTimeout(5500); // 詳細編集画面が現れるまで待機
         await page.waitForLoadState('networkidle');
         pg_id = await page.url();
     };
