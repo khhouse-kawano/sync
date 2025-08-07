@@ -122,7 +122,9 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
     const login = async () => {
         await page.goto('https://pg-cloud.jp/login');
         await page.fill('#form_email', pg_mail);
+        console.log(`#form_email${pg_mail}`);
         await page.fill('#form_password', pg_pass);
+        console.log(`#form_password${pg_pass}`);
         await page.click('//html/body/main/div/form[1]/div/div[2]/input[2]');
         await page.waitForLoadState('networkidle');
     };
@@ -130,6 +132,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
     const fillForm = async () => {
         await page.click('//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a');
         await page.waitForLoadState('networkidle');
+        console.log('ログイン成功');
         if (registerData.firstName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.firstName));
         if (registerData.lastName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]', String(registerData.lastName));
         if (registerData.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerData.firstKana));
@@ -238,7 +241,6 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
 
     try {
         await login();
-        console.log('ログイン成功')
     } catch (err) {
         console.error("ログイン失敗:", err);
         return;
