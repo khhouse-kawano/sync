@@ -60,19 +60,19 @@ app.post("/", async (req, res) => {
 
     let brand;
     if ( shopValue.slice(0,2) === 'KH'){
-        brand === '国分ハウジング';
+        brand = '国分ハウジング';
     } else if ( shopValue.slice(0, 3) === 'DJH'){
-        brand === 'デイジャストハウス';
+        brand = 'デイジャストハウス';
     } else if ( shopValue.slice(0, 3) === 'なごみ'){
-        brand === 'なごみ工務店';
+        brand = 'なごみ工務店';
     } else if ( shopValue.slice(0, 2) === '2L'){
-        brand === 'ニーエルホーム';
+        brand = 'ニーエルホーム';
     } else if ( shopValue.slice(0, 2) === 'FH'){
-        brand === 'フルコミホーム';
+        brand = 'フルコミホーム';
     } else if ( shopValue.slice(0, 2) === 'PG'){
-        brand === 'PG HOUSE';
+        brand = 'PG HOUSE';
     } else if( shopValue.slice(0, 2) === 'JH'){
-        brand === 'ジャスフィーホーム'
+        brand = 'ジャスフィーホーム'
     }
     
     process.nextTick(() => runDataRegistration(registerData, brand, pg_mail, pg_pass));
