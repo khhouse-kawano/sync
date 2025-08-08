@@ -164,7 +164,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
         }
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[1]');
-        await page.click(`div[data-label="${mediumValue}"]`);
+        await page.click(`div[data-label="${brand}"]`);
         try{
             registerObject.brandContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input').getAttribute('data-label');
         } catch(e){
