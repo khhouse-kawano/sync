@@ -198,35 +198,60 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
 
-        console.log(registerObject);
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]');
+
         if (registerData.zip) {
             const zipValue = registerData.zip.replaceAll('-', '');
             if (String(zipValue).length !== 7) return;
             await page.fill('#customer_postal_code', String(registerData.zip));
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]/a');
             await page.waitForTimeout(1500);
+            try{
+                registerObject.zipContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[1]/input').inputValue();
+                registerObject.prefContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/input').getAttribute('data-label');
+                registerObject.cityContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/input').getAttribute('data-label');
+                registerObject.townContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/input').getAttribute('data-label');
+            } catch(e){
+                console.warn('入力値失敗:',e);
+            }
         }
-        if (registerData.street)
+        if (registerData.street){
             await page.fill('#customer_address_detail', String(registerData.street));
+            try{
+                registerObject.streetContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[5]/div/input').inputValue();
+                } catch(e){
+                console.warn('入力値失敗:',e);
+            }
+        }
 
         // 住所データのフォーマット
-        const prefValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input', el => el.value);
-        const cityValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input', el => el.value);
-        const townValue = await page.$eval('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input', el => el.value);
+        const prefValue = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/input').getAttribute('data-label');
+        const cityValue = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/input').getAttribute('data-label');
+        const townValue = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/input').getAttribute('data-label');
 
         if (registerData.street) {
             const streetValue = registerData.street.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
             await page.fill('#customer_address_detail', streetValue);
+            try{
+                registerObject.streetContent = await page.locator('#customer_address_detail').inputValue();
+                } catch(e){
+                console.warn('入力値失敗:',e);
+            }
         }
 
         if (registerData.building) {
             const buildingValue = registerData.building.replaceAll(prefValue, '').replaceAll(cityValue, '').replaceAll(townValue, '');
             await page.fill('#customer_address_building', buildingValue);
+            try{
+                registerObject.buildingContent = await page.locator('#customer_address_building').inputValue();
+                } catch(e){
+                console.warn('入力値失敗:',e);
+            }
         }
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
 
+        consoile.log(registerObject);
         // 名簿取得日を入力
         if ( registerData.date){
             const formattedDate = registerData.date.replace(/\//g, '-');
