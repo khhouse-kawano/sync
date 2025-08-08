@@ -600,8 +600,6 @@ const runDataUpdate = async (updateData, pg_mail, pg_pass) => {
                 } catch(e){
                 console.warn('入力値失敗:',e);
             }
-
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]');
         }
 
         if( updateData.reserve && updateData.reserve !== '') {
