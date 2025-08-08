@@ -328,6 +328,17 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         if(page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span')){
             const error = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span').textContent();
             console.log(error);
+            if (error.includes('同一ブランド間で顧客メールアドレスが重複しています')){
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
+            await page.fill('#customer_customer_contacts_attributes_0_email', '');
+            try{
+                registerObject.mailContent = await page.locator('#customer_customer_contacts_attributes_0_email').inputValue();
+            } catch(e){
+                console.warn('入力値失敗:',e);
+            }
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+            console.log(registerObject);
+            }
         }
         pg_id = await page.url();
         console.log(pg_id);
