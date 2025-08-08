@@ -90,12 +90,12 @@ app.post("/api/update", async (req, res) => {
     console.log(`${formattedDate}_アップデート処理受付開始`);
     const updateData = req.body;
     let shopValue;
-    if( registerData.shop.includes('PGH')){
+    if( updateData.shop.includes('PGH')){
         shopValue = 'PG HOUSE宮崎店';
-    } else if( registerData.shop.includes('2L')){
+    } else if( updateData.shop.includes('2L')){
         shopValue = '2L鹿児島店';
     }  else{
-        shopValue = registerData.shop;
+        shopValue = updateData.shop;
     }
 
     const selectedShop = idList.find(item => item.shop === shopValue);
