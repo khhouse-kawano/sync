@@ -257,26 +257,42 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             const formattedDate = registerData.date.replace(/\//g, '-');
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]');
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', formattedDate);
+            try{
+                registerObject.dateContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input').inputValue();
+                } catch(e){
+                console.warn('入力値失敗:',e);
+            }
+
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]');
         }
 
 
-        // 事前アンケート
+        // 面談後アンケート(memo)
         if (registerData.survey && registerData.survey !== ''){
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', registerData.survey);
+            try{
+                registerObject.memoContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea').inputValue();
+            } catch(e){
+                console.warn('入力値失敗:',e);
+            }
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         }
 
-        // 商談メモ
+        // 商談メモ(備考)
         if ( registerData.note && registerData.note !== ''){
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
             const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n来場前アンケート\n${registerData.note}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`;
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', newNote);
+            try{
+                registerObject.noteContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea').inputValue();
+            } catch(e){
+                console.warn('入力値失敗:',e);
+            }
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
         }  
 
-
+        console.log(registerObject)
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button', { force: true });
         await page.waitForTimeout(8000); // 詳細編集画面が現れるまで待機
         await page.waitForLoadState('networkidle');
