@@ -160,7 +160,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.click(`div[data-label="${mediumValue}"]`);
         }
         try{
-            registerObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/input').inputValue();
+            registerObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/input').getAttribute('data-label');
         } catch(e){
             console.warn('入力値失敗:',e);
         }
@@ -170,12 +170,10 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.click(`div[data-label="${registerData.staff}"]`);
         }
         try{
-            registerObject.staffContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input').inputValue();
+            registerObject.staffContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input').getAttribute('data-label');
         } catch(e){
             console.warn('入力値失敗:',e);
         }
-
-        console.log(registerObject);
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
 
@@ -185,10 +183,22 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             if (mobileValue.charAt(0) === '0')
                 await page.fill('#customer_customer_contacts_attributes_0_mobile_phone_number', String(mobileValue));
         }
+        try{
+            registerObject.mobileContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[1]/div[1]/div[2]/input').inputValue();
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }
 
         if (registerData.mail && registerData.mail.includes('@')) await page.fill('#customer_customer_contacts_attributes_0_email', String(registerData.mail));
+        try{
+            registerObject.mailContent = await page.locator('#customer_customer_contacts_attributes_0_email').inputValue();
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }
+
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
 
+        console.log(registerObject);
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]');
         if (registerData.zip) {
             const zipValue = registerData.zip.replaceAll('-', '');
