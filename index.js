@@ -306,7 +306,8 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         const isVisibleReload = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]').isVisible();
         console.log('ボタン表示状態:', isVisibleReload);
         if(isVisibleReload)await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]');
-
+        await page.waitForTimeout(5000);
+        await page.waitForLoadState('networkidle');
         
     };
 
