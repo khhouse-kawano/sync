@@ -125,7 +125,7 @@ app.post("/api/update", async (req, res) => {
         brand = 'ジャスフィーホーム'
     }
     
-    process.nextTick(() => runDataUpdate(updateData, pg_mail, pg_pass));
+    process.nextTick(() => runDataUpdate(updateData, brand, pg_mail, pg_pass));
 });
 
 app.post("/api/robo", async (req, res) => {
@@ -473,7 +473,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
 };
 
 
-const runDataUpdate = async (updateData, pg_mail, pg_pass) => {
+const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -490,6 +490,14 @@ const runDataUpdate = async (updateData, pg_mail, pg_pass) => {
         const updateObject = {};
         await page.goto(`https://pg-cloud.jp/customers/${updateData.id}/summary`);
         await page.waitForLoadState('networkidle');
+        
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[1]');
+        await page.click(`div[data-label="${brand}"]`);
+        try{
+            updateObject.brandContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input').getAttribute('data-label');
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }    
 
         if (updateData.medium) {
             let mediumValue;
