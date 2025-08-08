@@ -294,9 +294,11 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
 
         console.log(registerObject)
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button', { force: true });
-        await page.waitForURL(url => !url.href.includes('new'), { timeout: 10000 });
         await page.waitForTimeout(8000); // 詳細編集画面が現れるまで待機
         await page.waitForLoadState('networkidle');
+        const idConfirm = await page.locator('/html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/a[2]').getAttribute('href');
+        console.log(idConfirm)
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/a[2]')
 
         pg_id = await page.url();
         console.log(pg_id);
