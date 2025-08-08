@@ -135,6 +135,17 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         if (registerData.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerData.firstKana));
         if (registerData.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerData.lastKana));
         if (registerData.name) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.name));
+        const nameObject = {};
+        try{
+            nameObject.firstNameValue = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]').inputValue();
+            nameObject.lastNameValue = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]').inputValue();
+            nameObject.firstKanaValue = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]').inputValue();
+            nameObject.lastKanaValue = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]').inputValue();
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }
+
+        console.log(nameObject);
 
         if (registerData.medium) {
             let mediumValue;
