@@ -147,24 +147,6 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         }
 
 
-        // if (registerData.medium) {
-        //     let mediumValue;
-        //     if ( registerData.medium === 'ALLGRIT' ){
-        //         mediumValue = '公式LINE';
-        //     } else if (registerData.medium === 'ホームページ反響' ){
-        //         mediumValue = 'インターネット検索';
-        //     } else {
-        //         mediumValue = registerData.medium;
-        //     }
-        //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
-        //     await page.click(`div[data-label="${mediumValue}"]`);
-        // }
-        // try{
-        //     registerObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/input').getAttribute('data-label');
-        // } catch(e){
-        //     console.warn('入力値失敗:',e);
-        // }
-
         if (registerData.medium) {
             let mediumValue;
             if ( registerData.medium === 'ALLGRIT' ){
@@ -174,13 +156,31 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             } else {
                 mediumValue = registerData.medium;
             }
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[15]/div[2]/div/textarea', mediumValue);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
+            await page.click(`div[data-label="${mediumValue}"]`);
         }
         try{
-            registerObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[15]/div[2]/div/textarea').inputValue();
+            registerObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/input').getAttribute('data-label');
         } catch(e){
             console.warn('入力値失敗:',e);
         }
+
+        // if (registerData.medium) {
+        //     let mediumValue;
+        //     if ( registerData.medium === 'ALLGRIT' ){
+        //         mediumValue = '公式LINE';
+        //     } else if (registerData.medium === 'ホームページ反響' ){
+        //         mediumValue = 'インターネット検索';
+        //     } else {
+        //         mediumValue = registerData.medium;
+        //     }
+        //     await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[15]/div[2]/div/textarea', mediumValue);
+        // }
+        // try{
+        //     registerObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[15]/div[2]/div/textarea').inputValue();
+        // } catch(e){
+        //     console.warn('入力値失敗:',e);
+        // }
 
         // if ( registerData.staff ) {
         //     await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
