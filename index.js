@@ -150,6 +150,8 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         const isVisible = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button').isVisible();
         console.log('ボタン表示状態:', isVisible);
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button');
+        await page.waitForTimeout(5000);
+        await page.waitForLoadState('networkidle');
 
         pg_id = await page.url();
         console.log(pg_id);
