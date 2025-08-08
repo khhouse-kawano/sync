@@ -701,8 +701,8 @@ const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]');
         await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
         await page.waitForLoadState('networkidle');
-        if(page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span')){
-            const error = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span').textContent();
+        const error = page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span').textContent();
+        if(errorText){
             console.log(error);
             if (error.includes('担当者')){
                 await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
