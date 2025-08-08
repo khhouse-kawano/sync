@@ -291,16 +291,16 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             }
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
         }  
+        await page.waitForTimeout(1000); // 詳細編集画面が現れるまで待機
 
         console.log(registerObject);
         const isVisible = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button').isVisible();
         console.log('ボタン表示状態:', isVisible);
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button', { force: true });
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button');
         await page.waitForTimeout(8000); // 詳細編集画面が現れるまで待機
         await page.waitForLoadState('networkidle');
         const idConfirm = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/a[2]').getAttribute('href');
         console.log(idConfirm)
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/a[2]')
 
         pg_id = await page.url();
         console.log(pg_id);
