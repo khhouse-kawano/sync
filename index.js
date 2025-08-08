@@ -128,6 +128,8 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
     };
 
     const fillForm = async () => {
+        const registerObject = {};
+
         await page.click('//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a');
         await page.waitForLoadState('networkidle');
         if (registerData.firstName) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.firstName));
@@ -135,17 +137,15 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         if (registerData.firstKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]', String(registerData.firstKana));
         if (registerData.lastKana) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]', String(registerData.lastKana));
         if (registerData.name) await page.fill('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]', String(registerData.name));
-        const nameObject = {};
         try{
-            nameObject.firstNameValue = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]').inputValue();
-            nameObject.lastNameValue = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]').inputValue();
-            nameObject.firstKanaValue = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]').inputValue();
-            nameObject.lastKanaValue = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]').inputValue();
+            registerObject.firstNameContent = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]').inputValue();
+            registerObject.lastNameContent = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]').inputValue();
+            registerObject.firstKanaContent = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]').inputValue();
+            registerObject.lastKanaContent = await page.locator('//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]').inputValue();
         } catch(e){
             console.warn('入力値失敗:',e);
         }
 
-        console.log(nameObject);
 
         if (registerData.medium) {
             let mediumValue;
@@ -159,11 +159,23 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
             await page.click(`div[data-label="${mediumValue}"]`);
         }
+        try{
+            registerObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/input').inputValue();
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }
 
         if ( registerData.staff ) {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${registerData.staff}"]`);
         }
+        try{
+            registerObject.staffContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input').inputValue();
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }
+
+        console.log(registerObject);
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
 
