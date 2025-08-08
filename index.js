@@ -57,8 +57,25 @@ app.post("/", async (req, res) => {
         "message": `${formattedDate}_同期処理を開始しました`,
         "status": "processing"
     });
+
+    let brand;
+    if ( shopValue.slice(0,2) === 'KH'){
+        brand === '国分ハウジング';
+    } else if ( shopValue.slice(0, 3) === 'DJH'){
+        brand === 'デイジャストハウス';
+    } else if ( shopValue.slice(0, 3) === 'なごみ'){
+        brand === 'なごみ工務店';
+    } else if ( shopValue.slice(0, 2) === '2L'){
+        brand === 'ニーエルホーム';
+    } else if ( shopValue.slice(0, 2) === 'FH'){
+        brand === 'フルコミホーム';
+    } else if ( shopValue.slice(0, 2) === 'PG'){
+        brand === 'PG HOUSE';
+    } else if( shopValue.slice(0, 2) === 'JH'){
+        brand === 'ジャスフィーホーム'
+    }
     
-    process.nextTick(() => runDataRegistration(registerData, pg_mail, pg_pass));
+    process.nextTick(() => runDataRegistration(registerData, brand, pg_mail, pg_pass));
 });
 
 
@@ -113,7 +130,7 @@ app.post("/api/before_survey", async (req, res) => {
     process.nextTick(() => runBeforeSurvey(updateData, shopValue, pg_mail, pg_pass));
 });
 
-const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
+const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
     let pg_id;
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
@@ -146,6 +163,13 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             console.warn('入力値失敗:',e);
         }
 
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[1]');
+        await page.click(`div[data-label="${mediumValue}"]`);
+        try{
+            registerObject.brandContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input').getAttribute('data-label');
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }     
 
         if (registerData.medium) {
             let mediumValue;
