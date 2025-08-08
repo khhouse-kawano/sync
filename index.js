@@ -328,18 +328,27 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
         if(page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span')){
             const error = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span').textContent();
             console.log(error);
-            if (error.includes('同一ブランド間で顧客メールアドレスが重複しています')){
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
-            await page.fill('#customer_customer_contacts_attributes_0_email', '');
-            try{
-                registerObject.mailContent = await page.locator('#customer_customer_contacts_attributes_0_email').inputValue();
-            } catch(e){
-                console.warn('入力値失敗:',e);
+            if (error.includes('メールアドレス')){
+                await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
+                await page.fill('#customer_customer_contacts_attributes_0_email', '');
+                try{
+                    registerObject.mailContent = await page.locator('#customer_customer_contacts_attributes_0_email').inputValue();
+                } catch(e){
+                    console.warn('入力値失敗:',e);
+                }
+                await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+                console.log(registerObject);
             }
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
-            console.log(registerObject);
+            if (error.includes('担当者')){
+                await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
+                await page.click('div[data-value=""]');
+                try{
+                    registerObject.staffContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input').getAttribute('data-label');
+                } catch(e){
+                    console.warn('入力値失敗:',e);
+                }
+                console.log(registerObject);
             }
-                    
             const isVisible = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button').isVisible();
             console.log('ボタン表示状態:', isVisible);
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button');
@@ -423,38 +432,76 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
     };
 
     const fillForm = async () => {
+        const updateObject = {};
         await page.goto(`https://pg-cloud.jp/customers/${updateData.id}/summary`);
         await page.waitForLoadState('networkidle');
 
         if (updateData.medium) {
-            const mediumValue = updateData.medium === 'ALLGRIT' ? '公式LINE' : updateData.medium;
-            await page.click('//html/body/main/div/div[2]/div/form/div[1]/div[3]/div[3]/div/div/div[1]');
-            await page.click(`div[data-label="${mediumValue}"]`);
+            let mediumValue;
+            if ( updateData.medium === 'ALLGRIT' ){
+                mediumValue = '公式LINE';
+            } else if (updateData.medium === 'ホームページ反響' ){
+                mediumValue = 'インターネット検索';
+            } else {
+                mediumValue = updateData.medium;
+            }
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[15]/div[2]/div/textarea', mediumValue);
+        }
+        try{
+            updateObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[15]/div[2]/div/textarea').inputValue();
+        } catch(e){
+            console.warn('入力値失敗:',e);
         }
 
-        if ( updateData.staff && updateData.staff !== '') {
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div[2]/div/div[1]');
-            await page.click(`div[data-label="${updateData.staff}"]`);
+
+        if ( updateData.staff ) {
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
+            await page.click(`div[data-value="${updateData.staff}"]`);
+        }
+        try{
+            updateObject.staffContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input').getAttribute('data-label');
+        } catch(e){
+            console.warn('入力値失敗:',e);
         }
 
         if( updateData.rank && updateData.rank !== '') {
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div');
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.rank}"]`);
+        }
+        try{
+            updateObject.rankContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div/input').getAttribute('data-label');
+        } catch(e){
+            console.warn('入力値失敗:',e);
         }
 
         if ( updateData.estate ){
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[2]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.estate}"]`);
         }
+        try{
+            updateObject.estateContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[2]/div[2]/div/input').getAttribute('data-label');
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }
 
         if ( updateData.period && updateData.period !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.period}"]`);
-        } 
+        }
+        try{
+            updateObject.periodContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/input').getAttribute('data-label');
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }
 
         if ( updateData.importance && updateData.importance !== '') {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]');
             await page.click(`div[data-label="${updateData.importance}"]`);
+        }
+        try{
+            updateObject.importanceContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/input').getAttribute('data-label');
+        } catch(e){
+            console.warn('入力値失敗:',e);
         }
 
         function toHalfWidthNumber(str) {
@@ -469,26 +516,45 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         if (formattedBudget !== '') {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[8]/div[1]/div[2]/input', formattedBudget);
         }
+        try{
+            updateObject.budgetContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[8]/div[1]/div[2]/input').inputValue();
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }
 
         if ( updateData.rival && updateData.rival !== '')  {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', updateData.rival);
         } else {
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', '');
         }
+        try{
+            updateObject.rivalContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea').inputValue();
+        } catch(e){
+            console.warn('入力値失敗:',e);
+        }
 
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[1]'); // ステップの入力
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]'); // ステップの入力
 
-        if( updateData.register && updateData.register !== '') {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', updateData.register);
-        } else if( updateData.register === ''){
-            await page.evaluate(() => {
-                const el = document.getElementById('calendar_item_0_start_at');
-                if (el) el.value = '';
-            });
+        // 名簿取得日を入力
+        if ( updateData.register && updateData.register !== ''){
+            const formattedDate = updateData.register.replace(/\//g, '-');
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', formattedDate);
+            try{
+                updateObject.registerContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input').inputValue();
+                } catch(e){
+                console.warn('入力値失敗:',e);
+            }
+
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]');
         }
 
         if( updateData.reserve && updateData.reserve !== '') {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', updateData.reserve);
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', updateData.reserve);
+            try{
+                updateObject.reserveContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[3]/div[2]/input').inputValue();
+                } catch(e){
+                console.warn('入力値失敗:',e);
+            }
         } else if( updateData.reserve === '') {
             await page.evaluate(() => {
                 const el = document.getElementById('calendar_item_2_start_at');
@@ -497,7 +563,12 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         }
 
         if( updateData.line_group && updateData.line_group !== '') {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', updateData.line_group);
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', updateData.line_group);
+            try{
+                updateObject.lineGroupContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[4]/div[2]/input').inputValue();
+                } catch(e){
+                console.warn('入力値失敗:',e);
+            }
         } else if(  updateData.line_group === '') {
             await page.evaluate(() => {
                 const el = document.getElementById('calendar_item_3_start_at');
@@ -506,7 +577,12 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         }
 
         if( updateData.screening && updateData.screening !== '') {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', updateData.screening); 
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', updateData.screening); 
+            try{
+                updateObject.screeningContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[6]/div[2]/input').inputValue();
+                } catch(e){
+                console.warn('入力値失敗:',e);
+            }
         } else if(  updateData.screening === ''){
             await page.evaluate(() => {
                 const el = document.getElementById('calendar_item_5_start_at');
@@ -515,49 +591,73 @@ const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
         }
 
         if( updateData.appointment && updateData.appointment !== '') {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', updateData.appointment);
-        } else if( updateData.appointment === ''){
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', updateData.appointment);
+            try{
+                updateObject.appointmentContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[9]/div[2]/input').inputValue();
+                } catch(e){
+                console.warn('入力値失敗:',e);
+            }        } else if( updateData.appointment === ''){
             await page.evaluate(() => {
                 const el = document.getElementById('calendar_item_8_start_at');
                 if (el) el.value = '';
             });
         }
 
-        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/div/div[2]/div[2]/div[2]/button[1]');
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]');
 
-        // 事前アンケート
+        // 面談後アンケート(memo)
         if (updateData.survey && updateData.survey !== ''){
-            if ( updateData.request === 'after_survey'){
-                await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
-                const current = await page.inputValue('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea');
-                const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n面談後アンケート\n${updateData.survey}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n${current}`;
-                await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', newNote);
-                await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
-            }else{
-                await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
-                await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', updateData.survey);
-                await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
-            }
-        } else {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', '');
+            const current = await page.inputValue('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea');
+            const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n面談後アンケート\n${updateData.survey}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n${current}`;
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', newNote);
+            try{
+                updateObject.memoContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea').inputValue();
+            } catch(e){
+                console.warn('入力値失敗:',e);
+            }
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
         }
 
-        // 商談メモ
+        // 商談メモ(備考)
         if ( updateData.note && updateData.note !== ''){
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', updateData.note);
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
-        } else {
-            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]');
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea', '');
+            try{
+                updateObject.noteContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[1]/textarea').inputValue();
+            } catch(e){
+                console.warn('入力値失敗:',e);
+            }
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]');
         }  
 
-        await page.click('//html/body/main/div/div[2]/div/form/div[3]/div[2]/div/button');
+        console.log(updateObject);
+
+        const isVisible = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]').isVisible();
+        console.log('ボタン表示状態:', isVisible);
+
+        await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]');
         await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
         await page.waitForLoadState('networkidle');
+        if(page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span')){
+            const error = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span').textContent();
+            console.log(error);
+            if (error.includes('担当者')){
+                await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
+                await page.click('div[data-value=""]');
+                try{
+                    updateObject.staffContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input').getAttribute('data-label');
+                } catch(e){
+                    console.warn('入力値失敗:',e);
+                }
+                console.log(updateObject);
+            }
+            const isVisible = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]').isVisible();
+            console.log('ボタン表示状態:', isVisible);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]');
+            await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
+            await page.waitForLoadState('networkidle');
+        }
     };
 
 
