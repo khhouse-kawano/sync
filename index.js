@@ -339,6 +339,12 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
             console.log(registerObject);
             }
+                    
+            const isVisible = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button').isVisible();
+            console.log('ボタン表示状態:', isVisible);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button');
+            await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
+            await page.waitForLoadState('networkidle');
         }
         pg_id = await page.url();
         console.log(pg_id);
