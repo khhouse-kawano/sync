@@ -46,7 +46,14 @@ const idList = [
 app.post("/", async (req, res) => {
     console.log(`${formattedDate}_同期処理受付開始`);
     const registerData = req.body;
-    const shopValue = registerData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : registerData.shop;
+    let shopValue;
+    if( registerData.shop.includes('PGH')){
+        shopValue = 'PG HOUSE宮崎店';
+    } else if( registerData.shop.includes('2L')){
+        shopValue = '2L鹿児島店';
+    }  else{
+        shopValue = registerData.shop;
+    }
     
     const selectedShop = idList.find(item => item.shop === shopValue);
 
