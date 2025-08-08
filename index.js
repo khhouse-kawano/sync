@@ -251,7 +251,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
 
-        consoile.log(registerObject);
+        console.log(registerObject);
         // 名簿取得日を入力
         if ( registerData.date){
             const formattedDate = registerData.date.replace(/\//g, '-');
