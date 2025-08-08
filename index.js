@@ -418,7 +418,7 @@ const runDataRegistration = async (registerData, pg_mail, pg_pass) => {
 };
 
 
-const runDataUpdate = async (updateData, shopValue, pg_mail, pg_pass) => {
+const runDataUpdate = async (updateData, pg_mail, pg_pass) => {
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
     const page = await context.newPage();
