@@ -89,8 +89,15 @@ app.post("/", async (req, res) => {
 app.post("/api/update", async (req, res) => {
     console.log(`${formattedDate}_アップデート処理受付開始`);
     const updateData = req.body;
-    const shopValue = updateData.shop.includes('PGH') ? 'PG HOUSE宮崎店' : updateData.shop;
-    
+    let shopValue;
+    if( registerData.shop.includes('PGH')){
+        shopValue = 'PG HOUSE宮崎店';
+    } else if( registerData.shop.includes('2L')){
+        shopValue = '2L鹿児島店';
+    }  else{
+        shopValue = registerData.shop;
+    }
+
     const selectedShop = idList.find(item => item.shop === shopValue);
 
     const pg_mail = selectedShop ? selectedShop.mail : null;
@@ -100,6 +107,23 @@ app.post("/api/update", async (req, res) => {
         "message": `${formattedDate}_アップデートを開始しました`,
         "status": "processing"
     });
+
+    let brand;
+    if ( shopValue.slice(0,2) === 'KH'){
+        brand = '国分ハウジング';
+    } else if ( shopValue.slice(0, 3) === 'DJH'){
+        brand = 'デイジャストハウス';
+    } else if ( shopValue.slice(0, 3) === 'なごみ'){
+        brand = 'なごみ工務店';
+    } else if ( shopValue.slice(0, 2) === '2L'){
+        brand = 'ニーエルホーム';
+    } else if ( shopValue.slice(0, 2) === 'FH'){
+        brand = 'フルコミホーム';
+    } else if ( shopValue.slice(0, 2) === 'PG'){
+        brand = 'PG HOUSE';
+    } else if( shopValue.slice(0, 2) === 'JH'){
+        brand = 'ジャスフィーホーム'
+    }
     
     process.nextTick(() => runDataUpdate(updateData, pg_mail, pg_pass));
 });
@@ -476,10 +500,11 @@ const runDataUpdate = async (updateData, pg_mail, pg_pass) => {
             } else {
                 mediumValue = updateData.medium;
             }
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[15]/div[2]/div/textarea', mediumValue);
+            await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]');
+            await page.click(`div[data-label="${mediumValue}"]`);
         }
         try{
-            updateObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[15]/div[2]/div/textarea').inputValue();
+            updateObject.mediumContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/input').getAttribute('data-label');
         } catch(e){
             console.warn('入力値失敗:',e);
         }
