@@ -1050,7 +1050,13 @@ const runDataUpdateBeforeInterview = async (updateData, brand, pg_mail, pg_pass)
             updateObject.brandContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input').getAttribute('data-label');
         } catch(e){
             console.warn('入力値失敗:',e);
-        }    
+        }
+        
+        function toHalfWidthNumber(str) {
+            return str.replace(/[０-９]/g, s =>
+            String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
+            );
+        }
 
         const rawBudget = updateData.budget || '';
         const formattedBudget = toHalfWidthNumber(rawBudget).replace(/,/g, '').replace('万円', '');
