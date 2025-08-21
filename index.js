@@ -1051,7 +1051,7 @@ const runDataUpdateBeforeInterview = async (updateData, brand, pg_mail, pg_pass)
         } catch(e){
             console.warn('入力値失敗:',e);
         }
-        
+
         function toHalfWidthNumber(str) {
             return str.replace(/[０-９]/g, s =>
             String.fromCharCode(s.charCodeAt(0) - 0xFEE0)
@@ -1139,12 +1139,12 @@ const runDataUpdateBeforeInterview = async (updateData, brand, pg_mail, pg_pass)
                 await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
                 await page.fill('#customer_customer_contacts_attributes_0_email', '');
                 try{
-                    registerObject.mailContent = await page.locator('#customer_customer_contacts_attributes_0_email').inputValue();
+                    updateObject.mailContent = await page.locator('#customer_customer_contacts_attributes_0_email').inputValue();
                 } catch(e){
                     console.warn('入力値失敗:',e);
                 }
                 await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
-                console.log(registerObject);
+                console.log(updateObject);
             }
             const isVisible = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]').isVisible();
             console.log('ボタン表示状態:', isVisible);
