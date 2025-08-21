@@ -1205,6 +1205,7 @@ const runDataUpdateAfterInterview = async (updateData, brand, pg_mail, pg_pass) 
             const current = await page.inputValue('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea');
             const newNote = `${current}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n面談後アンケート\n${updateData.survey}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n`;
             await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', newNote);
+            console.log(newNote);
             try{
                 updateObject.memoContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea').inputValue();
             } catch(e){
