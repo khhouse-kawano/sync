@@ -129,8 +129,8 @@ app.post("/api/update", async (req, res) => {
         brand = 'ジャスフィーホーム'
     }
     
-    if (registerData.request && registerData.request === 'before_interview'){
-        process.nextTick(() => runDataUpdateBeforeInterview(registerData, brand, pg_mail, pg_pass));
+    if (updateData.request && updateData.request === 'before_interview'){
+        process.nextTick(() => runDataUpdateBeforeInterview(updateData, brand, pg_mail, pg_pass));
     } else {
         process.nextTick(() => runDataUpdate(updateData, brand, pg_mail, pg_pass));
     }
@@ -645,7 +645,7 @@ const runDataRegistrationBeforeInterview = async (registerData, brand, pg_mail, 
             await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]');
             const current = await page.inputValue('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea');
             const newNote = `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n面談前アンケート\n${registerData.survey}\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n${current}`;
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', registerData.survey);
+            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea', newNote);
             try{
                 registerObject.memoContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[1]/textarea').inputValue();
             } catch(e){
