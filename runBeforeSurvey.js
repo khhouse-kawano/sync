@@ -1,3 +1,8 @@
+const { chromium } = require("playwright-chromium");
+require('dotenv').config();
+const cors = require('cors');
+const axios = require("axios");
+
 const runBeforeSurvey = async (updateData, shopValue, pg_mail, pg_pass) => {
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();

@@ -1,3 +1,8 @@
+const { chromium } = require("playwright-chromium");
+require('dotenv').config();
+const cors = require('cors');
+const axios = require("axios");
+
 const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
     let pg_id;
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
