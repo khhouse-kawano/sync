@@ -239,40 +239,25 @@ const runDataRegistrationBeforeInterview = async (registerData, brand, pg_mail, 
     if (pg_id) {
         const now = new Date();
         const nowString = now.toDateString();
-        const url = pg_id.replace('edit', 'summary');
+        const idValue = pg_id.replace('/edit', '').replace('https://pg-cloud.jp/customers/','');
         console.log(`${nowString}_${registerData.shop}_${registerData.firstName}_同期処理完了:`, url);
 
         const postData = {
-            inquiry_id: registerData.id,
-            demand: 'sync',
-            pg_id: url
+            request: 'before_interview_register',
+            name : registerData.name,
+            id: idValue,
+            shop: registerData.shop
         };
     
         console.log(postData);
     
         try {
-            const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
-                headers: { "Content-Type": "application/json" }
-            });
+            const headers = { Authorization: '4081Kokubu', 'Content-Type': 'application/json' };
+            await axios.post("https://khg-marketing.info/survey/api/", postData, { headers });
             console.log("POST完了");
         } catch (error) {
             console.error("エラー:", error);
         }
-        } else {
-        const postData = {
-            inquiry_id: registerData.id,
-            demand: 'sync_error',
-        };
-        
-        try {
-            const response = await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
-                headers: { "Content-Type": "application/json" }
-            });
-            console.log("POST完了");
-        } catch (error) {
-            console.error("エラー:", error);
-        }
-            console.log("pg_idが取得できませんでした。");
         }
 };
 
