@@ -243,6 +243,14 @@ const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
                     console.warn('入力値失敗:',e);
                 }
                 console.log(updateObject);
+            } else if (error.includes('メールアドレス')){
+                try {
+                    await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
+                    await page.fill('#customer_customer_contacts_attributes_0_email', '');
+                    await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
+                } catch(e){
+                    console.warn('入力値失敗:',e);
+                }
             }
             const isVisible = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]').isVisible();
             console.log('ボタン表示状態:', isVisible);
