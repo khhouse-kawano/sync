@@ -141,9 +141,9 @@ const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
         }
 
         if( updateData.reserve && updateData.reserve !== '') {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[3]/div[2]/input', updateData.reserve);
+            await page.fill('#calendar_item_2_start_at', updateData.reserve);
             try{
-                updateObject.reserveContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[3]/div[2]/input').inputValue();
+                updateObject.reserveContent = await page.locator('#calendar_item_2_start_at').inputValue();
                 } catch(e){
                 console.warn('入力値失敗:',e);
             }
@@ -155,9 +155,9 @@ const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
         }
 
         if( updateData.line_group && updateData.line_group !== '') {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[4]/div[2]/input', updateData.line_group);
+            await page.fill('#calendar_item_3_start_at', updateData.line_group);
             try{
-                updateObject.lineGroupContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[4]/div[2]/input').inputValue();
+                updateObject.lineGroupContent = await page.locator('#calendar_item_3_start_at').inputValue();
                 } catch(e){
                 console.warn('入力値失敗:',e);
             }
@@ -169,9 +169,9 @@ const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
         }
 
         if( updateData.screening && updateData.screening !== '') {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[6]/div[2]/input', updateData.screening); 
+            await page.fill('#calendar_item_5_start_at', updateData.screening); 
             try{
-                updateObject.screeningContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[6]/div[2]/input').inputValue();
+                updateObject.screeningContent = await page.locator('#calendar_item_5_start_at').inputValue();
                 } catch(e){
                 console.warn('入力値失敗:',e);
             }
@@ -183,9 +183,9 @@ const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
         }
 
         if( updateData.appointment && updateData.appointment !== '') {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[9]/div[2]/input', updateData.appointment);
+            await page.fill('#calendar_item_8_start_at', updateData.appointment);
             try{
-                updateObject.appointmentContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[9]/div[2]/input').inputValue();
+                updateObject.appointmentContent = await page.locator('#calendar_item_8_start_at').inputValue();
                 } catch(e){
                 console.warn('入力値失敗:',e);
             }        } else if( updateData.appointment === ''){
