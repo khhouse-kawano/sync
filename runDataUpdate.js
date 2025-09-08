@@ -116,16 +116,16 @@ const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
             console.warn('入力値失敗:',e);
         }
 
-        if ( updateData.rival && updateData.rival !== '')  {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', updateData.rival);
-        } else {
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', '');
-        }
-        try{
-            updateObject.rivalContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea').inputValue();
-        } catch(e){
-            console.warn('入力値失敗:',e);
-        }
+        // if ( updateData.rival && updateData.rival !== '')  {
+        //     await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', updateData.rival);
+        // } else {
+        //     await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea', '');
+        // }
+        // try{
+        //     updateObject.rivalContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[13]/div[2]/div[2]/textarea').inputValue();
+        // } catch(e){
+        //     console.warn('入力値失敗:',e);
+        // }
 
         await page.click('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]'); // ステップの入力
 
