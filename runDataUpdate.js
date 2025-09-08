@@ -132,9 +132,9 @@ const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
         // 名簿取得日を入力
         if ( updateData.register && updateData.register !== ''){
             const formattedDate = updateData.register.replace(/\//g, '-');
-            await page.fill('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input', formattedDate);
+            await page.fill('#calendar_item_0_start_at', formattedDate);
             try{
-                updateObject.registerContent = await page.locator('//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input').inputValue();
+                updateObject.registerContent = await page.locator('#calendar_item_0_start_at').inputValue();
                 } catch(e){
                 console.warn('入力値失敗:',e);
             }
