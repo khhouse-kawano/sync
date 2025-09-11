@@ -22,6 +22,7 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
         await page.waitForLoadState('networkidle');
         await page.click('//html/body/main/div[2]/div/div/div/div[2]/div[2]/button/a');
         const staff = [
+            { id: "2687", name: "樋高 啓介" },
             { id: "2309", name: "濵本 明利" },
             { id: "2565", name: "脇田 晃司" },
             { id: "2310", name: "前田 千智" },
