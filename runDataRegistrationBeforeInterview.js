@@ -356,14 +356,14 @@ const runDataRegistrationBeforeInterview = async (
         if (registerData.employment.years) {
           await safeFill(
             "#customer_customer_contacts_attributes_0_years_of_service",
-            registerData.employment.years,
+            registerData.employment.years ? Number(registerData.employment.years.replace('年', '')) : 0,
             "employmentYears"
           );
         }
         if (registerData.employment.income) {
           await safeFill(
             "#customer_customer_contacts_attributes_0_annual_income",
-            registerData.employment.income,
+            registerData.employment.income ? Number(registerData.employment.income.replace('万円', '')) : 0,
             "employmentIncome"
           );
         }
@@ -500,7 +500,7 @@ const runDataRegistrationBeforeInterview = async (
       if (error.includes("担当者")) {
         try {
           await page.click(
-            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]"
+            "#in-charge-user-select"
           );
           await page.click(`div[data-value="${registerData.shop} 管理"]`);
           registerObject.staffContent = await page
@@ -578,7 +578,6 @@ const runDataRegistrationBeforeInterview = async (
       .replace("https://pg-cloud.jp/customers/", "");
     console.log(
       `${nowString}_${registerData.shop}_${registerData.firstName}_同期処理完了:`,
-      url
     );
 
     const postData = {
