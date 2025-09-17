@@ -279,6 +279,15 @@ const runDataRegistrationBeforeInterview = async (
       );
     }
 
+    // 建築予定地
+    if (registerData.area) {
+      await safeFill(
+        "#customer_planned_construction_site",
+        registerData.area,
+        "area"
+      );
+    }
+
     // 問合せのきっかけ
     if (registerData.medium) {
       await safeFill(
@@ -493,7 +502,7 @@ const runDataRegistrationBeforeInterview = async (
           await page.click(
             "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]"
           );
-          await page.click('div[data-value=""]');
+          await page.click(`div[data-value="${registerData.shop} 管理"]`);
           registerObject.staffContent = await page
             .locator(
               "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input"
