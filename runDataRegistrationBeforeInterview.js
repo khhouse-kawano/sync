@@ -87,6 +87,15 @@ const runDataRegistrationBeforeInterview = async (
       "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input"
     );
 
+    if (registerData.staff) {
+      await safeSelect(
+        "#in-charge-user-select",
+        registerData.staff,
+        "staff",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input"
+      );
+    }
+
     try {
       await page.click(
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]"

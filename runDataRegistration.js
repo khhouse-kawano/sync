@@ -122,7 +122,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       await safeSelect(
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]",
         registerData.staff,
-        "medium",
+        "staff",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input"
       );
     }
