@@ -59,31 +59,45 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       }
     };
 
-    await safeFill(
-      "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]",
-      String(registerData.firstName),
-      "firstName"
-    );
-    await safeFill(
-      "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]",
-      String(registerData.lastName),
-      "lastName"
-    );
-    await safeFill(
-      "//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]",
-      String(registerData.firstKana),
-      "firstKana"
-    );
-    await safeFill(
-      "//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]",
-      String(registerData.lastKana),
-      "lastKana"
-    );
-    await safeFill(
-      "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]",
-      String(registerData.name),
-      "name"
-    );
+    if (registerData.firstName) {
+      await safeFill(
+        "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]",
+        String(registerData.firstName),
+        "firstName"
+      );
+    }
+
+    if (registerData.lastName) {
+      await safeFill(
+        "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[2]",
+        String(registerData.lastName),
+        "lastName"
+      );
+    }
+
+    if (registerData.firstKana) {
+      await safeFill(
+        "//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[1]",
+        String(registerData.firstKana),
+        "firstKana"
+      );
+    }
+
+    if (registerData.lastKana) {
+      await safeFill(
+        "//html/body/main/div/div[2]/div/form/div[1]/div[5]/div[1]/div[2]/input[2]",
+        String(registerData.lastKana),
+        "lastKana"
+      );
+    }
+
+    if (registerData.name) {
+      await safeFill(
+        "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]",
+        String(registerData.name),
+        "name"
+      );
+    }
 
     await safeSelect(
       "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[1]",
@@ -92,35 +106,40 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input"
     );
 
-    const mediumValue = registerData.medium
-      .replace("ホームページ反響", "インターネット検索")
-      .replace("ALLGRIT", "公式LINE");
+    if (registerData.medium) {
+      const mediumValue = registerData.medium
+        .replace("ホームページ反響", "インターネット検索")
+        .replace("ALLGRIT", "公式LINE");
+      await safeSelect(
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]",
+        mediumValue,
+        "medium",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/input"
+      );
+    }
 
-    await safeSelect(
-      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]",
-      mediumValue,
-      "medium",
-      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/input"
-    );
-
-    await safeSelect(
-      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]",
-      registerData.staff,
-      "medium",
-      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input"
-    );
+    if (registerData.staff) {
+      await safeSelect(
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]",
+        registerData.staff,
+        "medium",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input"
+      );
+    }
 
     try {
       await page.click(
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]"
       );
-      const mobileValue = registerData.mobile.replace(/=|"| /g, "").trim();
-      if (mobileValue.charAt(0) === "0") {
-        await safeFill(
-          "#customer_customer_contacts_attributes_0_mobile_phone_number",
-          String(mobileValue),
-          "mobile"
-        );
+      if (registerData.mobile) {
+        const mobileValue = registerData.mobile.replace(/=|"| /g, "").trim();
+        if (mobileValue.charAt(0) === "0") {
+          await safeFill(
+            "#customer_customer_contacts_attributes_0_mobile_phone_number",
+            String(mobileValue),
+            "mobile"
+          );
+        }
       }
       if (registerData.mail.includes("@")) {
         await safeFill(
@@ -269,7 +288,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
         await safeFill("#calendar_item_0_start_at", formattedDate, "date");
       }
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[1]/div[1]/div[2]/input"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]"
       );
     } catch (err) {
       const msg = `商談ステップの入力に失敗: ${err}`;
