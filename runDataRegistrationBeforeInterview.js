@@ -574,7 +574,7 @@ const runDataRegistrationBeforeInterview = async (
     const now = new Date();
     const nowString = now.toDateString();
     const idValue = pg_id
-      .replace("/edit", "")
+      .replace("/edit", "").replace("/summary", "")
       .replace("https://pg-cloud.jp/customers/", "");
     console.log(
       `${nowString}_${registerData.shop}_${registerData.firstName}_同期処理完了:`,
