@@ -17,10 +17,10 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
     await page.click("//html/body/main/div/form[1]/div/div[2]/input[2]");
     await page.waitForLoadState("networkidle");
   };
-
+  
+  const errors = [];
   const fillForm = async () => {
     const registerObject = {};
-    const errors = [];
 
     await page.click("//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a");
     await page.waitForLoadState("networkidle");
