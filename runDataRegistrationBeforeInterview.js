@@ -258,9 +258,7 @@ const runDataRegistrationBeforeInterview = async (
       await page.click(
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]"
       );
-      if (registerData.date) {
-        await safeFill("#calendar_item_0_start_at", formattedDate, "date");
-      }
+      await safeFill("#calendar_item_0_start_at", formattedDate, "date");
       await page.click(
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]"
       );
@@ -356,14 +354,18 @@ const runDataRegistrationBeforeInterview = async (
         if (registerData.employment.years) {
           await safeFill(
             "#customer_customer_contacts_attributes_0_years_of_service",
-            registerData.employment.years ? Number(registerData.employment.years.replace('年', '')) : 0,
+            registerData.employment.years
+              ? Number(registerData.employment.years.replace("年", ""))
+              : 0,
             "employmentYears"
           );
         }
         if (registerData.employment.income) {
           await safeFill(
             "#customer_customer_contacts_attributes_0_annual_income",
-            registerData.employment.income ? Number(registerData.employment.income.replace('万円', '')) : 0,
+            registerData.employment.income
+              ? Number(registerData.employment.income.replace("万円", ""))
+              : 0,
             "employmentIncome"
           );
         }
@@ -499,9 +501,7 @@ const runDataRegistrationBeforeInterview = async (
       }
       if (error.includes("担当者")) {
         try {
-          await page.click(
-            "#in-charge-user-select"
-          );
+          await page.click("#in-charge-user-select");
           await page.click(`div[data-value="${registerData.shop} 管理"]`);
           registerObject.staffContent = await page
             .locator(
@@ -574,10 +574,11 @@ const runDataRegistrationBeforeInterview = async (
     const now = new Date();
     const nowString = now.toDateString();
     const idValue = pg_id
-      .replace("/edit", "").replace("/summary", "")
+      .replace("/edit", "")
+      .replace("/summary", "")
       .replace("https://pg-cloud.jp/customers/", "");
     console.log(
-      `${nowString}_${registerData.shop}_${registerData.firstName}_同期処理完了:`,
+      `${nowString}_${registerData.shop}_${registerData.firstName}_同期処理完了:`
     );
 
     const postData = {
