@@ -3,6 +3,8 @@ require('dotenv').config();
 const cors = require('cors');
 const axios = require("axios");
 
+const errors = [];
+
 const runDataUpdate = async (updateData, brand, pg_mail, pg_pass) => {
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();

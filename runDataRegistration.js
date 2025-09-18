@@ -17,7 +17,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
     await page.click("//html/body/main/div/form[1]/div/div[2]/input[2]");
     await page.waitForLoadState("networkidle");
   };
-  
+
   const errors = [];
   const fillForm = async () => {
     const registerObject = {};
@@ -49,6 +49,26 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       try {
         await page.click(clickSelector);
         await page.click(`div[data-label="${value}"]`);
+        registerObject[`${label}Content`] = await page
+          .locator(valueSelector)
+          .getAttribute("data-label");
+      } catch (err) {
+        const msg = `${label}の入力に失敗: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+      }
+    };
+
+    const safeStaffSelect = async (
+      clickSelector,
+      value,
+      label,
+      valueSelector = clickSelector
+    ) => {
+      if (!value) return;
+      try {
+        await page.click(clickSelector);
+        await page.click(`div[data-value="${value}"]`);
         registerObject[`${label}Content`] = await page
           .locator(valueSelector)
           .getAttribute("data-label");
@@ -119,7 +139,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
     }
 
     if (registerData.staff) {
-      await safeSelect(
+      await safeStaffSelect(
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]",
         registerData.staff,
         "staff",
