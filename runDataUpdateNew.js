@@ -303,7 +303,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]",
         updateData.customized_input_01JSE7DKY5RYY3T8T8NVR1AJMN,
         "importance",
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]/input"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/input"
       );
     }
 
@@ -328,10 +328,10 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     }
 
     // 建築動機
-    if (updateData.interest || updateData.opportunity) {
+    if (updateData.customer_desired_order) {
       await safeFill(
         "#customer_house_hunting_motivation",
-        `${String(updateData.interest)},${String(updateData.opportunity)}`,
+        String(updateData.customer_desired_order),
         "interest"
       );
     }
