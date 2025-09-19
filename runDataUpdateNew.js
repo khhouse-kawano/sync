@@ -531,10 +531,6 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       errors.push(msg);
     }
 
-    await page.click(
-      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]"
-    );
-
     // 面談後アンケート(memo)
     if (updateData.customized_input_01J95TC6KEES87F0YXH29AJP7K) {
       try {
