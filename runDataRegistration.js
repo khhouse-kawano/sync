@@ -366,9 +366,15 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       )
       .isVisible();
     console.log("ボタン表示状態:", isVisible);
-    await page.click(
-      "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button"
-    );
+    try {
+      await page.click(
+        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
+      );
+    } catch (err) {
+      const msg = `保存に失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
     await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
     await page.waitForLoadState("networkidle");
     const error = await page
@@ -397,7 +403,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
         await page.click(
           "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]"
         );
-        await page.click('div[data-value=""]');
+        await page.click(`div[data-label="${registerData.shop} 管理"]`);
         try {
           registerObject.staffContent = await page
             .locator(

@@ -64,6 +64,26 @@ const runDataRegistrationBeforeInterview = async (
       }
     };
 
+    const safeStaffSelect = async (
+      clickSelector,
+      value,
+      label,
+      valueSelector = clickSelector
+    ) => {
+      if (!value) return;
+      try {
+        await page.click(clickSelector);
+        await page.click(`div[data-value="${value}"]`);
+        registerObject[`${label}Content`] = await page
+          .locator(valueSelector)
+          .getAttribute("data-label");
+      } catch (err) {
+        const msg = `${label}の入力に失敗: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+      }
+    };
+
     if (registerData.name) {
       await safeFill(
         "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]",
@@ -88,8 +108,8 @@ const runDataRegistrationBeforeInterview = async (
     );
 
     if (registerData.staff) {
-      await safeSelect(
-        "#in-charge-user-select",
+      await safeStaffSelect(
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]",
         registerData.staff,
         "staff",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input"
@@ -272,7 +292,7 @@ const runDataRegistrationBeforeInterview = async (
     if (registerData.interest || registerData.opportunity) {
       await safeFill(
         "#customer_house_hunting_motivation",
-        `${String(registerData.interest)}${String(registerData.opportunity)}`,
+        `${String(registerData.interest)},${String(registerData.opportunity)}`,
         "interest"
       );
     }
@@ -472,9 +492,15 @@ const runDataRegistrationBeforeInterview = async (
       )
       .isVisible();
     console.log("ボタン表示状態:", isVisible);
-    await page.click(
-      "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button"
-    );
+    try {
+      await page.click(
+        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button"
+      );
+    } catch (err) {
+      const msg = `保存ボタンの取得・クリックに失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
     await page.waitForTimeout(4500);
     await page.waitForLoadState("networkidle");
     const error = await page
@@ -502,7 +528,7 @@ const runDataRegistrationBeforeInterview = async (
       if (error.includes("担当者")) {
         try {
           await page.click("#in-charge-user-select");
-          await page.click(`div[data-value="${registerData.shop} 管理"]`);
+          await page.click(`div[data-label="${registerData.shop} 管理"]`);
           registerObject.staffContent = await page
             .locator(
               "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input"
