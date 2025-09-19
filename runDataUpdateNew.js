@@ -492,17 +492,6 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       }
     }
 
-    // ステップの入力
-    try {
-      await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]"
-      );
-    } catch (err) {
-      const msg = `ステップの入力に失敗: ${err}`;
-      console.error(msg);
-      errors.push(msg);
-    }
-
     // 商談ステップを入力
     try {
       await page.click(
