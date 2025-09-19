@@ -293,7 +293,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[1]",
         updateData.customized_input_01JSE7RNV3VK78YC2GYAG0554D,
         "period",
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[1]/input"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/input"
       );
     }
 
@@ -371,7 +371,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_monthly_repayment_amount",
         updateData.monthly_repayment_amount
-          ? Number(updateData.monthly_repayment_amount.replace("万円", ""))
+          ? Number(updateData.monthly_repayment_amount.replace("0000", ""))
           : "",
         "repayment"
       );
