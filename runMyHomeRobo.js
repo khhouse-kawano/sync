@@ -43,6 +43,7 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
 
     const staff = [
       { id: "2687", name: "樋高 啓介" },
+      { id: "2654", name: "德留 百恵" },
       { id: "2309", name: "濵本 明利" },
       { id: "2565", name: "脇田 晃司" },
       { id: "2310", name: "前田 千智" },
