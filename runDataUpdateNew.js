@@ -182,23 +182,23 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         await page.click(selectors.zipSearchBtn);
         await page.waitForTimeout(1500);
 
-        registerObject.zipContent = await safeGetValue(
+        updateObject.zipContent = await safeGetValue(
           selectors.zipContent,
           "zip"
         );
-        registerObject.prefContent = await safeGetValue(
+        updateObject.prefContent = await safeGetValue(
           selectors.prefContent,
           "pref",
           "getAttribute",
           "data-label"
         );
-        registerObject.cityContent = await safeGetValue(
+        updateObject.cityContent = await safeGetValue(
           selectors.cityContent,
           "city",
           "getAttribute",
           "data-label"
         );
-        registerObject.townContent = await safeGetValue(
+        updateObject.townContent = await safeGetValue(
           selectors.townContent,
           "town",
           "getAttribute",
