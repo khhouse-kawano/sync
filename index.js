@@ -74,18 +74,23 @@ app.post("/api/update", async (req, res) => {
   console.log(`${formattedDate}_アップデート処理受付開始`);
   const updateData = req.body;
   let shopValue;
-  if (updateData.shop.includes("PGH")) {
-    shopValue = "PG HOUSE宮崎店";
-  } else if (updateData.shop.includes("2L")) {
-    shopValue = "2L鹿児島店";
-  } else if (updateData.in_charge_store.includes("PGH")) {
-    shopValue = "PG HOUSE宮崎店";
-  } else if (updateData.in_charge_store.includes("2L")) {
-    shopValue = "2L鹿児島店";
-  } else if (updateData.shop) {
-    shopValue = updateData.shop;
-  } else if (updateData.in_charge_store) {
-    shopValue = updateData.in_charge_store;
+  if (updateData.shop) {
+    if (updateData.shop.includes("PGH")) {
+      shopValue = "PG HOUSE宮崎店";
+    } else if (updateData.shop.includes("2L")) {
+      shopValue = "2L鹿児島店";
+    } else {
+      shopValue = updateData.shop;
+    }
+  }
+  if (updateData.in_charge_store) {
+    if (updateData.in_charge_store.includes("PGH")) {
+      shopValue = "PG HOUSE宮崎店";
+    } else if (updateData.in_charge_store.includes("2L")) {
+      shopValue = "2L鹿児島店";
+    } else {
+      shopValue = updateData.in_charge_store;
+    }
   }
 
   const selectedShop = idList.find((item) => item.shop === shopValue);
