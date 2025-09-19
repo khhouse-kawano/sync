@@ -360,7 +360,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_current_rent",
         updateData.current_rent
-          ? Number(updateData.current_rent).replace("万円", "")
+          ? Number(updateData.current_rent.replace("万円", ""))
           : "",
         "rent"
       );
@@ -371,7 +371,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_monthly_repayment_amount",
         updateData.monthly_repayment_amount
-          ? Number(updateData.monthly_repayment_amount).replace("万円", "")
+          ? Number(updateData.monthly_repayment_amount.replace("万円", ""))
           : "",
         "repayment"
       );
@@ -382,7 +382,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_repayment_years",
         updateData.repayment_years
-          ? Number(updateData.repayment_years).replace("年", "")
+          ? Number(updateData.repayment_years.replace("年", ""))
           : "",
         "repayment_years"
       );
@@ -393,7 +393,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_self_budget",
         updateData.self_budget
-          ? Number(updateData.self_budget).replace("0000", "")
+          ? Number(updateData.self_budget.replace("0000", ""))
           : "",
         "self_budget"
       );
@@ -417,7 +417,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         await safeFill(
           "#customer_current_loan_balance",
           updateData.current_loan_balance
-            ? Number(updateData.current_loan_balance).replace("0000", "")
+            ? Number(updateData.current_loan_balance.replace("0000", ""))
             : "",
           "utility_costs"
         );
