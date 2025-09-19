@@ -209,7 +209,7 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
     await page.waitForLoadState("networkidle");
 
     try {
-      await page.click("//html/body/nav/div[1]/div[2]/ul/li[12]/a");
+      await page.click("//html/body/main/div[2]/div/div[1]/div/ul/li[2]/button");
     } catch (err) {
       const msg = `アンケート登録画面遷移に失敗: ${err}`;
       console.error(msg);
