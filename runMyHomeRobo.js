@@ -169,9 +169,9 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
     const targetStaff = staff.find((item) => item.name === updateData.staff);
 
     try {
-      await page.selectOption("#customercreateform-member_id", {
-        value: targetStaff.id,
-      });
+      // await page.selectOption("#customercreateform-member_id", {
+      //   value: targetStaff.id,
+      // });
       await page.fill("#customercreateform-name_sei", updateData.firstName);
       await page.fill("#customercreateform-name_mei", updateData.lastName);
       await page.fill(
@@ -206,6 +206,20 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
       errors.push(msg);
     }
 
+    await page.waitForLoadState("networkidle");
+
+    try{
+      await page.click('//html/body/main/div[2]/div/div[2]/div/div/div[2]/div[2]/a[1]');
+      await page.selectOption("select#customercreateform-member_id", {
+        value: targetStaff.id,
+      });
+      await page.click('//html/body/main/div[2]/div/div/div/div[2]/div/form/div[2]/button');
+    } catch(err){
+      const msg = `担当者登録に失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
+    
     await page.waitForLoadState("networkidle");
 
     try {
