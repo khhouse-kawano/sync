@@ -169,7 +169,7 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
     const targetStaff = staff.find((item) => item.name === updateData.staff);
 
     try {
-      await page.selectOption("select#customercreateform-member_id", {
+      await page.selectOption("#customercreateform-member_id", {
         value: targetStaff.id,
       });
       await page.fill("#customercreateform-name_sei", updateData.firstName);
