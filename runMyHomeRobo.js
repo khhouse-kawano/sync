@@ -210,7 +210,7 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
 
     try{
       await page.click('//html/body/main/div[2]/div/div[2]/div/div/div[2]/div[2]/a[1]');
-      await page.selectOption("select#customercreateform-member_id", {
+      await page.selectOption("select#customer-member_id", {
         value: targetStaff.id,
       });
       await page.click('//html/body/main/div[2]/div/div/div/div[2]/div/form/div[2]/button');
@@ -219,7 +219,7 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
       console.error(msg);
       errors.push(msg);
     }
-    
+
     await page.waitForLoadState("networkidle");
 
     try {
