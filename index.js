@@ -145,8 +145,8 @@ app.post("/api/robo", async (req, res) => {
   console.log(`${formattedDate}_マイホームロボ連携開始`);
   const updateData = req.body;
 
-  const robo_id = "mr10238";
-  const robo_pass = "1pq5wvQj";
+  const robo_id = "shinji.kawano";
+  const robo_pass = "4081kawano";
 
   res.send({
     message: `${formattedDate}_アップデートを開始しました`,
