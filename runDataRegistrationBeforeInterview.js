@@ -130,7 +130,7 @@ const runDataRegistrationBeforeInterview = async (
           );
         }
       }
-      if (registerData.mail.includes("@")) {
+      if (registerData.mail?.includes("@")) {
         await safeFill(
           "#customer_customer_contacts_attributes_0_email",
           String(registerData.mail),
@@ -584,7 +584,7 @@ const runDataRegistrationBeforeInterview = async (
     const mailOptions = {
       from: "error@khg-marketing.info",
       to: "shinji.kawano@kh-group.jp",
-      subject: "【自動送信】エラー発生通知",
+      subject: "【自動送信】アンケート登録中にエラー発生",
       text: `以下のエラーが発生しました:\n\n${errors.join("\n")}`,
     };
 
