@@ -499,27 +499,27 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       );
       await safeFill(
         "#calendar_item_0_start_at",
-        updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99,
+        updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99.replace(/\//g, "-"),
         "date"
       ); //名簿取得日
       await safeFill(
         "#calendar_item_2_start_at",
-        updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7,
+        updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7.replace(/\//g, "-"),
         "date"
       ); //初回来場日
       await safeFill(
         "#calendar_item_3_start_at",
-        updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN,
+        updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN.replace(/\//g, "-"),
         "date"
       ); //LINEグループ作成
       await safeFill(
         "#calendar_item_5_start_at",
-        updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR,
+        updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR.replace(/\//g, "-"),
         "date"
       ); //事前審査
       await safeFill(
         "#calendar_item_8_start_at",
-        updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA,
+        updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA.replace(/\//g, "-"),
         "date"
       ); //次回来場日
       await page.click(
@@ -670,8 +670,8 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     const mailOptions = {
       from: "error@khg-marketing.info",
       to: "shinji.kawano@kh-group.jp",
-      subject: "【自動送信】エラー発生通知",
-      text: `以下のエラーが発生しました:\n\n${errors.join("\n")}`,
+      subject: "【自動送信】データ更新作業中にエラー発生",
+      text: `以下のエラーが発生しました:\nrunDataUpdateNew.js\n\n${errors.join("\n")}`,
     };
 
     try {

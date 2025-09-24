@@ -460,8 +460,8 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
     const mailOptions = {
       from: "error@khg-marketing.info",
       to: "shinji.kawano@kh-group.jp",
-      subject: "【自動送信】エラー発生通知",
-      text: `以下のエラーが発生しました:\n\n${errors.join("\n")}`,
+      subject: "【自動送信】データ登録作業中にエラー発生",
+      text: `以下のエラーが発生しました:\nrunDataRegistration\n\n${errors.join("\n")}`,
     };
 
     try {
