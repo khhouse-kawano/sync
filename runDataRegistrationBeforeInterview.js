@@ -494,14 +494,14 @@ const runDataRegistrationBeforeInterview = async (
     console.log("ボタン表示状態:", isVisible);
     try {
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button"
+        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
       );
     } catch (err) {
-      const msg = `保存ボタンの取得・クリックに失敗: ${err}`;
+      const msg = `保存に失敗: ${err}`;
       console.error(msg);
       errors.push(msg);
     }
-    await page.waitForTimeout(4500);
+    await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
     await page.waitForLoadState("networkidle");
     const error = await page
       .locator("//html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span")
@@ -509,26 +509,28 @@ const runDataRegistrationBeforeInterview = async (
     if (error) {
       console.log(error);
       if (error.includes("メールアドレス")) {
+        await page.click(
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]"
+        );
+        await page.fill("#customer_customer_contacts_attributes_0_email", "");
         try {
-          await page.click(
-            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]"
-          );
-          await page.fill("#customer_customer_contacts_attributes_0_email", "");
           registerObject.mailContent = await page
             .locator("#customer_customer_contacts_attributes_0_email")
             .inputValue();
-          await page.click(
-            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
-          );
         } catch (e) {
-          console.warn("入値失敗:", e);
+          console.warn("入力値失敗:", e);
         }
+        await page.click(
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
+        );
         console.log(registerObject);
       }
       if (error.includes("担当者")) {
+        await page.click(
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]"
+        );
+        await page.click(`div[data-label="${registerData.shop} 管理"]`);
         try {
-          await page.click("#in-charge-user-select");
-          await page.click(`div[data-label="${registerData.shop} 管理"]`);
           registerObject.staffContent = await page
             .locator(
               "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input"
