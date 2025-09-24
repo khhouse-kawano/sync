@@ -500,27 +500,27 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#calendar_item_0_start_at",
         updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99.replace(/\//g, "-"),
-        "date"
+        "registerDate"
       ); //名簿取得日
       await safeFill(
         "#calendar_item_2_start_at",
         updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7.replace(/\//g, "-"),
-        "date"
+        "visitedDate"
       ); //初回来場日
       await safeFill(
         "#calendar_item_3_start_at",
         updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN.replace(/\//g, "-"),
-        "date"
+        "NineDate"
       ); //LINEグループ作成
       await safeFill(
         "#calendar_item_5_start_at",
         updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR.replace(/\//g, "-"),
-        "date"
+        "screeningDate"
       ); //事前審査
       await safeFill(
         "#calendar_item_8_start_at",
         updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA.replace(/\//g, "-"),
-        "date"
+        "nextDate"
       ); //次回来場日
       await page.click(
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]"
