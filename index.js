@@ -12,7 +12,6 @@ const runDataUpdateAfterInterview = require("./runDataUpdateAfterInterview.js");
 const runMyHomeRobo = require("./runMyHomeRobo.js");
 const runBeforeSurvey = require("./runBeforeSurvey.js");
 const runDataUpdateNew = require("./runDataUpdateNew.js");
-const { use } = require("react");
 
 const app = express();
 app.use(cors());
