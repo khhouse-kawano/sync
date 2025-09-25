@@ -25,7 +25,6 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     await page.waitForLoadState("networkidle");
 
     const safeFill = async (selector, value, label) => {
-      if (!value) return;
       try {
         await page.fill(selector, String(value));
         updateObject[`${label}Content`] = await page
