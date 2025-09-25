@@ -388,7 +388,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     if (updateData.repayment_years) {
       await safeFill(
         "#customer_repayment_years",
-        updateData.repayment_years
+        updateData.repayment_years !== '年'
           ? String(Number(updateData.repayment_years.replace("年", "")))
           : "0",
         "repayment_years"
