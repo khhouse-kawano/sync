@@ -1,7 +1,6 @@
 const { chromium } = require("playwright-chromium");
 require("dotenv").config();
-const cors = require("cors");
-const axios = require("axios");
+const errors = [];
 
 const runDataUpdateBeforeInterview = async (
   updateData,
