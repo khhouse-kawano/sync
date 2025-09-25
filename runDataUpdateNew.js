@@ -225,6 +225,12 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       "getAttribute",
       "value"
     );
+    const streetInputValue = await safeGetValue(
+      selectors.streetContent,
+      "street",
+      "getAttribute",
+      "value"
+    );
 
     if (updateData.full_address) {
       const streetValue = updateData.full_address
@@ -232,6 +238,15 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         .replaceAll(cityValue, "")
         .replaceAll(townValue, "");
       await safeFill(selectors.streetInput, streetValue, "street");
+    }
+
+    if (updateData.building) {
+      const buildingValue = updateData.building
+        .replaceAll(prefValue, "")
+        .replaceAll(cityValue, "")
+        .replaceAll(townValue, "")
+        .replaceAll(streetInputValue, "");
+      await safeFill(selectors.buildingInput, buildingValue, "building");
     }
 
     try {
@@ -499,27 +514,42 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       );
       await safeFill(
         "#calendar_item_0_start_at",
-        updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99.replace(/\//g, "-"),
+        updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99.replace(
+          /\//g,
+          "-"
+        ),
         "registerDate"
       ); //名簿取得日
       await safeFill(
         "#calendar_item_2_start_at",
-        updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7.replace(/\//g, "-"),
+        updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7.replace(
+          /\//g,
+          "-"
+        ),
         "visitedDate"
       ); //初回来場日
       await safeFill(
         "#calendar_item_3_start_at",
-        updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN.replace(/\//g, "-"),
+        updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN.replace(
+          /\//g,
+          "-"
+        ),
         "NineDate"
       ); //LINEグループ作成
       await safeFill(
         "#calendar_item_5_start_at",
-        updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR.replace(/\//g, "-"),
+        updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR.replace(
+          /\//g,
+          "-"
+        ),
         "screeningDate"
       ); //事前審査
       await safeFill(
         "#calendar_item_8_start_at",
-        updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA.replace(/\//g, "-"),
+        updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA.replace(
+          /\//g,
+          "-"
+        ),
         "nextDate"
       ); //次回来場日
       await page.click(
@@ -654,7 +684,9 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
 
   const now = new Date();
   const nowString = now.toDateString();
-  console.log(`${nowString}_${updateData.customer_contacts_name}_アップデート完了:`);
+  console.log(
+    `${nowString}_${updateData.customer_contacts_name}_アップデート完了:`
+  );
 
   await browser.close();
 
@@ -671,7 +703,9 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       from: "error@khg-marketing.info",
       to: "shinji.kawano@kh-group.jp",
       subject: "【自動送信】データ更新作業中にエラー発生",
-      text: `以下のエラーが発生しました:\nrunDataUpdateNew.js\n\n${errors.join("\n")}`,
+      text: `以下のエラーが発生しました:\nrunDataUpdateNew.js\n\n${errors.join(
+        "\n"
+      )}`,
     };
 
     try {
