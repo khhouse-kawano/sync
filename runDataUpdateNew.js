@@ -225,12 +225,6 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       "getAttribute",
       "value"
     );
-    const streetInputValue = await safeGetValue(
-      selectors.streetContent,
-      "street",
-      "getAttribute",
-      "value"
-    );
 
     if (updateData.full_address) {
       const streetValue = updateData.full_address
@@ -243,7 +237,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         .replaceAll(prefValue, "")
         .replaceAll(cityValue, "")
         .replaceAll(townValue, "")
-        .replaceAll(streetInputValue, "");
+        .replaceAll(streetValue, "");
       await safeFill(selectors.buildingInput, buildingValue, "building");
     }
 
