@@ -31,7 +31,6 @@ const runDataRegistrationBeforeInterview = async (
     await page.waitForLoadState("networkidle");
 
     const safeFill = async (selector, value, label) => {
-      if (!value) return;
       try {
         await page.fill(selector, String(value));
         registerObject[`${label}Content`] = await page
@@ -148,6 +147,16 @@ const runDataRegistrationBeforeInterview = async (
 
     try {
       await page.click(
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
+      );
+    } catch (err) {
+      const msg = `連絡先の入力に失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
+
+    try {
+      await page.click(
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]"
       );
     } catch (err) {
@@ -240,28 +249,13 @@ const runDataRegistrationBeforeInterview = async (
       "getAttribute",
       "value"
     );
-    const streetValue = await safeGetValue(
-      selectors.streetContent,
-      "street",
-      "getAttribute",
-      "value"
-    );
 
-    if (registerData.street) {
-      const streetValue = registerData.street
+    if (registerData.address) {
+      const streetValue = registerData.address
         .replaceAll(prefValue, "")
         .replaceAll(cityValue, "")
         .replaceAll(townValue, "");
       await safeFill(selectors.streetInput, streetValue, "street");
-    }
-
-    if (registerData.building) {
-      const buildingValue = registerData.building
-        .replaceAll(prefValue, "")
-        .replaceAll(cityValue, "")
-        .replaceAll(townValue, "")
-        .replaceAll(streetValue, "");
-      await safeFill(selectors.buildingInput, buildingValue, "building");
     }
 
     try {
@@ -328,7 +322,7 @@ const runDataRegistrationBeforeInterview = async (
         "#customer_budget",
         registerData.budget
           ? String(registerData.budget).replace("万円", "")
-          : "",
+          : "0",
         "budget"
       );
     }
@@ -347,7 +341,7 @@ const runDataRegistrationBeforeInterview = async (
     if (registerData.rent) {
       await safeFill(
         "#customer_current_rent",
-        registerData.rent ? String(registerData.rent).replace("万円", "") : "",
+        registerData.rent ? String(registerData.rent).replace("万円", "") : "0",
         "rent"
       );
     }
@@ -382,8 +376,8 @@ const runDataRegistrationBeforeInterview = async (
           await safeFill(
             "#customer_customer_contacts_attributes_0_years_of_service",
             registerData.employment.years
-              ? Number(registerData.employment.years.replace("年", ""))
-              : 0,
+              ? registerData.employment.years.replace("年", "")
+              : "0",
             "employmentYears"
           );
         }
@@ -391,8 +385,8 @@ const runDataRegistrationBeforeInterview = async (
           await safeFill(
             "#customer_customer_contacts_attributes_0_annual_income",
             registerData.employment.income
-              ? Number(registerData.employment.income.replace("万円", ""))
-              : 0,
+              ? registerData.employment.income.replace("万円", "")
+              : "0",
             "employmentIncome"
           );
         }
@@ -406,6 +400,7 @@ const runDataRegistrationBeforeInterview = async (
       }
     }
 
+    // 家族情報の入力
     const familyMembers = [
       registerData.family_member_1,
       registerData.family_member_2,
@@ -594,7 +589,7 @@ const runDataRegistrationBeforeInterview = async (
       from: "error@khg-marketing.info",
       to: "shinji.kawano@kh-group.jp",
       subject: "【自動送信】アンケート登録中にエラー発生",
-      text: `以下のエラーが発生しました:\n\n${errors.join("\n")}`,
+      text: `以下のエラーが発生しました:\n\nrunDataRegistrationBeforeInterview\n\n${errors.join("\n")}`,
     };
 
     try {
