@@ -271,7 +271,12 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       "getAttribute",
       "value"
     );
-
+    const streetValue = await safeGetValue(
+      selectors.streetContent,
+      "street",
+      "getAttribute",
+      "value"
+    );
     if (registerData.street) {
       const streetValue = registerData.street
         .replaceAll(prefValue, "")
@@ -284,7 +289,8 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       const buildingValue = registerData.building
         .replaceAll(prefValue, "")
         .replaceAll(cityValue, "")
-        .replaceAll(townValue, "");
+        .replaceAll(townValue, "")
+        .replaceAll(streetValue, "");
       await safeFill(selectors.buildingInput, buildingValue, "building");
     }
 

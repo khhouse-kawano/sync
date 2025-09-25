@@ -240,6 +240,12 @@ const runDataRegistrationBeforeInterview = async (
       "getAttribute",
       "value"
     );
+    const streetValue = await safeGetValue(
+      selectors.streetContent,
+      "street",
+      "getAttribute",
+      "value"
+    );
 
     if (registerData.street) {
       const streetValue = registerData.street
@@ -253,7 +259,8 @@ const runDataRegistrationBeforeInterview = async (
       const buildingValue = registerData.building
         .replaceAll(prefValue, "")
         .replaceAll(cityValue, "")
-        .replaceAll(townValue, "");
+        .replaceAll(townValue, "")
+        .replaceAll(streetValue, "");
       await safeFill(selectors.buildingInput, buildingValue, "building");
     }
 
