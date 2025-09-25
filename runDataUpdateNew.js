@@ -238,9 +238,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         .replaceAll(cityValue, "")
         .replaceAll(townValue, "");
       await safeFill(selectors.streetInput, streetValue, "street");
-    }
 
-    if (updateData.building) {
       const buildingValue = updateData.building
         .replaceAll(prefValue, "")
         .replaceAll(cityValue, "")
@@ -248,6 +246,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         .replaceAll(streetInputValue, "");
       await safeFill(selectors.buildingInput, buildingValue, "building");
     }
+
 
     try {
       await page.click(
