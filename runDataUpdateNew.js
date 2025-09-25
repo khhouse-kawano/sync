@@ -368,7 +368,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "#customer_current_rent",
         updateData.current_rent
           ? Number(updateData.current_rent.replace("万円", ""))
-          : "",
+          : 0,
         "rent"
       );
     }
@@ -379,7 +379,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "#customer_monthly_repayment_amount",
         updateData.monthly_repayment_amount
           ? Number(updateData.monthly_repayment_amount.replace("0000", ""))
-          : "",
+          : 0,
         "repayment"
       );
     }
@@ -390,7 +390,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "#customer_repayment_years",
         updateData.repayment_years
           ? Number(updateData.repayment_years.replace("年", ""))
-          : "",
+          : 0,
         "repayment_years"
       );
     }
@@ -401,7 +401,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "#customer_self_budget",
         updateData.self_budget
           ? Number(updateData.self_budget.replace("0000", ""))
-          : "",
+          : 0,
         "self_budget"
       );
     }
@@ -410,7 +410,9 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     if (updateData.current_utility_costs) {
       await safeFill(
         "#customer_current_utility_costs",
-        Number(updateData.current_utility_costs),
+        Number(updateData.current_utility_costs)
+        ? Number(updateData.current_utility_costs)
+        : 0,
         "utility_costs"
       );
     }
@@ -425,7 +427,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
           "#customer_current_loan_balance",
           updateData.current_loan_balance
             ? Number(updateData.current_loan_balance.replace("0000", ""))
-            : "",
+            : 0,
           "utility_costs"
         );
         await page.click(
