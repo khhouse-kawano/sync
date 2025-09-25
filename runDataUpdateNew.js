@@ -239,7 +239,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         .replaceAll(townValue, "");
       await safeFill(selectors.streetInput, streetValue, "street");
 
-      const buildingValue = updateData.building
+      const buildingValue = updateData.full_address
         .replaceAll(prefValue, "")
         .replaceAll(cityValue, "")
         .replaceAll(townValue, "")
