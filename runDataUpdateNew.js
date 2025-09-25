@@ -654,7 +654,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
 
   const now = new Date();
   const nowString = now.toDateString();
-  console.log(`${nowString}_${updateData.staff}_アップデート完了:`);
+  console.log(`${nowString}_${updateData.customer_contacts_name}_アップデート完了:`);
 
   await browser.close();
 
