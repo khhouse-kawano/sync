@@ -491,10 +491,11 @@ const runDataUpdateBeforeInterview = async (
     console.log(updateObject);
     const isVisible = await page
       .locator(
-        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button"
+        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
       )
       .isVisible();
     console.log("ボタン表示状態:", isVisible);
+
     try {
       await page.click(
         "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
@@ -546,12 +547,12 @@ const runDataUpdateBeforeInterview = async (
       }
       const isVisible = await page
         .locator(
-          "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button"
+          "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
         )
         .isVisible();
       console.log("ボタン表示状態:", isVisible);
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button"
+        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
       );
       await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
       await page.waitForLoadState("networkidle");
