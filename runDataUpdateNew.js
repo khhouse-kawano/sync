@@ -190,19 +190,19 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
           selectors.prefContent,
           "pref",
           "getAttribute",
-          "data-label"
+          "value"
         );
         updateObject.cityContent = await safeGetValue(
           selectors.cityContent,
           "city",
           "getAttribute",
-          "data-label"
+          "value"
         );
         updateObject.townContent = await safeGetValue(
           selectors.townContent,
           "town",
           "getAttribute",
-          "data-label"
+          "value"
         );
       }
     }
@@ -211,19 +211,19 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       selectors.prefContent,
       "pref",
       "getAttribute",
-      "data-label"
+      "value"
     );
     const cityValue = await safeGetValue(
       selectors.cityContent,
       "city",
       "getAttribute",
-      "data-label"
+      "value"
     );
     const townValue = await safeGetValue(
       selectors.townContent,
       "town",
       "getAttribute",
-      "data-label"
+      "value"
     );
 
     if (updateData.full_address) {

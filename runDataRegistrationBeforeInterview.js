@@ -205,19 +205,19 @@ const runDataRegistrationBeforeInterview = async (
           selectors.prefContent,
           "pref",
           "getAttribute",
-          "data-label"
+          "value"
         );
         registerObject.cityContent = await safeGetValue(
           selectors.cityContent,
           "city",
           "getAttribute",
-          "data-label"
+          "value"
         );
         registerObject.townContent = await safeGetValue(
           selectors.townContent,
           "town",
           "getAttribute",
-          "data-label"
+          "value"
         );
       }
     }
@@ -226,19 +226,19 @@ const runDataRegistrationBeforeInterview = async (
       selectors.prefContent,
       "pref",
       "getAttribute",
-      "data-label"
+      "value"
     );
     const cityValue = await safeGetValue(
       selectors.cityContent,
       "city",
       "getAttribute",
-      "data-label"
+      "value"
     );
     const townValue = await safeGetValue(
       selectors.townContent,
       "town",
       "getAttribute",
-      "data-label"
+      "value"
     );
 
     if (registerData.street) {
