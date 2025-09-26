@@ -78,21 +78,21 @@ const runDataUpdateBeforeInterview = async (
       }
     };
 
-    if (updateData.name) {
-      await safeFill(
-        "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]",
-        String(updateData.name),
-        "name"
-      );
-    }
+    // if (updateData.name) {
+    //   await safeFill(
+    //     "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]",
+    //     String(updateData.name),
+    //     "name"
+    //   );
+    // }
 
-    if (updateData.kana) {
-      await safeFill(
-        "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]",
-        String(updateData.kana),
-        "name"
-      );
-    }
+    // if (updateData.kana) {
+    //   await safeFill(
+    //     "//html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]",
+    //     String(updateData.kana),
+    //     "name"
+    //   );
+    // }
 
     await safeSelect(
       "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[1]",
