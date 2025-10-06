@@ -241,13 +241,13 @@ oAuth2Client.setCredentials({
 app.post("/api/add_event", async (req, res) => {
   console.log(`${formattedDate}_カレンダー処理開始`);
   try {
-    const { name, startTime, endTime } = req.body;
+    const { name, startTime, endTime, detail } = req.body;
 
     const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
 
     const event = {
       summary: `${name}様 架電対応`,
-      description: "Dashboardより自動登録",
+      description: detail,
       start: {
         dateTime: startTime,
         timeZone: "Asia/Tokyo",
