@@ -1,6 +1,7 @@
 const express = require("express");
 const { chromium } = require("playwright-chromium");
 require("dotenv").config();
+const {google} = require("googleapis");
 const cors = require("cors");
 const axios = require("axios");
 const idList = require("./idList.js");
@@ -189,7 +190,7 @@ app.get("/open", async (req, res) => {
     demand: "open_myhomerobo_mail",
     id: userId,
     ua: req.headers["user-agent"],
-    ip: req.ip
+    ip: req.ip,
   };
 
   try {
@@ -221,13 +222,58 @@ app.get("/open", async (req, res) => {
     "Content-Type": "image/png",
     "Content-Length": img.length,
     "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-    "Pragma": "no-cache",
-    "Expires": "0",
+    Pragma: "no-cache",
+    Expires: "0",
   });
 
   res.end(img);
 });
 
+const oAuth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+);
 
+oAuth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+});
+
+app.post("/api/add_event", async (req, res) => {
+  console.log(`${formattedDate}_カレンダー処理開始`);
+  try {
+    const { name, startTime, endTime } = req.body;
+
+    const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
+
+    const event = {
+      summary: `${name}様 架電対応`,
+      description: "Dashboardより自動登録",
+      start: {
+        dateTime: startTime,
+        timeZone: "Asia/Tokyo",
+      },
+      end: {
+        dateTime: endTime,
+        timeZone: "Asia/Tokyo",
+      },
+    };
+
+    const response = await calendar.events.insert({
+      calendarId: "primary",
+      resource: event,
+    });
+
+    res.json({
+      message: "イベント作成成功",
+      eventLink: response.data.htmlLink,
+    });
+  } catch (error) {
+    console.error(
+      "Google Calendar API エラー:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({ error: "イベント作成に失敗しました" });
+  }
+});
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
