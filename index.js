@@ -130,9 +130,7 @@ app.post("/api/update", async (req, res) => {
     process.nextTick(() =>
       runDataUpdateAfterInterview(updateData, brand, pg_mail, pg_pass)
     );
-  } else if (
-    updateData.request &&
-    updateData.request === "before_interview_zero"
+  } else if ( updateData.request && updateData.request === "before_interview_zero"
   ) {
     process.nextTick(() =>
       runDataUpdateNew(updateData, brand, pg_mail, pg_pass)

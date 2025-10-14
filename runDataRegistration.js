@@ -277,7 +277,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       "getAttribute",
       "value"
     );
-    
+
     if (registerData.street) {
       const streetValue = registerData.street
         .replaceAll(prefValue, "")
@@ -468,7 +468,9 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       from: "error@khg-marketing.info",
       to: "shinji.kawano@kh-group.jp",
       subject: "【自動送信】データ登録作業中にエラー発生",
-      text: `以下のエラーが発生しました:\nrunDataRegistration\n\n${errors.join("\n")}`,
+      text: `以下のエラーが発生しました:\nrunDataRegistration\n\n${errors.join(
+        "\n"
+      )}`,
     };
 
     try {
@@ -494,7 +496,16 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       pg_id: url,
     };
 
-    console.log(postData);
+    const completeData = {
+      demand: "new_customer",
+      id: url
+        .replace("https://pg-cloud.jp/customers/", "")
+        .replace("/summary", ""),
+      register: registerData.date.replace(/\//g, "-"),
+      shop: registerData.shop,
+      reserved_status: registerData.reserved_status,
+      response_status: registerData.response_status,
+    };
 
     try {
       await axios.post(
@@ -504,7 +515,20 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
           headers: { "Content-Type": "application/json" },
         }
       );
-      console.log("POST完了");
+      console.log("POST完了_inquiry_customer");
+    } catch (error) {
+      console.error("エラー:", error);
+    }
+
+    try {
+      await axios.post(
+        "https://khg-marketing.info/dashboard/api/changeShop.php",
+        completeData,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      console.log("POST完了_customers");
     } catch (error) {
       console.error("エラー:", error);
     }
