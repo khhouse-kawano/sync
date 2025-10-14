@@ -501,7 +501,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       id: url
         .replace("https://pg-cloud.jp/customers/", "")
         .replace("/summary", ""),
-      register: registerData.date.replace(/\//g, "-"),
+      register: registerData.date,
       shop: registerData.shop,
       reserved_status: registerData.reserved_status,
       response_status: registerData.response_status,
