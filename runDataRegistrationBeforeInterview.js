@@ -17,7 +17,7 @@ const runDataRegistrationBeforeInterview = async (
   const page = await context.newPage();
 
   const login = async () => {
-    await page.goto("https://pg-cloud.jp/login");
+    await page.goto("https://pg-cloud.cloud/login");
     await page.fill("#form_email", pg_mail);
     await page.fill("#form_password", pg_pass);
     await page.click("//html/body/main/div/form[1]/div/div[2]/input[2]");
@@ -606,7 +606,7 @@ const runDataRegistrationBeforeInterview = async (
     const idValue = pg_id
       .replace("/edit", "")
       .replace("/summary", "")
-      .replace("https://pg-cloud.jp/customers/", "");
+      .replace("https://pg-cloud.cloud/customers/", "");
     console.log(
       `${nowString}_${registerData.shop}_${registerData.firstName}_同期処理完了:`
     );

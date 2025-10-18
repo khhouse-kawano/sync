@@ -13,7 +13,7 @@ const runDataUpdateBeforeInterview = async (
   const page = await context.newPage();
 
   const login = async () => {
-    await page.goto("https://pg-cloud.jp/login");
+    await page.goto("https://pg-cloud.cloud/login");
     await page.fill("#form_email", pg_mail);
     await page.fill("#form_password", pg_pass);
     await page.click("//html/body/main/div/form[1]/div/div[2]/input[2]");
@@ -22,7 +22,7 @@ const runDataUpdateBeforeInterview = async (
 
   const fillForm = async () => {
     const updateObject = {};
-    await page.goto(`https://pg-cloud.jp/customers/${updateData.id}/summary`);
+    await page.goto(`https://pg-cloud.cloud/customers/${updateData.id}/summary`);
     await page.waitForLoadState("networkidle");
 
     const safeFill = async (selector, value, label) => {

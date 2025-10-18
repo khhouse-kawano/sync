@@ -11,7 +11,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
   const page = await context.newPage();
 
   const login = async () => {
-    await page.goto("https://pg-cloud.jp/login");
+    await page.goto("https://pg-cloud.cloud/login");
     await page.fill("#form_email", pg_mail);
     await page.fill("#form_password", pg_pass);
     await page.click("//html/body/main/div/form[1]/div/div[2]/input[2]");
@@ -499,7 +499,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
     const completeData = {
       demand: "new_customer",
       id: url
-        .replace("https://pg-cloud.jp/customers/", "")
+        .replace("https://pg-cloud.cloud/customers/", "")
         .replace("/summary", ""),
       register: registerData.date,
       shop: registerData.shop,
