@@ -391,7 +391,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     if (updateData.repayment_years) {
       const raw = updateData.repayment_years.replace("年", "").trim();
       const num = Number(raw);
-      const safeValue = Number.isFinite(num) ? stringToCode(num) : "0";
+      const safeValue = Number.isFinite(num) ? String(num) : "0";
       await safeFill("#customer_repayment_years", safeValue, "repayment_years");
     }
 
