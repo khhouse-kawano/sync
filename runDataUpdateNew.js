@@ -21,7 +21,9 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
 
   const fillForm = async () => {
     const updateObject = {};
-    await page.goto(`https://pg-cloud.cloud/customers/${updateData.id}/summary`);
+    await page.goto(
+      `https://pg-cloud.cloud/customers/${updateData.id}/summary`
+    );
     await page.waitForLoadState("networkidle");
 
     const safeFill = async (selector, value, label) => {
@@ -240,7 +242,6 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(selectors.buildingInput, buildingValue, "building");
     }
 
-
     try {
       await page.click(
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
@@ -378,7 +379,9 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_monthly_repayment_amount",
         updateData.monthly_repayment_amount
-          ? String(Number(updateData.monthly_repayment_amount.replace("0000", "")))
+          ? String(
+              Number(updateData.monthly_repayment_amount.replace("0000", ""))
+            )
           : "0",
         "repayment"
       );
@@ -386,13 +389,10 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
 
     // 返済希望年数
     if (updateData.repayment_years) {
-      await safeFill(
-        "#customer_repayment_years",
-        updateData.repayment_years !== '年'
-          ? String(Number(updateData.repayment_years.replace("年", "")))
-          : "0",
-        "repayment_years"
-      );
+      const raw = updateData.repayment_years.replace("年", "").trim();
+      const num = Number(raw);
+      const safeValue = Number.isFinite(num) ? stringToCode(num) : "0";
+      await safeFill("#customer_repayment_years", safeValue, "repayment_years");
     }
 
     // 自己資金
@@ -411,8 +411,8 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_current_utility_costs",
         Number(updateData.current_utility_costs)
-        ? String(Number(updateData.current_utility_costs))
-            : "0",
+          ? String(Number(updateData.current_utility_costs))
+          : "0",
         "utility_costs"
       );
     }
@@ -426,7 +426,9 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         await safeFill(
           "#customer_current_loan_balance",
           updateData.current_loan_balance
-            ? String(Number(updateData.current_loan_balance.replace("0000", "")))
+            ? String(
+                Number(updateData.current_loan_balance.replace("0000", ""))
+              )
             : "0",
           "utility_costs"
         );
@@ -697,9 +699,9 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       from: "error@khg-marketing.info",
       to: "shinji.kawano@kh-group.jp",
       subject: "【自動送信】データ更新作業中にエラー発生",
-      text: `以下のエラーが発生しました:\nrunDataUpdateNew.js\nID:${updateData.id}\n${errors.join(
-        "\n"
-      )}`,
+      text: `以下のエラーが発生しました:\nrunDataUpdateNew.js\nID:${
+        updateData.id
+      }\n${errors.join("\n")}`,
     };
 
     try {
