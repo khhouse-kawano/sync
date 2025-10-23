@@ -35,7 +35,6 @@ const runCallResale = async (updateData, mail, pass) => {
       await page.click(
         "//html/body/div[1]/div[6]/div/div[2]/div/form/div[2]/div[2]/div[8]/div/div[2]/div/p/a"
       );
-      await page.click('#sesshoku');
     } catch (err) {
       const msg = `顧客ページ移動に失敗: ${err}`;
       console.error(msg);
