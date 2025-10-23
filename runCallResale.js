@@ -27,9 +27,9 @@ const runCallResale = async (updateData, mail, pass) => {
 
   const fillForm = async () => {
     try {
-      await page.goto(
-        `https://cloud.ielove.jp/kanricrm/customerdetail/?id=${updateData.id}&groupId=150319`
-      );
+      await page.goto(`https://cloud.ielove.jp/kanricrm/customer/index/?freeword=${updateData.id}&groupId=150319&staff=&customerSearchFlg=1`);
+      await page.waitForLoadState('load');
+      await page.goto(`https://cloud.ielove.jp/kanricrm/customerdetail/?id=${updateData.id}&groupId=150319`);
       await page.waitForLoadState("networkidle");
       await page.click("#sesshoku");
       await page.click(
@@ -42,15 +42,15 @@ const runCallResale = async (updateData, mail, pass) => {
     }
 
     console.log(updateData);
-    const date = updateData.data.date.replace(/\//g, "-");
+    const formattedDate = updateData.data.date.replace(/\//g, "-");
     let hour = "";
     let minute = "";
-    if (updateData.time) {
+    if (updateData.data.time) {
       [hour, minute] = updateData.data.time.split(":");
     }
 
     try {
-      await page.fill("#supportDate", date);
+      await page.fill("#supportDate", formattedDate);
       await page.selectOption("#supportHour", hour);
       await page.selectOption("#supportMinute", minute);
       await page.selectOption("#supportType", updateData.data.method);
