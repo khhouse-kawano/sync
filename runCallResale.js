@@ -71,6 +71,7 @@ const runCallResale = async (updateData, mail, pass) => {
       await page.waitForLoadState('load');
       await page.click('#support_edit_button');
       await page.waitForLoadState('load');
+      await page.waitForSelector('#w2ui-lock', { state: 'detached' });
       await page.click('#detail_button');
       console.log(updateData);
       console.log("応対履歴登録に成功");
