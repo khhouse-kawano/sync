@@ -40,7 +40,8 @@ const runCallResale = async (updateData, mail, pass) => {
       console.error(msg);
       errors.push(msg);
     }
-
+    
+    console.log(updateData);
     const date = updateData.date.replace(/\//g, "-");
     let hour = "";
     let minute = "";
@@ -49,7 +50,6 @@ const runCallResale = async (updateData, mail, pass) => {
     }
 
     try {
-      console.log(updateData);
       await page.fill("#supportDate", date);
       await page.selectOption("#supportHour", hour);
       await page.selectOption("#supportMinute", minute);
