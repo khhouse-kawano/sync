@@ -42,8 +42,8 @@ const runCallResale = async (updateData, mail, pass) => {
     }
 
     const date = updateData.date.split(" ")[0].replace(/\//g, "-");
-    const hour = updateData.date.split(" ")[1].split(":")[0];
-    const minute = updateData.date.split(" ")[1].split(":")[1];
+    const hour = updateData.time.split(":")[0];
+    const minute = updateData.time.split(":")[1];
 
     try {
       await page.fill("#supportDate", date);
