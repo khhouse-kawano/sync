@@ -40,23 +40,23 @@ const runCallResale = async (updateData, mail, pass) => {
       console.error(msg);
       errors.push(msg);
     }
-    
+
     console.log(updateData);
-    const date = updateData.date.replace(/\//g, "-");
+    const date = updateData.data.date.replace(/\//g, "-");
     let hour = "";
     let minute = "";
     if (updateData.time) {
-      [hour, minute] = updateData.time.split(":");
+      [hour, minute] = updateData.data.time.split(":");
     }
 
     try {
       await page.fill("#supportDate", date);
       await page.selectOption("#supportHour", hour);
       await page.selectOption("#supportMinute", minute);
-      await page.selectOption("#supportType", updateData.method);
-      await page.selectOption("#createUserId", updateData.staff);
-      await page.fill("#title", updateData.subject);
-      await page.fill("#note", updateData.note);
+      await page.selectOption("#supportType", updateData.data.method);
+      await page.selectOption("#createUserId", updateData.data.staff);
+      await page.fill("#title", updateData.data.subject);
+      await page.fill("#note", updateData.data.note);
     } catch (err) {
       const msg = `応対履歴入力に失敗: ${err}`;
       console.error(msg);
