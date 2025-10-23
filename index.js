@@ -274,4 +274,21 @@ app.post("/api/add_event", async (req, res) => {
   }
 });
 
+app.post("/api/resale_ielove", async (req, res) => {
+  console.log(`${formattedDate}_いえラブのアップデート処理受付開始`);
+
+  const updateData = req.body;
+  const mail = "shinji.kawano@kh-group.jp";
+  const pass = "4081kokubukun";
+
+  res.send({
+    message: `${formattedDate}_いえラブのアップデートを開始しました`,
+    status: "processing",
+  });
+
+  process.nextTick(() =>
+    runCallResale(updateData, mail, pass)
+  );
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
