@@ -455,7 +455,8 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
             "employmentType",
             "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[1]/div[1]/div[2]/div/input"
           );
-        } //　雇用形態
+        }
+        //　雇用形態
         await safeFill(
           "#customer_customer_contacts_attributes_0_employer_name",
           updateData.customer_contacts_employer_name,
@@ -482,17 +483,21 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
             "employmentYears"
           );
         } //　勤続年数
+
+        //　年収
         if (updateData.customer_contacts_annual_income) {
+          const raw = updateData.customer_contacts_annual_income
+            .replace("万円", "")
+            .trim();
+          const num = Number(raw);
+          const safeValue = Number.isFinite(num) ? String(num) : "0";
           await safeFill(
             "#customer_customer_contacts_attributes_0_annual_income",
-            updateData.customer_contacts_annual_income
-              ? Number(
-                  updateData.customer_contacts_annual_income.replace("万円", "")
-                )
-              : 0,
+            safeValue,
             "employmentIncome"
           );
-        } //　年収
+        }
+
         await page.click(
           "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
         );
