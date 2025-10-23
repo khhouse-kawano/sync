@@ -41,9 +41,12 @@ const runCallResale = async (updateData, mail, pass) => {
       errors.push(msg);
     }
 
-    const date = updateData.date.split(" ")[0].replace(/\//g, "-");
-    const hour = updateData.time.split(":")[0];
-    const minute = updateData.time.split(":")[1];
+    const date = updateData.date.replace(/\//g, "-");
+    let hour = "";
+    let minute = "";
+    if (updateData.time) {
+      [hour, minute] = updateData.time.split(":");
+    }
 
     try {
       console.log(updateData);
