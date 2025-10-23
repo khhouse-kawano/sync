@@ -42,7 +42,7 @@ const runCallResale = async (updateData, mail, pass) => {
     }
 
     console.log(updateData);
-    const formattedDate = updateData.data.date.replace(/\//g, "-");
+    const formattedDate = updateData.data.date.replace(/-/g, "/");
     let hour = "";
     let minute = "";
     if (updateData.data.time) {
@@ -50,13 +50,17 @@ const runCallResale = async (updateData, mail, pass) => {
     }
 
     try {
-      await page.fill("#supportDate", formattedDate);
+      await page.waitForLoadState('load');
+      await page.click("#supportDate");
+      await page.click(`[data-day="${formattedDate}"]`);
       await page.selectOption("#supportHour", hour);
       await page.selectOption("#supportMinute", minute);
       await page.selectOption("#supportType", updateData.data.method);
       await page.selectOption("#createUserId", updateData.data.staff);
-      await page.fill("#title", updateData.data.subject);
-      await page.fill("#note", updateData.data.note);
+      await page.click('#Yes');
+      await page.waitForLoadState('load');
+      // await page.fill("#title", updateData.data.subject);
+      await page.fill("//html/body/div[13]/div[2]/form/table/tbody/tr[4]/td/textarea", updateData.data.note);
     } catch (err) {
       const msg = `応対履歴入力に失敗: ${err}`;
       console.error(msg);
@@ -64,7 +68,10 @@ const runCallResale = async (updateData, mail, pass) => {
     }
 
     try {
-      await page.click("//html/body/div[13]/div[2]/form/div/a");
+      await page.waitForLoadState('load');
+      await page.click('#support_edit_button');
+      await page.waitForLoadState('load');
+      await page.click('#detail_button');
       console.log(updateData);
       console.log("応対履歴登録に成功");
     } catch (err) {
