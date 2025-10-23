@@ -30,7 +30,7 @@ const runCallResale = async (updateData, mail, pass) => {
       await page.goto(`https://cloud.ielove.jp/kanricrm/customer/index/?freeword=${updateData.id}&groupId=150319&staff=&customerSearchFlg=1`);
       await page.waitForLoadState('load');
       await page.goto(`https://cloud.ielove.jp/kanricrm/customerdetail/?id=${updateData.id}&groupId=150319`);
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await page.click("#sesshoku");
       await page.click(
         "//html/body/div[1]/div[6]/div/div[2]/div/form/div[2]/div[2]/div[8]/div/div[2]/div/p/a"
