@@ -28,10 +28,11 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
 
     const safeFill = async (selector, value, label) => {
       try {
-        await page.fill(selector, String(value));
-        updateObject[`${label}Content`] = await page
-          .locator(selector)
-          .inputValue();
+        const locator = page.locator(selector);
+        await locator.waitFor({ state: "visible", timeout: 10000 });
+        await locator.click();
+        await locator.fill(String(value));
+        updateObject[`${label}Content`] = await locator.inputValue();
       } catch (err) {
         const msg = `${label}の入力に失敗: ${err}`;
         console.error(msg);
@@ -47,11 +48,16 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     ) => {
       if (!value) return;
       try {
-        await page.click(clickSelector);
-        await page.click(`div[data-label="${value}"]`);
-        updateObject[`${label}Content`] = await page
-          .locator(valueSelector)
-          .getAttribute("data-label");
+        const clickLocator = page.locator(clickSelector);
+        await clickLocator.waitFor({ state: "visible", timeout: 10000 });
+        await clickLocator.click();
+
+        const optionLocator = page.locator(`div[data-label="${value}"]`);
+        await optionLocator.waitFor({ state: "visible", timeout: 10000 });
+        await optionLocator.click();
+        const valueLocator = page.locator(valueSelector);
+        updateObject[`${label}Content`] =
+          (await valueLocator.getAttribute("data-label")) ?? "";
       } catch (err) {
         const msg = `${label}の入力に失敗: ${err}`;
         console.error(msg);
@@ -59,25 +65,39 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       }
     };
 
-    const safeStaffSelect = async (
-      clickSelector,
-      value,
-      label,
-      valueSelector = clickSelector
-    ) => {
-      if (!value) return;
-      try {
-        await page.click(clickSelector);
-        await page.click(`div[data-value="${value}"]`);
-        updateObject[`${label}Content`] = await page
-          .locator(valueSelector)
-          .getAttribute("data-label");
-      } catch (err) {
-        const msg = `${label}の入力に失敗: ${err}`;
-        console.error(msg);
-        errors.push(msg);
-      }
-    };
+const safeStaffSelect = async (
+  clickSelector, value, label,  valueSelector = clickSelector
+  ) => {
+  if (!value) return;
+  try {
+    const clickLocator = page.locator(clickSelector);
+
+    // セレクトボックスが表示されるまで待機
+    await clickLocator.waitFor({ state: "visible", timeout: 10000 });
+    await clickLocator.click();
+
+    // 候補を探す
+    const optionLocator = page.locator(`div[data-value="${value}"]`);
+    if (await optionLocator.count() === 0) {
+      throw new Error(`候補 "${value}" が見つかりません`);
+    }
+
+    // 候補が表示されるまで待機してクリック
+    await optionLocator.waitFor({ state: "visible", timeout: 10000 });
+    await optionLocator.scrollIntoViewIfNeeded();
+    await optionLocator.click();
+
+    // 選択後の値を確認
+    const valueLocator = page.locator(valueSelector);
+    updateObject[`${label}Content`] =
+      (await valueLocator.getAttribute("data-label")) ?? "";
+  } catch (err) {
+    const msg = `${label}の入力に失敗: ${err}`;
+    console.error(msg);
+    errors.push(msg);
+  }
+};
+
 
     await safeSelect(
       "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[1]",
