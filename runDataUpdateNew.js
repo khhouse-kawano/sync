@@ -65,42 +65,45 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       }
     };
 
-const safeStaffSelect = async (
-  clickSelector, value, label,  valueSelector = clickSelector
-  ) => {
-  if (!value) return;
-  try {
-    const clickLocator = page.locator(clickSelector);
+    const safeStaffSelect = async (
+      clickSelector,
+      value,
+      label,
+      valueSelector = clickSelector
+    ) => {
+      if (!value) return;
+      try {
+        const clickLocator = page.locator(clickSelector);
 
-    // セレクトボックスが表示されるまで待機
-    await clickLocator.waitFor({ state: "visible", timeout: 10000 });
-    await clickLocator.click();
+        // セレクトボックスが表示されるまで待機
+        await clickLocator.waitFor({ state: "visible", timeout: 10000 });
+        await clickLocator.click();
 
-    // 候補を探す
-    const optionLocator = page.locator(`div[data-value="${value}"]`);
-    if (await optionLocator.count() === 0) {
-      throw new Error(`候補 "${value}" が見つかりません`);
-    }
+        // 候補を探す
+        const optionLocator = page.locator(`div[data-value="${value}"]`);
+        if ((await optionLocator.count()) === 0) {
+          throw new Error(`候補 "${value}" が見つかりません`);
+        }
 
-    // 候補が表示されるまで待機してクリック
-    await optionLocator.waitFor({ state: "visible", timeout: 10000 });
-    await optionLocator.scrollIntoViewIfNeeded();
-    await optionLocator.click();
+        // 候補が表示されるまで待機してクリック
+        await optionLocator.waitFor({ state: "visible", timeout: 10000 });
+        await optionLocator.scrollIntoViewIfNeeded();
+        await optionLocator.click();
 
-    // 選択後の値を確認
-    const valueLocator = page.locator(valueSelector);
-    updateObject[`${label}Content`] =
-      (await valueLocator.getAttribute("data-label")) ?? "";
-  } catch (err) {
-    const msg = `${label}の入力に失敗: ${err}`;
-    console.error(msg);
-    errors.push(msg);
-  }
-};
+        // 選択後の値を確認
+        const valueLocator = page.locator(valueSelector);
+        updateObject[`${label}Content`] =
+          (await valueLocator.getAttribute("data-label")) ?? "";
+      } catch (err) {
+        const msg = `${label}の入力に失敗: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+      }
+    };
 
-
+    // ブランド
     await safeSelect(
-      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[1]",
+      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div",
       brand,
       "brand",
       "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input"
