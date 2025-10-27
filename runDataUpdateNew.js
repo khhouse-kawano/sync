@@ -44,7 +44,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       clickSelector, // ドロップダウンを開く要素
       value, // 選択したい data-label または data-value
       label, // ログ用ラベル
-      parentSelector, // 候補を探す親要素（任意）
+      parentSelector = clickSelector, // 候補を探す親要素（任意）
       valueSelector = clickSelector
     ) => {
       if (!value) return;
@@ -83,6 +83,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       clickSelector,
       value,
       label,
+      parentSelector = clickSelector,
       valueSelector = clickSelector
     ) => {
       if (!value) return;
@@ -92,7 +93,11 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         await clickLocator.waitFor({ state: "visible", timeout: 10000 });
         await clickLocator.click();
 
-        const optionLocator = clickLocator.locator(
+        const searchScope = parentSelector
+          ? page.locator(parentSelector)
+          : clickLocator;
+
+        const optionLocator = searchScope.locator(
           `div[data-value="${value}"]`
         );
         if ((await optionLocator.count()) === 0) {
@@ -310,6 +315,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]",
         updateData.in_charge_user_id,
         "staff",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[2]",
         "#customer_in_charge_user_id"
       );
     }
