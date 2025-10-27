@@ -41,9 +41,10 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     };
 
     const safeSelect = async (
-      clickSelector,
-      value,
-      label,
+      clickSelector, // ドロップダウンを開く要素
+      value, // 選択したい data-label または data-value
+      label, // ログ用ラベル
+      parentSelector, // 候補を探す親要素（任意）
       valueSelector = clickSelector
     ) => {
       if (!value) return;
@@ -52,9 +53,22 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         await clickLocator.waitFor({ state: "visible", timeout: 10000 });
         await clickLocator.click();
 
-        const optionLocator = page.locator(`div[data-label="${value}"]`);
-        await optionLocator.waitFor({ state: "visible", timeout: 10000 });
-        await optionLocator.click();
+        // 親要素を指定した場合はその配下から探す
+        const searchScope = parentSelector
+          ? page.locator(parentSelector)
+          : clickLocator;
+
+        const optionLocator = searchScope.locator(`div[data-label="${value}"]`);
+
+        if ((await optionLocator.count()) === 0) {
+          throw new Error(`候補 "${value}" が見つかりません`);
+        }
+
+        const target = optionLocator.first();
+        await target.waitFor({ state: "visible", timeout: 10000 });
+        await target.scrollIntoViewIfNeeded();
+        await target.click();
+
         const valueLocator = page.locator(valueSelector);
         updateObject[`${label}Content`] =
           (await valueLocator.getAttribute("data-label")) ?? "";
@@ -75,22 +89,22 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       try {
         const clickLocator = page.locator(clickSelector);
 
-        // セレクトボックスが表示されるまで待機
         await clickLocator.waitFor({ state: "visible", timeout: 10000 });
         await clickLocator.click();
 
-        // 候補を探す
-        const optionLocator = page.locator(`div[data-value="${value}"]`);
+        const optionLocator = clickLocator.locator(
+          `div[data-value="${value}"]`
+        );
         if ((await optionLocator.count()) === 0) {
           throw new Error(`候補 "${value}" が見つかりません`);
         }
 
-        // 候補が表示されるまで待機してクリック
-        await optionLocator.waitFor({ state: "visible", timeout: 10000 });
-        await optionLocator.scrollIntoViewIfNeeded();
-        await optionLocator.click();
+        await optionLocator
+          .first()
+          .waitFor({ state: "visible", timeout: 10000 });
+        await optionLocator.first().scrollIntoViewIfNeeded();
+        await optionLocator.first().click();
 
-        // 選択後の値を確認
         const valueLocator = page.locator(valueSelector);
         updateObject[`${label}Content`] =
           (await valueLocator.getAttribute("data-label")) ?? "";
@@ -106,6 +120,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div",
       brand,
       "brand",
+      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[2]",
       "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input"
     );
 
@@ -284,6 +299,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[1]",
         mediumValue,
         "medium",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[2]",
         "#customer_sales_promotion_id"
       );
     }
@@ -304,6 +320,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div/div[1]",
         updateData.customized_input_01J82Z5F366ZQ897PXWF6H5ZAM,
         "rank",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div/div[2]",
         "#customer_customer_customized_input_values_attributes_99_enterprise_select_option_id"
       );
     }
@@ -314,6 +331,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[2]/div[2]/div/div[1]",
         updateData.has_owned_land,
         "estate",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[2]/div[2]/div/div[2]",
         "#customer_has_owned_land"
       );
     }
@@ -324,6 +342,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[1]",
         updateData.customized_input_01JSE7RNV3VK78YC2GYAG0554D,
         "period",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[2]",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/input"
       );
     }
@@ -334,6 +353,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[1]",
         updateData.customized_input_01JSE7DKY5RYY3T8T8NVR1AJMN,
         "importance",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[2]",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/input"
       );
     }
@@ -382,6 +402,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "#current-contract-type-select",
         updateData.current_contract_type,
         "situation",
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[2]/div[2]/div/div[2]",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[2]/div[2]/div/div[1]/input"
       );
     }
@@ -476,6 +497,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
             "#customer_contacts_employment_type",
             updateData.customer_contacts_employment_type,
             "employmentType",
+            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[1]/div[1]/div[2]/div/div[2]",
             "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[1]/div[1]/div[2]/div/input"
           );
         }
