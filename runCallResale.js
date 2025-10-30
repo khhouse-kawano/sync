@@ -27,9 +27,13 @@ const runCallResale = async (updateData, mail, pass) => {
 
   const fillForm = async () => {
     try {
-      await page.goto(`https://cloud.ielove.jp/kanricrm/customer/index/?freeword=${updateData.id}&groupId=150319&staff=&customerSearchFlg=1`);
-      await page.waitForLoadState('load');
-      await page.goto(`https://cloud.ielove.jp/kanricrm/customerdetail/?id=${updateData.id}&groupId=150319`);
+      await page.goto(
+        `https://cloud.ielove.jp/kanricrm/customer/index/?freeword=${updateData.id}&groupId=150319&staff=&customerSearchFlg=1`
+      );
+      await page.waitForLoadState("load");
+      await page.goto(
+        `https://cloud.ielove.jp/kanricrm/customerdetail/?id=${updateData.id}&groupId=150319`
+      );
       await page.waitForLoadState("load");
       await page.click("#sesshoku");
       await page.click(
@@ -50,27 +54,91 @@ const runCallResale = async (updateData, mail, pass) => {
     }
 
     try {
-      await page.waitForLoadState('load');
+      await page.waitForLoadState("load");
       await page.click("#supportDate");
       await page.click(`[data-day="${formattedDate}"]`);
-      await page.selectOption("#supportHour", hour);
-      await page.selectOption("#supportMinute", minute);
-      await page.selectOption("#supportType", updateData.data.method);
-      await page.selectOption("#createUserId", updateData.data.staff);
-      await page.click('#Yes');
-      await page.waitForLoadState('load');
-      // await page.fill("#title", updateData.data.subject);
-      await page.fill("//html/body/div[13]/div[2]/form/table/tbody/tr[4]/td/textarea", updateData.data.note);
     } catch (err) {
-      const msg = `応対履歴入力に失敗: ${err}`;
+      const msg = `dateの入力に失敗: ${err}`;
       console.error(msg);
       errors.push(msg);
     }
 
     try {
-      await page.waitForLoadState('load');
-      await page.click('#support_edit_button');
-      await page.waitForLoadState('load');
+      await page.selectOption("#supportHour", hour);
+    } catch (err) {
+      const msg = `hourの入力に失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
+
+    try {
+      await page.selectOption("#supportMinute", minute);
+    } catch (err) {
+      const msg = `minuteの入力に失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
+
+    try {
+      await page.selectOption("#supportType", updateData.data.method);
+    } catch (err) {
+      const msg = `methodの入力に失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
+
+    try {
+      await page.selectOption("#createUserId", updateData.data.staff);
+      await page.click("#Yes");
+    } catch (err) {
+      const msg = `staffの入力に失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
+
+    try {
+      await page.fill("#title", updateData.data.subject);
+    } catch (err) {
+      const msg = `titleの入力に失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
+
+    try {
+      await page.fill(
+        "//html/body/div[13]/div[2]/form/table/tbody/tr[4]/td/textarea",
+        updateData.data.note
+      );
+    } catch (err) {
+      const msg = `noteの入力に失敗: ${err}`;
+      console.error(msg);
+      errors.push(msg);
+    }
+
+    let inputDate;
+    try {
+      inputDate = {
+        date: await page.locator("#supportDate").inputValue(),
+        hour: await page.locator("#supportHour").inputValue(),
+        minute: await page.locator("#supportMinute").inputValue(),
+        method: await page.locator("#supportType").inputValue(),
+        title: await page.locator("#title").inputValue(),
+        note: await page
+          .locator(
+            "//html/body/div[13]/div[2]/form/table/tbody/tr[4]/td/textarea"
+          )
+          .inputValue(),
+      };
+      console.log(inputValue);
+    } catch (e) {
+      const msg = `入力内容の取得に失敗: ${err}`;
+      console.error(msg);
+    }
+
+    try {
+      await page.waitForLoadState("load");
+      await page.click("#support_edit_button");
+      await page.waitForLoadState("load");
       // await page.waitForSelector('#w2ui-lock', { state: 'detached' });
       // await page.click('#detail_button');
       console.log(updateData);
