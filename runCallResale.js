@@ -153,13 +153,13 @@ const runCallResale = async (updateData, mail, pass) => {
       errors.push(msg);
     }
 
-    try {
-      await page.click("#detail_button");
-    } catch (err) {
-      const msg = `保存処理に失敗: ${err}`;
-      console.error(msg);
-    }
-  };
+  //   try {
+  //     await page.click("#detail_button");
+  //   } catch (err) {
+  //     const msg = `保存処理に失敗: ${err}`;
+  //     console.error(msg);
+  //   }
+  // };
 
   try {
     await login();
