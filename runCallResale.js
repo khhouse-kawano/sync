@@ -124,7 +124,7 @@ const runCallResale = async (updateData, mail, pass) => {
       from: "error@khg-marketing.info",
       to: "shinji.kawano@kh-group.jp",
       subject: "【自動送信】データ更新作業中にエラー発生",
-      text: `以下のエラーが発生しました:\nrunDataUpdateNew.js\nID:${
+      text: `以下のエラーが発生しました:\runCallResale.js\nID:${
         updateData.id
       }\n${errors.join("\n")}`,
     };
