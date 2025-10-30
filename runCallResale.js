@@ -86,7 +86,6 @@ const runCallResale = async (updateData, mail, pass) => {
     } catch (err) {
       const msg = `保存処理に失敗: ${err}`;
       console.error(msg);
-      errors.push(msg);
     }
   };
 
