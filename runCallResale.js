@@ -104,7 +104,7 @@ const runCallResale = async (updateData, mail, pass) => {
       } catch (err) {
         const msg = `titleの入力に失敗: ${err}`;
         console.error(msg);
-        errors.push(msg);
+        // errors.push(msg);
       }
     }
 
