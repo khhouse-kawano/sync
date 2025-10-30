@@ -130,7 +130,7 @@ const runCallResale = async (updateData, mail, pass) => {
           .inputValue(),
       };
       console.log(inputValue);
-    } catch (e) {
+    } catch (err) {
       const msg = `入力内容の取得に失敗: ${err}`;
       console.error(msg);
     }
