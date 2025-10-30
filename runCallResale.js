@@ -80,14 +80,6 @@ const runCallResale = async (updateData, mail, pass) => {
     }
 
     try {
-      await page.selectOption("#supportType", updateData.data.method);
-    } catch (err) {
-      const msg = `methodの入力に失敗: ${err}`;
-      console.error(msg);
-      errors.push(msg);
-    }
-
-    try {
       await page.selectOption("#createUserId", updateData.data.staff);
       await page.click("#Yes");
     } catch (err) {
@@ -97,11 +89,23 @@ const runCallResale = async (updateData, mail, pass) => {
     }
 
     try {
-      await page.fill("#title", updateData.data.subject);
+      await page.waitForLoadState("load");
+      await page.click("#supportType");
+      await page.selectOption("#supportType", updateData.data.method);
     } catch (err) {
-      const msg = `titleの入力に失敗: ${err}`;
+      const msg = `methodの入力に失敗: ${err}`;
       console.error(msg);
       errors.push(msg);
+    }
+
+    if (updateData.data.subject) {
+      try {
+        await page.fill("#title", updateData.data.subject);
+      } catch (err) {
+        const msg = `titleの入力に失敗: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+      }
     }
 
     try {
