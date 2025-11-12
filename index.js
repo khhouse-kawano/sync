@@ -294,7 +294,8 @@ app.post("/api/resale_ielove", async (req, res) => {
 
 app.post("/api/breakaway", async (req, res) => {
   console.log("フォーム離脱情報の登録開始");
-  const postData = JSON.parse(req.body);
+  const postData = req.body;
+  console.log(postData)
   res.send({
     message: `${formattedDate}_フォーム離脱情報の登録を開始しました`,
     status: "processing",
