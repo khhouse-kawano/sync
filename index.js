@@ -296,17 +296,23 @@ app.post("/api/resale_ielove", async (req, res) => {
 app.post("/api/breakaway", async (req, res) => {
   console.log("フォーム離脱情報の登録開始");
   const postData = req.body;
-  console.log(postData)
+  console.log(postData);
   res.send({
     message: `${formattedDate}_フォーム離脱情報の登録を開始しました`,
     status: "processing",
   });
-
-  const data = { ...postData, demand: 'breakaway'}
-  console.log(data)
+  const data = { ...parsed, demand: "breakaway" };
+  console.log(data);
   try {
-    const headers = { Authorization: '4081Kokubu', 'Content-Type': 'application/json' };
-    const response = await axios.post("https://khg-marketing.info/dashboard/api/", data, { headers });
+    const headers = {
+      Authorization: "4081Kokubu",
+      "Content-Type": "application/json",
+    };
+    const response = await axios.post(
+      "https://khg-marketing.info/dashboard/api/",
+      data,
+      { headers }
+    );
     console.log(response.data);
   } catch (error) {
     console.error("エラー:", error);
