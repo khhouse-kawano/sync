@@ -301,7 +301,7 @@ app.post("/api/breakaway", async (req, res) => {
   });
 
   const data = { postData, demand: 'breakaway'}
-
+  console.log(data)
   try {
     const headers = { Authorization: '4081Kokubu', 'Content-Type': 'application/json' };
     const response = await axios.post("https://khg-marketing.info/dashboard/api/", data, { headers });
