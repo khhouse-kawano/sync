@@ -301,6 +301,7 @@ app.post("/api/breakaway", async (req, res) => {
     message: `${formattedDate}_フォーム離脱情報の登録を開始しました`,
     status: "processing",
   });
+  const parsed = JSON.parse(postData);
   const data = { ...parsed, demand: "breakaway" };
   console.log(data);
   try {
