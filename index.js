@@ -304,8 +304,8 @@ app.post("/api/breakaway", async (req, res) => {
 
   try {
     const headers = { Authorization: '4081Kokubu', 'Content-Type': 'application/json' };
-    axios.post("https://khg-marketing.info/dashboard/api/", data, { headers });
-    console.log("POST完了_inquiry_customer");
+    const response = axios.post("https://khg-marketing.info/dashboard/api/", data, { headers });
+    console.log(response.data);
   } catch (error) {
     console.error("エラー:", error);
   }
