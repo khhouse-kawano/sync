@@ -14,7 +14,6 @@ const runMyHomeRobo = require("./runMyHomeRobo.js");
 const runBeforeSurvey = require("./runBeforeSurvey.js");
 const runDataUpdateNew = require("./runDataUpdateNew.js");
 const runCallResale = require("./runCallResale.js");
-const runBreakaway = require("./runBreakaway.js");
 
 const app = express();
 app.use(cors());
