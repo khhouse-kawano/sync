@@ -300,7 +300,7 @@ app.post("/api/breakaway", async (req, res) => {
     status: "processing",
   });
 
-  const data = { postData, demand: 'breakaway'}
+  const data = { ...postData, demand: 'breakaway'}
   console.log(data)
   try {
     const headers = { Authorization: '4081Kokubu', 'Content-Type': 'application/json' };
