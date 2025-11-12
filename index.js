@@ -304,7 +304,7 @@ app.post("/api/breakaway", async (req, res) => {
 
   try {
     const headers = { Authorization: '4081Kokubu', 'Content-Type': 'application/json' };
-    const response = axios.post("https://khg-marketing.info/dashboard/api/", data, { headers });
+    const response = await axios.post("https://khg-marketing.info/dashboard/api/", data, { headers });
     console.log(response.data);
   } catch (error) {
     console.error("エラー:", error);
