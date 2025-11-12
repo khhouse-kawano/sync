@@ -1,7 +1,7 @@
 const express = require("express");
 const { chromium } = require("playwright-chromium");
 require("dotenv").config();
-const {google} = require("googleapis");
+const { google } = require("googleapis");
 const cors = require("cors");
 const axios = require("axios");
 const idList = require("./idList.js");
@@ -14,6 +14,7 @@ const runMyHomeRobo = require("./runMyHomeRobo.js");
 const runBeforeSurvey = require("./runBeforeSurvey.js");
 const runDataUpdateNew = require("./runDataUpdateNew.js");
 const runCallResale = require("./runCallResale.js");
+const runBreakaway = require("./runBreakaway.js");
 
 const app = express();
 app.use(cors());
@@ -131,7 +132,9 @@ app.post("/api/update", async (req, res) => {
     process.nextTick(() =>
       runDataUpdateAfterInterview(updateData, brand, pg_mail, pg_pass)
     );
-  } else if ( updateData.request && updateData.request === "before_interview_zero"
+  } else if (
+    updateData.request &&
+    updateData.request === "before_interview_zero"
   ) {
     process.nextTick(() =>
       runDataUpdateNew(updateData, brand, pg_mail, pg_pass)
@@ -230,11 +233,11 @@ app.get("/open", async (req, res) => {
 
 const oAuth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_CLIENT_SECRET
 );
 
 oAuth2Client.setCredentials({
-  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN,
 });
 
 app.post("/api/add_event", async (req, res) => {
@@ -287,9 +290,26 @@ app.post("/api/resale_ielove", async (req, res) => {
     status: "processing",
   });
 
-  process.nextTick(() =>
-    runCallResale(updateData, mail, pass)
-  );
+  process.nextTick(() => runCallResale(updateData, mail, pass));
+});
+
+app.post("/api/breakaway", async (req, res) => {
+  console.log("フォーム離脱情報の登録開始");
+  const postData = req.body;
+  res.send({
+    message: `${formattedDate}_フォーム離脱情報の登録を開始しました`,
+    status: "processing",
+  });
+
+  const data = { postData, demand: 'breakaway'}
+
+  try {
+    const headers = { Authorization: '4081Kokubu', 'Content-Type': 'application/json' };
+    axios.post("https://khg-marketing.info/dashboard/api/", data, { headers });
+    console.log("POST完了_inquiry_customer");
+  } catch (error) {
+    console.error("エラー:", error);
+  }
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
