@@ -164,6 +164,11 @@ const runMyHomeRobo = async (updateData, robo_id, robo_pass) => {
       { id: "2292", name: "中島 智彦" },
       { id: "2293", name: "宮元 伸太郎" },
       { id: "2294", name: "谷口 博史" },
+      { id: "2686", name: "中村 裕" },
+      { id: "2687", name: "樋高 啓介" },
+      { id: "2949", name: "小田 敬太" },
+      { id: "2950", name: "永谷 潤一" },
+      { id: "2951", name: "坪水 優馬" },
     ];
 
     const targetStaff = staff.find((item) => item.name === updateData.staff);

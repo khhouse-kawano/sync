@@ -14,6 +14,7 @@ const runMyHomeRobo = require("./runMyHomeRobo.js");
 const runBeforeSurvey = require("./runBeforeSurvey.js");
 const runDataUpdateNew = require("./runDataUpdateNew.js");
 const runCallResale = require("./runCallResale.js");
+const runWeekday = require("./runWeekday.js");
 
 const app = express();
 app.use(cors());
@@ -318,6 +319,17 @@ app.post("/api/breakaway", async (req, res) => {
   } catch (error) {
     console.error("エラー:", error);
   }
+});
+
+app.post("/api/weekday", async (req, res) => {
+  console.log("平日キャンペーンからの反響");
+  const postData = req.body;
+  console.log(postData);
+  res.send({
+    message: `${postData.name}様_平日キャンペーン申込`,
+    status: "processing",
+  });
+  process.nextTick(() => runWeekday(postData));
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
