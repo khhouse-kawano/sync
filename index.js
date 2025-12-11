@@ -332,4 +332,83 @@ app.post("/api/weekday", async (req, res) => {
   process.nextTick(() => runWeekday(postData));
 });
 
+app.post("/api/summary", async (req, res) => {
+  const data = req.body.data;
+  const startTime = Date.now();
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `
+                  ${JSON.stringify(data)}
+                  まず最初にデータは必ず提供する仕様ですので、データが提供されるまでは無言のまま一切返事をせず、何も回答せずに待機してください。
+                  私たちはデータを分析したうえでの最終的な回答のみが必要ですので無言で結構です。
+                  また推論途中での返答は不要です。発言は最後の1回のみとしてください。
+                  以下回答する際のルールです。
+
+                  1.決してパラメータ名を使わないこと。
+                  register: 期間内の総反響数 回答内での表記は「反響数」
+                  reserve: 店舗に来場予約をした数 回答内での表記は「来場予約数」
+                  interview: reserveのうち、実際に来場して面談及びモデルハウス見学等した数 回答内での表記は「実来場数」
+                  appointment: interviewのうち、次回の打ち合わせの予約が確定できた数 回答内での表記は「次アポ数」
+                  cancel: reserveのうち、interviewに至らなかった数  回答内での表記は「キャンセル数」
+                  contract: 契約数  回答内での表記は「契約数」
+                  keyで使われている英名はプログラミングするうえでの名称であり、読む側には通じませんので表記には注意をしてください。
+                  
+                  2.appointmentの少なさやキャンセル数の多さはPGクラウドへの未入力が原因でもあるので、それも疑ってください。
+                  
+                  3.キャンセル数の取得を始めたのは最近であり、上半期のキャンセル数が0なのは実数ではなくただ単に計測していなかったためです。
+                  ですので2025年6月以降の数値をもとにキャンセル数のコメントをお願いします。
+                  
+                  4.私たちは「PGクラウド」というCRMを使っているのですが、入力された内容がこの数値になっています。
+                  そして「Dashboard」というBIツールで分析しています。
+                  この指示をしているのはDashboardであり、あなたへのリクエストもDashboardよりおこなわれています。
+
+                  では、この反響数データを簡潔に1000文字程度で要約してください。
+                  住宅市場の動向と季節指数も踏まえたうえでの回答を求めています。
+                  また
+                  このデータは期間の統計の全てではなく、途中のものですので、現在日時を考慮したコメントをお願いします。: `,
+                },
+              ],
+            },
+          ],
+        }),
+      }
+    );
+
+    const result = await response.json();
+    const elapsed = Date.now() - startTime;
+    console.log("Gemini API response:", result);
+
+    if (result.error) {
+      return res.status(400).json({ error: result.error.message });
+    }
+
+    if (elapsed < 5000) {
+      return;
+    }
+
+    const stopCandidates = (result?.candidates || []).filter(
+      (c) => c.finishReason === "STOP"
+    );
+    const lastCandidate = stopCandidates[stopCandidates.length - 1];
+
+    const summary =
+      lastCandidate?.content?.parts?.[0]?.text || "分析に失敗しました";
+
+    return res.json({ summary });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "要約生成に失敗しました" });
+  }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
