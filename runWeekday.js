@@ -1,7 +1,4 @@
-const { chromium } = require("playwright-chromium");
 require("dotenv").config();
-const cors = require("cors");
-const axios = require("axios");
 const nodemailer = require("nodemailer");
 
 const runWeekday = async (postData) => {
@@ -13,10 +10,25 @@ const runWeekday = async (postData) => {
     },
   });
 
+  let ccValue;
+  if (postData.brand === '国分ハウジング'){
+    ccValue = 'kh@kh-group.jp';
+  } else if (postData.brand === 'デイジャストハウス'){
+    ccValue = 'djh@kh-group.jp';
+  } else if (postData.brand === 'なごみ工務店'){
+    ccValue = 'nagomi@kh-group.jp';
+  } else if (postData.brand === 'ニーエルホーム'){
+    ccValue = '2lhome@kh-group.jp';
+  } else if (postData.brand === 'ジャスフィーホーム'){
+    ccValue = 'jh@kh-group.jp';
+  } else if (postData.brand === 'PG HOUSE'){
+    ccValue = 'pghouse@kh-house.jp';
+  }
+
   const mailOptions = {
     from: '"平日来場キャンペーン" <mkt@kh-house.jp>',
     to: "mkt@kh-house.jp",
-    cc: 'kh@kh-group.jp,lead@kh-group.jp,kh-t@kh-house.jp',
+    cc: ccValue,
     subject: `${postData.shop}_平日来場キャンペーンからの反響`,
     text: `平日来場キャンペーンからの反響がありました。
     ====================

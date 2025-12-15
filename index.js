@@ -325,11 +325,19 @@ app.post("/api/weekday", async (req, res) => {
   console.log("平日キャンペーンからの反響");
   const postData = req.body;
   console.log(postData);
-  res.send({
-    message: `${postData.name}様_平日キャンペーン申込`,
-    status: "processing",
-  });
-  process.nextTick(() => runWeekday(postData));
+  try {
+    await runWeekday(postData);
+    res.send({
+      message: `${postData.name}様_平日キャンペーン申込`,
+      status: "success",
+    });
+  } catch (error) {
+    console.error("runWeekday error:", error);
+    res.status(500).send({
+      message: "平日キャンペーン申込処理に失敗しました",
+      status: "error",
+    });
+  }
 });
 
 app.post("/api/summary", async (req, res) => {
