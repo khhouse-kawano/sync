@@ -443,4 +443,112 @@ app.post("/api/summary", async (req, res) => {
   }
 });
 
+app.post("/api/areasummary", async (req, res) => {
+  const data = req.body.data;
+  const startTime = Date.now();
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  text: `
+                  以下のデータを分析してください。
+                  まず最初にデータは必ず提供する仕様ですので、データが提供されるまでは無言のまま一切返事をせず、何も回答せずに待機してください。
+                  また決してすべてがゼロのデータを渡すことがないので、最初の3秒は待機してJSONの解析を待ってください。
+                  私たちはデータを分析したうえでの最終的な回答のみが必要ですので無言で結構です。
+                  また推論途中での返答は不要です。発言は最後の1回のみとしてください。
+                  私たちの自己紹介ですが、鹿児島県と宮崎県で着工棟数ナンバー１のハウスメーカーである国分ハウジンググループのマーケティングチームです。
+                  住宅不況の中でも勝ち抜いていくためにBIツールを構築し、さらなる戦略策定のためにAIを活用しようというフェーズにまで入りました。
+                  
+                  データの構造ですが渡したJSONには期間(period)と分譲住宅or建売住宅(category)と商圏(area)と各種数値(register,reserve,interview,appointment,cancel,contract)が含まれており、期間ごとにまとめてあります。
+                  areaごとの人口数も渡してあります。ターゲットとなる世代(age)、男女計(amount),男性人口(male),女性人口(female)です。
+                  販促媒体(medium)ごとの反響数も渡してあります。
+                  協力してください！
+
+                  以下回答する際のルールです。
+
+                  1.決してパラメータ名を使わないこと。
+                  register: 期間内の総反響数 回答内での表記は「反響数」
+                  reserve: 店舗に来場をした数 回答内での表記は「来場数」
+                  contract: 契約数  回答内での表記は「契約数」
+                  category: 注文住宅か建売住宅 回答内での表記は「注文営業部門」か「建売住宅部門」
+                  construction: 弊社の着工棟数 categoryの値に合わせて「注文住宅住宅着工棟数」 「建売住宅着工棟数」で表記
+                  areaConstruction: 対象エリアの着工棟数 areaの値に合わせて「{area名}注文住宅着工棟数」 「{area名}建売住宅着工棟数」で表記
+                  share: 弊社の着工棟数のエリアシェア率 infinityやNaNなどの異常値には決して言及しない 「シェア率」
+                  これらの英名はプログラミングするうえでの名称であり、読む側には通じませんので表記には注意をしてください。
+                  
+                  2.私たちは「Dashboard」というBIツールで分析しています。
+                  この指示をしているのはDashboardであり、あなたへのリクエストもDashboardのAPIよりおこなわれています。
+                  こちらは大変多機能かつスピーディーなUXを提供しており、このリクエストからもわかるようにAIとも連携しています。
+                  マーケティングや営業支援をおこなう上での重要なミドルウェアであり、様々な施策の可能性はダッシュボードに秘められているといってもいいでしょう。
+
+                  3.あなたから得られた回答はダッシュボードの中に表示されることになります。
+                  reactのコンポネント内に埋め込まれるので、そのことを踏まえてください。
+                  強調すべき箇所を<strong>タグで囲むこと。
+                  改行すべき位置に<br />を設置すること。
+                  他にも見やすくする工夫をお願いします。
+
+                  では、このマーケット情報を簡潔に700文字程度で要約してください。
+                  住宅市場の動向と季節指数も踏まえたうえでの回答を求めています。
+                  私たち「国分ハウジンググループ」の立ち位置も俯瞰して言及し、数値からわかるポジティブな側面もネガティブな側面も教えてほしいです。
+                  総人口や世代別の人口数とエリア全体の住宅市場及び弊社の住宅市場との関連性も明記すること。
+                  商圏や地域の特性も考慮してください。
+                  またこのデータは期間の統計の全てではなく、途中のものですので、現在日時を考慮したコメントをお願いします。
+
+                  回答は5部構成。改行を入れて見やすくしてください。
+                  1.注文住宅市場及びその中での弊社の立ち位置。「注文住宅市場」として必ずタイトル前に2行分改行を入れて読みやすくすること。販促媒体ごとの分析もしてください。
+                  2.建売住宅市場及びその中での弊社の立ち位置。「建売住宅市場」として必ずタイトル前に2行分改行を入れて読みやすくすること。販促媒体ごとの分析もしてください。
+                  3.住宅市場とターゲットエリアの人口動態の特徴。「市場の特色」として必ずタイトル前に2行分改行を入れて読みやすくすること。販促媒体ごとの分析もしてください。
+                  4.住宅市場、人口動態に合わせた効果的な戦略案。「今後の戦略」として必ずタイトル前に2行分改行を入れて読みやすくすること。販促媒体ごとの分析もしてください。
+                  5.総括。「総括」として必ずタイトル前に2行分改行を入れて読みやすくすること。
+                  渡したJSONデータは分析専用です。回答にはJSONやオブジェクトを一切含めず、要約結果のみを返してください。
+                  回答は必ずプレーンテキスト＋HTMLタグ（<strong>, <br />）のみで構成してください。
+                  ※JSONやコードブロックは"絶対に"返さないでください。
+                  ${year}/${month}のデータは締められていないため、分析に用いない。`,
+                },
+                { text: JSON.stringify(data) },
+              ],
+            },
+          ],
+        }),
+      }
+    );
+
+    const result = await response.json();
+    const elapsed = Date.now() - startTime;
+    console.log("Gemini API response:", result);
+
+    if (result.error) {
+      return res.status(400).json({ error: result.error.message });
+    }
+
+    if (elapsed < 1000) {
+      return;
+    }
+
+    const stopCandidates = (result?.candidates || []).filter(
+      (c) => c.finishReason === "STOP"
+    );
+    const lastCandidate = stopCandidates[stopCandidates.length - 1];
+
+    const summary =
+      lastCandidate?.content?.parts?.[0]?.text || "分析に失敗しました";
+
+    return res.json({ summary });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: "要約生成に失敗しました" });
+  }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
