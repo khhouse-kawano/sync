@@ -345,22 +345,27 @@ app.post("/api/weekday", async (req, res) => {
 app.post("/api/summary", async (req, res) => {
   const data = req.body.data;
 
+
   if (
     !data ||
     (Array.isArray(data) && data.length === 0) ||
     Object.keys(data).length === 0
   ) {
     console.warn("Summary API: Empty data received.");
-    return res.status(400).json({ error: "分析対象のデータが存在しません。" });
+    return res.status(200).json({ summary: "分析対象のデータがまだありません。" });
   }
 
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
 
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Transfer-Encoding", "chunked");
+
+  let keepAliveInterval;
+
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
     const dataString = JSON.stringify(data);
 
     const prompt = `
@@ -403,29 +408,37 @@ app.post("/api/summary", async (req, res) => {
       <JSON_DATA>
       ${dataString}
       </JSON_DATA>
-      データがゼロやundefinedなどだった場合は、必ず「データを解析中ですのでお待ちください。」と回答すること。
     `;
+
+    keepAliveInterval = setInterval(() => {
+      res.write("\n");
+    }, 10000);
 
     const result = await model.generateContentStream(prompt);
 
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.setHeader("Transfer-Encoding", "chunked");
-
     for await (const chunk of result.stream) {
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+        keepAliveInterval = null;
+      }
+
       const chunkText = chunk.text();
       res.write(chunkText);
     }
+    
     res.end();
+
   } catch (e) {
     console.error("Gemini API Error:", e);
 
-    if (!res.headersSent) {
-      return res
-        .status(500)
-        .json({ error: "要約生成に失敗しました: " + e.message });
-    } else {
+    if (keepAliveInterval) clearInterval(keepAliveInterval);
+
+    if (!res.writableEnded) {
+      res.write("<br /><strong>エラーが発生しました: 分析処理に失敗しました。</strong>");
       res.end();
     }
+  } finally {
+    if (keepAliveInterval) clearInterval(keepAliveInterval);
   }
 });
 
