@@ -403,7 +403,7 @@ app.post("/api/summary", async (req, res) => {
       <JSON_DATA>
       ${dataString}
       </JSON_DATA>
-            データがゼロやundefinedなどだった場合は、必ず「データを解析中ですのでお待ちください。」と回答すること。
+      データがゼロやundefinedなどだった場合は、必ず「データを解析中ですのでお待ちください。」と回答すること。
     `;
 
     const result = await model.generateContentStream(prompt);
@@ -437,52 +437,64 @@ app.post("/api/areasummary", async (req, res) => {
     (Array.isArray(data) && data.length === 0) ||
     Object.keys(data).length === 0
   ) {
-    console.warn("AreaSummary API: Empty data received.");
-    return res.status(400).json({ error: "分析対象のデータが存在しません。" });
+    return res
+      .status(200)
+      .json({ summary: "データ収集中です。しばらくお待ち下さい。" });
   }
 
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
 
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Transfer-Encoding", "chunked");
+
+  let keepAliveInterval;
+
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
     const dataString = JSON.stringify(data);
 
     const prompt = `
-      あなたは国分ハウジンググループのミドルウェアである「Dashboard」です。
+      あなたは国分ハウジンググループのミドルウェア「Dashboard」です。
       以下のデータを分析し、HTML形式で要約を出力してください。
 
       【前提条件】
-      1. 注文営業CRM =「PGクラウド」、建売営業CRM =「いえらぶ」 
-      ※十分な機能を有しているがデジタルマーケティングやナーチャリングをするのに適しているとは言えないので、CRMの機能に期待する回答は決してしないこと。Dashboardの機能を使います。
-      2. ${year}年${month}月のデータは締め前のため分析から除外すること。
-      
-      【出力構成（全5部・約800文字）】
-      以下の5つの見出しで構成し、回答はプレーンテキストとHTMLタグ（<strong>, <br />）のみで返してください。
-      JSON形式やMarkdownのコードブロック（\`\`\`）は絶対に使用しないでください。
+      1. 役割：マーケティング分析AI。
+      2. データ背景：注文CRM=PGクラウド、建売CRM=いえらぶ。
+         - 次アポ(appointment)の少なさは入力漏れを考慮。
+         - キャンセル(cancel)は2025/6以降のみ有効。
+      3. ${year}年${month}月は分析除外。
 
-      1. 注文住宅市場（タイトル前に<br /><br />を入れる）
-      2. 建売住宅市場（タイトル前に<br /><br />を入れる）
-      3. 市場の特色（タイトル前に<br /><br />を入れる）
-      4. 今後の戦略（タイトル前に<br /><br />を入れる）
-      5. 総括（タイトル前に<br /><br />を入れる）
+      【用語】
+      - register:反響数, reserve:来場予約数, interview:実来場数, 
+      - appointment:次アポ数, cancel:キャンセル数, contract:契約数
 
-      【分析対象データ】
-      以下のタグで囲まれたJSONデータを分析してください。
+      【構成（全4部・HTMLタグのみ・コードブロック禁止）】
+      各タイトル前に <br /><br /> を入れること。
+      1. 数値分析
+      2. 販促媒体ごとの特徴
+      3. 課題
+      4. 戦略・戦術
+
+      【データ】
       <JSON_DATA>
       ${dataString}
       </JSON_DATA>
-      データがゼロやundefinedなどだった場合は、必ず「データを解析中ですのでお待ちください。」と回答すること。
     `;
+
+    keepAliveInterval = setInterval(() => {
+      res.write("\n");
+    }, 10000);
 
     const result = await model.generateContentStream(prompt);
 
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.setHeader("Transfer-Encoding", "chunked");
-
     for await (const chunk of result.stream) {
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+        keepAliveInterval = null;
+      }
+
       const chunkText = chunk.text();
       res.write(chunkText);
     }
@@ -491,13 +503,14 @@ app.post("/api/areasummary", async (req, res) => {
   } catch (e) {
     console.error("Gemini API Error:", e);
 
-    if (!res.headersSent) {
-      return res
-        .status(500)
-        .json({ error: "要約生成に失敗しました: " + e.message });
-    } else {
-      res.end();
-    }
+    if (keepAliveInterval) clearInterval(keepAliveInterval);
+
+    res.write(
+      "<br /><strong>エラーが発生しました: 分析を中断します。</strong>"
+    );
+    res.end();
+  } finally {
+    if (keepAliveInterval) clearInterval(keepAliveInterval);
   }
 });
 
