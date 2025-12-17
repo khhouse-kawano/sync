@@ -345,14 +345,26 @@ app.post("/api/weekday", async (req, res) => {
 app.post("/api/summary", async (req, res) => {
   const data = req.body.data;
 
+  if (
+    !data ||
+    (Array.isArray(data) && data.length === 0) ||
+    Object.keys(data).length === 0
+  ) {
+    console.warn("Summary API: Empty data received.");
+    return res.status(400).json({ error: "分析対象のデータが存在しません。" });
+  }
+
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
 
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+    const dataString = JSON.stringify(data);
+
     const prompt = `
-      あなたは国分ハウジンググループのBIツール「Dashboard」です。
+      あなたは国分ハウジンググループのミドルウェアである「Dashboard」です。
       以下のCRMデータを分析し、HTML形式で要約を出力してください。
 
       【前提条件とコンテキスト】
@@ -386,13 +398,15 @@ app.post("/api/summary", async (req, res) => {
       4. 戦略・戦術:
          - Dashboardを活用した今後の具体的なアクションプラン。
 
-      データ：
+      【分析対象データ】
+      以下のタグで囲まれたJSONデータを分析してください。
+      <JSON_DATA>
+      ${dataString}
+      </JSON_DATA>
+            データがゼロやundefinedなどだった場合は、必ず「データを解析中ですのでお待ちください。」と回答すること。
     `;
 
-    const result = await model.generateContentStream([
-      prompt,
-      JSON.stringify(data),
-    ]);
+    const result = await model.generateContentStream(prompt);
 
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.setHeader("Transfer-Encoding", "chunked");
@@ -418,6 +432,15 @@ app.post("/api/summary", async (req, res) => {
 app.post("/api/areasummary", async (req, res) => {
   const data = req.body.data;
 
+  if (
+    !data ||
+    (Array.isArray(data) && data.length === 0) ||
+    Object.keys(data).length === 0
+  ) {
+    console.warn("AreaSummary API: Empty data received.");
+    return res.status(400).json({ error: "分析対象のデータが存在しません。" });
+  }
+
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth() + 1;
@@ -425,12 +448,15 @@ app.post("/api/areasummary", async (req, res) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
+    const dataString = JSON.stringify(data);
+
     const prompt = `
-      あなたは国分ハウジンググループのBIツール「Dashboard」です。
+      あなたは国分ハウジンググループのミドルウェアである「Dashboard」です。
       以下のデータを分析し、HTML形式で要約を出力してください。
 
       【前提条件】
-      1. 注文営業CRM =「PGクラウド」、建売営業CRM =「いえらぶ」
+      1. 注文営業CRM =「PGクラウド」、建売営業CRM =「いえらぶ」 
+      ※十分な機能を有しているがデジタルマーケティングやナーチャリングをするのに適しているとは言えないので、CRMの機能に期待する回答は決してしないこと。Dashboardの機能を使います。
       2. ${year}年${month}月のデータは締め前のため分析から除外すること。
       
       【出力構成（全5部・約800文字）】
@@ -443,13 +469,15 @@ app.post("/api/areasummary", async (req, res) => {
       4. 今後の戦略（タイトル前に<br /><br />を入れる）
       5. 総括（タイトル前に<br /><br />を入れる）
 
-      データ：
+      【分析対象データ】
+      以下のタグで囲まれたJSONデータを分析してください。
+      <JSON_DATA>
+      ${dataString}
+      </JSON_DATA>
+      データがゼロやundefinedなどだった場合は、必ず「データを解析中ですのでお待ちください。」と回答すること。
     `;
 
-    const result = await model.generateContentStream([
-      prompt,
-      JSON.stringify(data),
-    ]);
+    const result = await model.generateContentStream(prompt);
 
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.setHeader("Transfer-Encoding", "chunked");
