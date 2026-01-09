@@ -26,7 +26,7 @@ const idList = [
         { shop: 'PG HOUSE宮崎店', mail : 'pgh-miyazaki@example.com' },
         { shop: 'JH熊本店', mail : 'jh-kumamoto@example.com' },
         { shop: 'JH八代店', mail : 'jh-yatsushiro@example.com' },
-        { shop: 'KH熊本店', mail : 'kh-kumamoto@example.com' }    
-    ];
+        { shop: 'KH熊本店', mail : 'kh-kumamoto@example.com' },    
+        { shop: 'DJH加世田店', mail : 'djh-kaseda@example.com' }, ];
 
 module.exports = idList;
