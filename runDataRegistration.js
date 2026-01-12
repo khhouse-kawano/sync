@@ -505,6 +505,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
       shop: registerData.shop,
       reserved_status: registerData.reserved_status,
       response_status: registerData.response_status,
+      campaign: registerData.campaign
     };
 
     try {
