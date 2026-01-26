@@ -22,7 +22,7 @@ const runWeekday = async (postData) => {
   } else if (postData.brand === 'ジャスフィーホーム'){
     ccValue = 'jh@kh-group.jp';
   } else if (postData.brand === 'PG HOUSE'){
-    ccValue = 'pghouse@kh-group.jp';
+    ccValue = 'pgh@kh-group.jp';
   }
 
   const mailOptions = {
