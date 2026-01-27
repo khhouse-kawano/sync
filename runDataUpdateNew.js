@@ -22,7 +22,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
   const fillForm = async () => {
     const updateObject = {};
     await page.goto(
-      `https://pg-cloud.cloud/customers/${updateData.id}/summary`
+      `https://pg-cloud.cloud/customers/${updateData.id}/summary`,
     );
     await page.waitForLoadState("networkidle");
 
@@ -45,7 +45,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       value, // 選択したい data-label または data-value
       label, // ログ用ラベル
       parentSelector = clickSelector, // 候補を探す親要素（任意）
-      valueSelector = clickSelector
+      valueSelector = clickSelector,
     ) => {
       if (!value) return;
       try {
@@ -84,7 +84,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       value,
       label,
       parentSelector = clickSelector,
-      valueSelector = clickSelector
+      valueSelector = clickSelector,
     ) => {
       if (!value) return;
       try {
@@ -97,9 +97,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
           ? page.locator(parentSelector)
           : clickLocator;
 
-        const optionLocator = searchScope.locator(
-          `div[data-value="${value}"]`
-        );
+        const optionLocator = searchScope.locator(`div[data-value="${value}"]`);
         if ((await optionLocator.count()) === 0) {
           throw new Error(`候補 "${value}" が見つかりません`);
         }
@@ -126,13 +124,13 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       brand,
       "brand",
       "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[2]",
-      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input"
+      "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/input",
     );
 
     // 連絡先
     try {
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]",
       );
       if (updateData.customer_contacts_mobile_phone_number) {
         const mobileValue = updateData.customer_contacts_mobile_phone_number
@@ -142,7 +140,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
           await safeFill(
             "#customer_customer_contacts_attributes_0_mobile_phone_number",
             String(mobileValue),
-            "mobile"
+            "mobile",
           );
         }
       }
@@ -154,7 +152,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
           await safeFill(
             "#customer_customer_contacts_attributes_0_phone_number",
             String(phoneValue),
-            "mobile"
+            "mobile",
           );
         }
       }
@@ -162,11 +160,11 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         await safeFill(
           "#customer_customer_contacts_attributes_0_email",
           String(updateData.customer_contacts_email),
-          "mail"
+          "mail",
         );
       }
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
       );
     } catch (err) {
       const msg = `連絡先の入力に失敗: ${err}`;
@@ -177,7 +175,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     // 住所
     try {
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]",
       );
     } catch (err) {
       const msg = `住所の入力に失敗: ${err}`;
@@ -205,7 +203,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       selector,
       label,
       method = "inputValue",
-      attrName
+      attrName,
     ) => {
       try {
         if (method === "getAttribute") {
@@ -228,25 +226,25 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
 
         updateObject.zipContent = await safeGetValue(
           selectors.zipContent,
-          "zip"
+          "zip",
         );
         updateObject.prefContent = await safeGetValue(
           selectors.prefContent,
           "pref",
           "getAttribute",
-          "value"
+          "value",
         );
         updateObject.cityContent = await safeGetValue(
           selectors.cityContent,
           "city",
           "getAttribute",
-          "value"
+          "value",
         );
         updateObject.townContent = await safeGetValue(
           selectors.townContent,
           "town",
           "getAttribute",
-          "value"
+          "value",
         );
       }
     }
@@ -255,19 +253,19 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       selectors.prefContent,
       "pref",
       "getAttribute",
-      "value"
+      "value",
     );
     const cityValue = await safeGetValue(
       selectors.cityContent,
       "city",
       "getAttribute",
-      "value"
+      "value",
     );
     const townValue = await safeGetValue(
       selectors.townContent,
       "town",
       "getAttribute",
-      "value"
+      "value",
     );
 
     if (updateData.full_address) {
@@ -287,7 +285,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
 
     try {
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
       );
     } catch (err) {
       const msg = `住所の入力に失敗: ${err}`;
@@ -305,7 +303,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         mediumValue,
         "medium",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[2]/div/div/div[2]",
-        "#customer_sales_promotion_id"
+        "#customer_sales_promotion_id",
       );
     }
 
@@ -316,7 +314,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         updateData.in_charge_user_id,
         "staff",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[2]",
-        "#customer_in_charge_user_id"
+        "#customer_in_charge_user_id",
       );
     }
 
@@ -327,7 +325,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         updateData.customized_input_01J82Z5F366ZQ897PXWF6H5ZAM,
         "rank",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[2]/div[1]/div[2]/div/div[2]",
-        "#customer_customer_customized_input_values_attributes_99_enterprise_select_option_id"
+        "#customer_customer_customized_input_values_attributes_99_enterprise_select_option_id",
       );
     }
 
@@ -338,7 +336,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         updateData.has_owned_land,
         "estate",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[2]/div[2]/div/div[2]",
-        "#customer_has_owned_land"
+        "#customer_has_owned_land",
       );
     }
 
@@ -349,7 +347,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         updateData.customized_input_01JSE7RNV3VK78YC2GYAG0554D,
         "period",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/div[2]",
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/input"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[3]/div[2]/div/input",
       );
     }
 
@@ -360,7 +358,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         updateData.customized_input_01JSE7DKY5RYY3T8T8NVR1AJMN,
         "importance",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/div[2]",
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/input"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[5]/div[3]/div[2]/div/input",
       );
     }
 
@@ -371,7 +369,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         updateData.budget
           ? String(updateData.budget).replace(/,/g, "").replace("万円", "")
           : "",
-        "budget"
+        "budget",
       );
     }
 
@@ -380,7 +378,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_inquiry_reason",
         updateData.inquiry_reason,
-        "medium"
+        "medium",
       );
     }
 
@@ -389,7 +387,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_house_hunting_motivation",
         String(updateData.customer_desired_order),
-        "interest"
+        "interest",
       );
     }
 
@@ -398,7 +396,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       await safeFill(
         "#customer_planned_construction_site",
         updateData.planned_construction_site,
-        "area"
+        "area",
       );
     }
 
@@ -409,7 +407,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         updateData.current_contract_type,
         "situation",
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[2]/div[2]/div/div[2]",
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[2]/div[2]/div/div[1]/input"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[2]/div[2]/div/div[1]/input",
       );
     }
 
@@ -420,7 +418,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         updateData.current_rent
           ? String(Number(updateData.current_rent.replace("万円", "")))
           : "0",
-        "rent"
+        "rent",
       );
     }
 
@@ -430,10 +428,10 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         "#customer_monthly_repayment_amount",
         updateData.monthly_repayment_amount
           ? String(
-              Number(updateData.monthly_repayment_amount.replace("0000", ""))
+              Number(updateData.monthly_repayment_amount.replace("0000", "")),
             )
           : "0",
-        "repayment"
+        "repayment",
       );
     }
 
@@ -452,7 +450,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         updateData.self_budget
           ? String(Number(updateData.self_budget.replace("0000", "")))
           : "0",
-        "self_budget"
+        "self_budget",
       );
     }
 
@@ -463,7 +461,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         Number(updateData.current_utility_costs)
           ? String(Number(updateData.current_utility_costs))
           : "0",
-        "utility_costs"
+        "utility_costs",
       );
     }
 
@@ -471,19 +469,19 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     if (updateData.current_loan_balance) {
       try {
         await page.click(
-          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[1]/div[2]/div/div[1]"
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[1]/div[2]/div/div[1]",
         );
         await safeFill(
           "#customer_current_loan_balance",
           updateData.current_loan_balance
             ? String(
-                Number(updateData.current_loan_balance.replace("0000", ""))
+                Number(updateData.current_loan_balance.replace("0000", "")),
               )
             : "0",
-          "utility_costs"
+          "utility_costs",
         );
         await page.click(
-          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
         );
       } catch (err) {
         const msg = `負債総額の入力に失敗: ${err}`;
@@ -496,7 +494,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     if (updateData.customer_contacts_employer_name) {
       try {
         await page.click(
-          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[1]"
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[1]",
         );
         if (updateData.customer_contacts_employment_type) {
           await safeSelect(
@@ -504,20 +502,20 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
             updateData.customer_contacts_employment_type,
             "employmentType",
             "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[1]/div[1]/div[2]/div/div[2]",
-            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[1]/div[1]/div[2]/div/input"
+            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[1]/div[1]/div[2]/div/input",
           );
         }
         //　雇用形態
         await safeFill(
           "#customer_customer_contacts_attributes_0_employer_name",
           updateData.customer_contacts_employer_name,
-          "employmentName"
+          "employmentName",
         ); //　会社名
         if (updateData.customer_contacts_employer_address) {
           await safeFill(
             "#customer_customer_contacts_attributes_0_employer_address",
             updateData.customer_contacts_employer_address,
-            "employmentAddress"
+            "employmentAddress",
           );
         } //　会社住所
         if (updateData.customer_contacts_years_of_service) {
@@ -527,11 +525,11 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
               ? Number(
                   updateData.customer_contacts_years_of_service.replace(
                     "年",
-                    ""
-                  )
+                    "",
+                  ),
                 )
               : 0,
-            "employmentYears"
+            "employmentYears",
           );
         } //　勤続年数
 
@@ -545,12 +543,12 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
           await safeFill(
             "#customer_customer_contacts_attributes_0_annual_income",
             safeValue,
-            "employmentIncome"
+            "employmentIncome",
           );
         }
 
         await page.click(
-          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
         );
       } catch (err) {
         const msg = `年収・勤務先の入力に失敗: ${err}`;
@@ -562,50 +560,64 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     // 商談ステップを入力
     try {
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]",
       );
-      await safeFill(
-        "#calendar_item_0_start_at",
-        `${updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99.replace(
-          /\//g,
-          "-"
-        )}T00:00`,
-        "registerDate"
-      ); //名簿取得日
-      await safeFill(
-        "#calendar_item_2_start_at",
-        `${updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7.replace(
-          /\//g,
-          "-"
-        )}T00:00`,
-        "visitedDate"
-      ); //初回来場日
-      await safeFill(
-        "#calendar_item_3_start_at",
-        `${updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN.replace(
-          /\//g,
-          "-"
-        )}T00:00`,
-        "NineDate"
-      ); //LINEグループ作成
-      await safeFill(
-        "#calendar_item_5_start_at",
-        `${updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR.replace(
-          /\//g,
-          "-"
-        )}T00:00`,
-        "screeningDate"
-      ); //事前審査
-      await safeFill(
-        "#calendar_item_8_start_at",
-        `${updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA.replace(
-          /\//g,
-          "-"
-        )}T00:00`,
-        "nextDate"
-      ); //次回来場日
+      if (updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99) {
+        await safeFill(
+          "#calendar_item_0_start_at",
+          `${updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99.replace(
+            /\//g,
+            "-",
+          )}T00:00`,
+          "registerDate",
+        );
+      } //名簿取得日
+
+      if (updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7) {
+        await safeFill(
+          "#calendar_item_2_start_at",
+          `${updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7.replace(
+            /\//g,
+            "-",
+          )}T00:00`,
+          "visitedDate",
+        );
+      } //初回来場日
+
+      if (updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN) {
+        await safeFill(
+          "#calendar_item_3_start_at",
+          `${updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN.replace(
+            /\//g,
+            "-",
+          )}T00:00`,
+          "NineDate",
+        );
+      } //LINEグループ作成
+
+      if (updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR) {
+        await safeFill(
+          "#calendar_item_5_start_at",
+          `${updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR.replace(
+            /\//g,
+            "-",
+          )}T00:00`,
+          "screeningDate",
+        );
+      } //事前審査
+
+      if (updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA) {
+        await safeFill(
+          "#calendar_item_8_start_at",
+          `${updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA.replace(
+            /\//g,
+            "-",
+          )}T00:00`,
+          "nextDate",
+        );
+      } //次回来場日
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]"
+        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]",
       );
     } catch (err) {
       const msg = `商談ステップの入力に失敗: ${err}`;
@@ -617,15 +629,15 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     if (updateData.customized_input_01J95TC6KEES87F0YXH29AJP7K) {
       try {
         await page.click(
-          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]"
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[1]",
         );
         await safeFill(
           "#customer_customized_input_values_attributes_0_value",
           updateData.customized_input_01J95TC6KEES87F0YXH29AJP7K,
-          "survey"
+          "survey",
         );
         await page.click(
-          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[4]/div[3]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
         );
       } catch (err) {
         const msg = `surveyの入力に失敗: ${err}`;
@@ -638,11 +650,11 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     if (updateData.remarks) {
       try {
         await page.click(
-          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]"
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[1]",
         );
         await safeFill("#customer_remarks", updateData.remarks, "note");
         await page.click(
-          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]"
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[14]/div/div/div/div[2]/div[2]/div[2]/button[1]",
         );
       } catch (err) {
         const msg = `noteの入力に失敗: ${err}`;
@@ -655,14 +667,14 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
 
     const isVisible = await page
       .locator(
-        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
+        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]",
       )
       .isVisible();
     console.log("ボタン表示状態:", isVisible);
 
     try {
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
+        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]",
       );
     } catch (err) {
       const msg = `保存に失敗: ${err}`;
@@ -680,11 +692,11 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
         try {
           await page.click("#in-charge-user-select");
           await page.click(
-            `div[data-label="${updateData.in_charge_store} 管理"]`
+            `div[data-label="${updateData.in_charge_store} 管理"]`,
           );
           updateObject.staffContent = await page
             .locator(
-              "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input"
+              "//html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/input",
             )
             .getAttribute("data-label");
         } catch (e) {
@@ -694,11 +706,11 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       } else if (error.includes("メールアドレス")) {
         try {
           await page.click(
-            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]"
+            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]",
           );
           await page.fill("#customer_customer_contacts_attributes_0_email", "");
           await page.click(
-            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]"
+            "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
           );
         } catch (e) {
           console.warn("入力値失敗:", e);
@@ -706,12 +718,12 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
       }
       const isVisible = await page
         .locator(
-          "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
+          "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]",
         )
         .isVisible();
       console.log("ボタン表示状態:", isVisible);
       await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]"
+        "//html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]",
       );
       await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
       await page.waitForLoadState("networkidle");
@@ -737,7 +749,7 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
   const now = new Date();
   const nowString = now.toDateString();
   console.log(
-    `${nowString}_${updateData.customer_contacts_name}_アップデート完了:`
+    `${nowString}_${updateData.customer_contacts_name}_アップデート完了:`,
   );
 
   await browser.close();
