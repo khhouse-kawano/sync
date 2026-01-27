@@ -7,7 +7,6 @@ const axios = require("axios");
 const idList = require("./idList.js");
 const runDataRegistration = require("./runDataRegistration.js");
 const runDataRegistrationBeforeInterview = require("./runDataRegistrationBeforeInterview.js");
-const runDataUpdate = require("./runDataUpdate.js");
 const runDataUpdateBeforeInterview = require("./runDataUpdateBeforeInterview.js");
 const runDataUpdateAfterInterview = require("./runDataUpdateAfterInterview.js");
 const runMyHomeRobo = require("./runMyHomeRobo.js");
@@ -143,7 +142,7 @@ app.post("/api/update", async (req, res) => {
       runDataUpdateNew(updateData, brand, pg_mail, pg_pass)
     );
   } else {
-    process.nextTick(() => runDataUpdate(updateData, brand, pg_mail, pg_pass));
+    process.nextTick(() => runDataUpdateNew(updateData, brand, pg_mail, pg_pass));
   }
 });
 
