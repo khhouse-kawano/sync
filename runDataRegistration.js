@@ -311,7 +311,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
         "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]"
       );
       if (registerData.date) {
-        const formattedDate = registerData.date.replace(/\//g, "-");
+        const formattedDate = `${registerData.date.replace(/\//g, "-")}T00:00`;
         await safeFill("#calendar_item_0_start_at", formattedDate, "date");
       }
       await page.click(
