@@ -128,169 +128,177 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     );
 
     // 連絡先
-    try {
-      await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]",
-      );
-      if (updateData.customer_contacts_mobile_phone_number) {
-        const mobileValue = updateData.customer_contacts_mobile_phone_number
-          .replace(/=|"| /g, "")
-          .trim();
-        if (mobileValue.charAt(0) === "0") {
-          await safeFill(
-            "#customer_customer_contacts_attributes_0_mobile_phone_number",
-            String(mobileValue),
-            "mobile",
-          );
-        }
-      }
-      if (updateData.customer_contacts_phone_number) {
-        const phoneValue = updateData.customer_contacts_phone_number
-          .replace(/=|"| /g, "")
-          .trim();
-        if (phoneValue.charAt(0) === "0") {
-          await safeFill(
-            "#customer_customer_contacts_attributes_0_phone_number",
-            String(phoneValue),
-            "mobile",
-          );
-        }
-      }
-      if (updateData.customer_contacts_email.includes("@")) {
-        await safeFill(
-          "#customer_customer_contacts_attributes_0_email",
-          String(updateData.customer_contacts_email),
-          "mail",
+    if (
+      updateData.customer_contacts_mobile_phone_number ||
+      updateData.customer_contacts_phone_number ||
+      updateData.customer_contacts_email
+    ) {
+      try {
+        await page.click(
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]",
         );
+        if (updateData.customer_contacts_mobile_phone_number) {
+          const mobileValue = updateData.customer_contacts_mobile_phone_number
+            .replace(/=|"| /g, "")
+            .trim();
+          if (mobileValue.charAt(0) === "0") {
+            await safeFill(
+              "#customer_customer_contacts_attributes_0_mobile_phone_number",
+              String(mobileValue),
+              "mobile",
+            );
+          }
+        }
+        if (updateData.customer_contacts_phone_number) {
+          const phoneValue = updateData.customer_contacts_phone_number
+            .replace(/=|"| /g, "")
+            .trim();
+          if (phoneValue.charAt(0) === "0") {
+            await safeFill(
+              "#customer_customer_contacts_attributes_0_phone_number",
+              String(phoneValue),
+              "mobile",
+            );
+          }
+        }
+        if (updateData.customer_contacts_email.includes("@")) {
+          await safeFill(
+            "#customer_customer_contacts_attributes_0_email",
+            String(updateData.customer_contacts_email),
+            "mail",
+          );
+        }
+        await page.click(
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
+        );
+      } catch (err) {
+        const msg = `連絡先の入力に失敗: ${err}`;
+        console.error(msg);
+        errors.push(msg);
       }
-      await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
-      );
-    } catch (err) {
-      const msg = `連絡先の入力に失敗: ${err}`;
-      console.error(msg);
-      errors.push(msg);
     }
 
     // 住所
-    try {
-      await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]",
-      );
-    } catch (err) {
-      const msg = `住所の入力に失敗: ${err}`;
-      console.error(msg);
-      errors.push(msg);
-    }
-
-    const selectors = {
-      zipInput: "#customer_postal_code",
-      zipSearchBtn:
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]/a",
-      zipContent: "#customer_postal_code",
-      prefContent:
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input",
-      cityContent:
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input",
-      townContent:
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input",
-      streetInput: "#customer_address_detail",
-      streetContent: "#customer_address_detail",
-      buildingInput: "#customer_address_building",
-    };
-
-    const safeGetValue = async (
-      selector,
-      label,
-      method = "inputValue",
-      attrName,
-    ) => {
+    if (updateData.postal_code || updateData.full_address) {
       try {
-        if (method === "getAttribute") {
-          return await page.locator(selector).getAttribute(attrName);
-        } else {
-          return await page.locator(selector)[method]();
-        }
+        await page.click(
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[1]",
+        );
       } catch (err) {
-        console.warn(`${label}取得失敗:`, err);
-        errors.push(`${label}取得失敗: ${err}`);
-        return "";
+        const msg = `住所の入力に失敗: ${err}`;
+        console.error(msg);
+        errors.push(msg);
       }
-    };
-    if (updateData.postal_code) {
-      const zipValue = updateData.postal_code.replaceAll("-", "");
-      if (zipValue.length === 7) {
-        await safeFill(selectors.zipInput, updateData.postal_code, "zip");
-        await page.click(selectors.zipSearchBtn);
-        await page.waitForTimeout(1500);
 
-        updateObject.zipContent = await safeGetValue(
-          selectors.zipContent,
-          "zip",
-        );
-        updateObject.prefContent = await safeGetValue(
-          selectors.prefContent,
-          "pref",
-          "getAttribute",
-          "value",
-        );
-        updateObject.cityContent = await safeGetValue(
-          selectors.cityContent,
-          "city",
-          "getAttribute",
-          "value",
-        );
-        updateObject.townContent = await safeGetValue(
-          selectors.townContent,
-          "town",
-          "getAttribute",
-          "value",
-        );
+      const selectors = {
+        zipInput: "#customer_postal_code",
+        zipSearchBtn:
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]/a",
+        zipContent: "#customer_postal_code",
+        prefContent:
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[2]/div[1]/div/div[1]/input",
+        cityContent:
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[3]/div/div/div[1]/input",
+        townContent:
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[1]/div/div[2]/div/div[4]/div/div/div[1]/input",
+        streetInput: "#customer_address_detail",
+        streetContent: "#customer_address_detail",
+        buildingInput: "#customer_address_building",
+      };
+
+      const safeGetValue = async (
+        selector,
+        label,
+        method = "inputValue",
+        attrName,
+      ) => {
+        try {
+          if (method === "getAttribute") {
+            return await page.locator(selector).getAttribute(attrName);
+          } else {
+            return await page.locator(selector)[method]();
+          }
+        } catch (err) {
+          console.warn(`${label}取得失敗:`, err);
+          errors.push(`${label}取得失敗: ${err}`);
+          return "";
+        }
+      };
+      if (updateData.postal_code) {
+        const zipValue = updateData.postal_code.replaceAll("-", "");
+        if (zipValue.length === 7) {
+          await safeFill(selectors.zipInput, updateData.postal_code, "zip");
+          await page.click(selectors.zipSearchBtn);
+          await page.waitForTimeout(1500);
+
+          updateObject.zipContent = await safeGetValue(
+            selectors.zipContent,
+            "zip",
+          );
+          updateObject.prefContent = await safeGetValue(
+            selectors.prefContent,
+            "pref",
+            "getAttribute",
+            "value",
+          );
+          updateObject.cityContent = await safeGetValue(
+            selectors.cityContent,
+            "city",
+            "getAttribute",
+            "value",
+          );
+          updateObject.townContent = await safeGetValue(
+            selectors.townContent,
+            "town",
+            "getAttribute",
+            "value",
+          );
+        }
       }
-    }
 
-    const prefValue = await safeGetValue(
-      selectors.prefContent,
-      "pref",
-      "getAttribute",
-      "value",
-    );
-    const cityValue = await safeGetValue(
-      selectors.cityContent,
-      "city",
-      "getAttribute",
-      "value",
-    );
-    const townValue = await safeGetValue(
-      selectors.townContent,
-      "town",
-      "getAttribute",
-      "value",
-    );
-
-    if (updateData.full_address) {
-      const streetValue = updateData.full_address
-        .replaceAll(prefValue, "")
-        .replaceAll(cityValue, "")
-        .replaceAll(townValue, "");
-      await safeFill(selectors.streetInput, streetValue, "street");
-
-      const buildingValue = updateData.full_address
-        .replaceAll(prefValue, "")
-        .replaceAll(cityValue, "")
-        .replaceAll(townValue, "")
-        .replaceAll(streetValue, "");
-      await safeFill(selectors.buildingInput, buildingValue, "building");
-    }
-
-    try {
-      await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
+      const prefValue = await safeGetValue(
+        selectors.prefContent,
+        "pref",
+        "getAttribute",
+        "value",
       );
-    } catch (err) {
-      const msg = `住所の入力に失敗: ${err}`;
-      console.error(msg);
-      errors.push(msg);
+      const cityValue = await safeGetValue(
+        selectors.cityContent,
+        "city",
+        "getAttribute",
+        "value",
+      );
+      const townValue = await safeGetValue(
+        selectors.townContent,
+        "town",
+        "getAttribute",
+        "value",
+      );
+
+      if (updateData.full_address) {
+        const streetValue = updateData.full_address
+          .replaceAll(prefValue, "")
+          .replaceAll(cityValue, "")
+          .replaceAll(townValue, "");
+        await safeFill(selectors.streetInput, streetValue, "street");
+
+        const buildingValue = updateData.full_address
+          .replaceAll(prefValue, "")
+          .replaceAll(cityValue, "")
+          .replaceAll(townValue, "")
+          .replaceAll(streetValue, "");
+        await safeFill(selectors.buildingInput, buildingValue, "building");
+      }
+
+      try {
+        await page.click(
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[2]/div[2]/div/div[2]/div[2]/div[2]/button[1]",
+        );
+      } catch (err) {
+        const msg = `住所の入力に失敗: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+      }
     }
 
     // 販促媒体
@@ -558,71 +566,79 @@ const runDataUpdateNew = async (updateData, brand, pg_mail, pg_pass) => {
     }
 
     // 商談ステップを入力
-    try {
-      await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]",
-      );
-      if (updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99) {
-        await safeFill(
-          "#calendar_item_0_start_at",
-          `${updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99.replace(
-            /\//g,
-            "-",
-          )}T00:00`,
-          "registerDate",
+    if (
+      updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99 ||
+      updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7 ||
+      updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN ||
+      updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR ||
+      updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA
+    ) {
+      try {
+        await page.click(
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[1]",
         );
-      } //名簿取得日
+        if (updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99) {
+          await safeFill(
+            "#calendar_item_0_start_at",
+            `${updateData.step_migration_item_01J82Z5F13B6QVM6X0TCWZHW99.replace(
+              /\//g,
+              "-",
+            )}T00:00`,
+            "registerDate",
+          );
+        } //名簿取得日
 
-      if (updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7) {
-        await safeFill(
-          "#calendar_item_2_start_at",
-          `${updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7.replace(
-            /\//g,
-            "-",
-          )}T00:00`,
-          "visitedDate",
-        );
-      } //初回来場日
+        if (updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7) {
+          await safeFill(
+            "#calendar_item_2_start_at",
+            `${updateData.step_migration_item_01J82Z5F1GQB02S1DEBZPBFDW7.replace(
+              /\//g,
+              "-",
+            )}T00:00`,
+            "visitedDate",
+          );
+        } //初回来場日
 
-      if (updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN) {
-        await safeFill(
-          "#calendar_item_3_start_at",
-          `${updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN.replace(
-            /\//g,
-            "-",
-          )}T00:00`,
-          "NineDate",
-        );
-      } //LINEグループ作成
+        if (updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN) {
+          await safeFill(
+            "#calendar_item_3_start_at",
+            `${updateData.step_migration_item_01JSE75MPCGQW7V2MTY9VM4HXN.replace(
+              /\//g,
+              "-",
+            )}T00:00`,
+            "NineDate",
+          );
+        } //LINEグループ作成
 
-      if (updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR) {
-        await safeFill(
-          "#calendar_item_5_start_at",
-          `${updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR.replace(
-            /\//g,
-            "-",
-          )}T00:00`,
-          "screeningDate",
-        );
-      } //事前審査
+        if (updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR) {
+          await safeFill(
+            "#calendar_item_5_start_at",
+            `${updateData.step_migration_item_01JSE0CRECT96FMYTZ1ZREC3QR.replace(
+              /\//g,
+              "-",
+            )}T00:00`,
+            "screeningDate",
+          );
+        } //事前審査
 
-      if (updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA) {
-        await safeFill(
-          "#calendar_item_8_start_at",
-          `${updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA.replace(
-            /\//g,
-            "-",
-          )}T00:00`,
-          "nextDate",
+        if (updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA) {
+          await safeFill(
+            "#calendar_item_8_start_at",
+            `${updateData.step_migration_item_01JSENACS2FC422ZHEZWNSXNYA.replace(
+              /\//g,
+              "-",
+            )}T00:00`,
+            "nextDate",
+          );
+        } //次回来場日
+        await page.click(
+          "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]",
         );
-      } //次回来場日
-      await page.click(
-        "//html/body/main/div[1]/div[2]/div/form/div[1]/div[16]/div[1]/div/turbo-frame/div/div[2]/div[2]/div[2]/button[1]",
-      );
-    } catch (err) {
-      const msg = `商談ステップの入力に失敗: ${err}`;
-      console.error(msg);
-      errors.push(msg);
+      } catch (err) {
+        const msg = `商談ステップの入力に失敗: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+      }
     }
 
     // 面談後アンケート(memo)
