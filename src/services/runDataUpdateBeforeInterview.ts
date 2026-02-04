@@ -453,13 +453,13 @@ export const runDataUpdateBeforeInterview = async (updateData: any, brand: strin
 
     try {
         await pgLogin(page, pg_mail, pg_pass, errors)
-        console.log('ログイン成功');
     } catch (err) {
         console.error('ログイン失敗:', err);
         return;
     }
 
     try {
+        console.log('ログイン成功');
         await fillForm();
         console.log('入力成功');
     } catch (err) {
@@ -501,5 +501,3 @@ export const runDataUpdateBeforeInterview = async (updateData: any, brand: strin
         }
     }
 };
-
-module.exports = runDataUpdateBeforeInterview;

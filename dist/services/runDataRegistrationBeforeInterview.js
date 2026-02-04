@@ -15,6 +15,7 @@ const runDataRegistrationBeforeInterview = async (registerData, brand, pg_mail, 
     const context = await browser.newContext();
     const page = await context.newPage();
     const fillForm = async () => {
+        console.log('ログイン成功');
         const registerObject = {};
         await page.click("//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a");
         await page.waitForLoadState("networkidle");

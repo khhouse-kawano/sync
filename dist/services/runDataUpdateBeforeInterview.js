@@ -313,13 +313,13 @@ const runDataUpdateBeforeInterview = async (updateData, brand, pg_mail, pg_pass)
     };
     try {
         await (0, function_1.pgLogin)(page, pg_mail, pg_pass, errors);
-        console.log('ログイン成功');
     }
     catch (err) {
         console.error('ログイン失敗:', err);
         return;
     }
     try {
+        console.log('ログイン成功');
         await fillForm();
         console.log('入力成功');
     }
@@ -358,4 +358,3 @@ const runDataUpdateBeforeInterview = async (updateData, brand, pg_mail, pg_pass)
     }
 };
 exports.runDataUpdateBeforeInterview = runDataUpdateBeforeInterview;
-module.exports = exports.runDataUpdateBeforeInterview;

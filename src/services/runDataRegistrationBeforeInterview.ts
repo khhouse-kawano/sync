@@ -17,6 +17,7 @@ export const runDataRegistrationBeforeInterview = async (
     const page = await context.newPage();
 
     const fillForm = async () => {
+        console.log('ログイン成功');
         const registerObject: any = {};
 
         await page.click("//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a");
