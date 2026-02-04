@@ -25,7 +25,7 @@ export const runDataUpdateNew = async (postData: any, brand: string, pg_mail: st
                 value: postData.in_charge_user,
                 label: 'staff',
                 parentPath: 'xpath=/html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[2]',
-                valuePath: 'customer_in_charge_user_id'
+                valuePath: '#customer_in_charge_user_id'
             }, {
                 path: 'xpath=/html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div',
                 value: brand,
