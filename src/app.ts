@@ -27,7 +27,7 @@ app.use(cors(corsOptions));
 
 // 3. OPTIONS（プリフライト）にも「同じ設定」を適用
 // ここで cors() を空にせず、corsOptions を渡します
-app.options("*", cors(corsOptions)); 
+app.options("(.*)", cors(corsOptions));
 
 app.use(express.json());
 app.use(express.text());
