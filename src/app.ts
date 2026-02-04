@@ -14,7 +14,15 @@ import areaSummaryRoutes from "./routes/areaSummaryRoutes";
 import mailScrapingRoutes from "./routes/mailScrapingRoutes";
 
 const app = express();
-app.use(cors());
+app.use(
+    cors({
+        origin: "https://khg-marketing.info",
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        credentials: true,
+    })
+);
+app.options("*", cors());
 app.use(express.json());
 app.use(express.text());
 

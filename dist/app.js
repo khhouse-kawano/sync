@@ -18,7 +18,13 @@ const summaryRoutes_1 = __importDefault(require("./routes/summaryRoutes"));
 const areaSummaryRoutes_1 = __importDefault(require("./routes/areaSummaryRoutes"));
 const mailScrapingRoutes_1 = __importDefault(require("./routes/mailScrapingRoutes"));
 const app = (0, express_1.default)();
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: "https://khg-marketing.info",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+}));
+app.options("*", (0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.text());
 app.use("/api/", indexRoutes_1.default);
