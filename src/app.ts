@@ -26,7 +26,6 @@ app.options("*", cors());
 app.use(express.json());
 app.use(express.text());
 
-app.use("/api/", indexRoutes);
 app.use("/api/update", updateRoutes);
 app.use("/api/robo", roboRoutes);
 app.use("/api/before_survey", beforeSurveyRoutes);
@@ -37,5 +36,6 @@ app.use("/api/weekday", weekdaysRoutes);
 app.use("/api/summary", summaryRoutes);
 app.use("/api/areasummary", areaSummaryRoutes);
 app.use("/api/mail_scraping", mailScrapingRoutes);
+app.use("/api/", indexRoutes);
 
 export default app;
