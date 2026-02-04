@@ -14,15 +14,21 @@ import areaSummaryRoutes from "./routes/areaSummaryRoutes";
 import mailScrapingRoutes from "./routes/mailScrapingRoutes";
 
 const app = express();
-app.use(
-    cors({
-        origin: "https://khg-marketing.info",
-        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        credentials: true,
-    })
-);
-app.options("*", cors());
+// 1. 設定を共通化する
+const corsOptions = {
+    origin: "https://khg-marketing.info", // ローカル開発時はここを調整する必要があります
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+};
+
+// 2. メインのCORSミドルウェアに適用
+app.use(cors(corsOptions));
+
+// 3. OPTIONS（プリフライト）にも「同じ設定」を適用
+// ここで cors() を空にせず、corsOptions を渡します
+app.options("*", cors(corsOptions)); 
+
 app.use(express.json());
 app.use(express.text());
 
