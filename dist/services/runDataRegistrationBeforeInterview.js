@@ -19,21 +19,6 @@ const runDataRegistrationBeforeInterview = async (registerData, brand, pg_mail, 
         const registerObject = {};
         await page.click("//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a");
         await page.waitForLoadState("networkidle");
-        const safeSelect = async (clickSelector, value, label, valueSelector) => {
-            if (!value)
-                return;
-            const selector = valueSelector ?? clickSelector;
-            try {
-                await page.click(clickSelector);
-                label === 'staff' ? await page.click(`div[data-value='${value}']`) : await page.click(`div[data-label='${value}']`);
-                registerObject[`${label}Content`] = await page.locator(selector).getAttribute('data-label');
-            }
-            catch (err) {
-                const msg = `${label}の入力に失敗: ${err}`;
-                console.error(msg);
-                errors.push(msg);
-            }
-        };
         const nameObject = [
             {
                 path: 'xpath=/html/body/main/div/div[2]/div/form/div[1]/div[4]/div[1]/div[2]/input[1]',
@@ -64,7 +49,7 @@ const runDataRegistrationBeforeInterview = async (registerData, brand, pg_mail, 
             }
         ];
         for (const item of selectObject) {
-            await safeSelect(item.path, item.value, item.label, item.labelPath);
+            await (0, function_1.safeSelect)(page, registerData, errors, item.path, item.value, item.label, item.labelPath);
         }
         const contactObject = [
             {
@@ -116,7 +101,7 @@ const runDataRegistrationBeforeInterview = async (registerData, brand, pg_mail, 
                 await (0, function_1.safeFill)(page, registerObject, errors, selectors.zipInput, registerData.zip, 'zip');
                 await page.click(selectors.zipSearchBtn);
                 await page.waitForTimeout(1500);
-                registerObject.zipContent = await (0, function_1.safeGetValue)(page, errors, selectors.zipContent, 'zip', '', '');
+                registerObject.zipContent = await (0, function_1.safeGetValue)(page, errors, selectors.zipContent, 'zip', 'inputValue', '');
                 registerObject.prefContent = await (0, function_1.safeGetValue)(page, errors, selectors.prefContent, 'pref', 'getAttribute', 'value');
                 registerObject.cityContent = await (0, function_1.safeGetValue)(page, errors, selectors.cityContent, 'city', 'getAttribute', 'value');
                 registerObject.townContent = await (0, function_1.safeGetValue)(page, errors, selectors.townContent, 'town', 'getAttribute', 'value');
@@ -126,7 +111,7 @@ const runDataRegistrationBeforeInterview = async (registerData, brand, pg_mail, 
         const cityValue = await (0, function_1.safeGetValue)(page, errors, selectors.cityContent, 'city', 'getAttribute', 'value');
         const townValue = await (0, function_1.safeGetValue)(page, errors, selectors.townContent, 'town', 'getAttribute', 'value');
         if (registerData.address) {
-            const streetValue = registerData.street
+            const streetValue = registerData.street && registerData.street
                 .replace(new RegExp(prefValue, 'g'), '')
                 .replace(new RegExp(cityValue, 'g'), '')
                 .replace(new RegExp(townValue, 'g'), '');
@@ -167,14 +152,14 @@ const runDataRegistrationBeforeInterview = async (registerData, brand, pg_mail, 
             ? String(registerData.budget).replace("万円", "")
             : "0", "budget");
         // 現居契約形態
-        await safeSelect("#current-contract-type-select", registerData.situation, "situation", "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[2]/div[2]/div/div[1]/input");
+        await (0, function_1.safeSelect)(page, registerData, errors, "#current-contract-type-select", registerData.situation, "situation", "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[2]/div[2]/div/div[1]/input");
         // 現居家賃
         await (0, function_1.safeFill)(page, registerObject, errors, "#customer_current_rent", registerData.rent ? String(registerData.rent).replace("万円", "") : "0", "rent");
         // 年収・勤務先
         if (registerData.employment.name) {
             try {
                 await page.click("//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[1]");
-                await safeSelect("#customer_contacts_employment_type", registerData.employment.type, "employmentType", "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[1]/div[1]/div[2]/div/input");
+                await (0, function_1.safeSelect)(page, registerData, errors, "#customer_contacts_employment_type", registerData.employment.type, "employmentType", "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[2]/div[2]/div[1]/div[1]/div[2]/div/input");
                 await (0, function_1.safeFill)(page, registerObject, errors, "#customer_customer_contacts_attributes_0_employer_name", registerData.employment.name, "employmentName");
                 await (0, function_1.safeFill)(page, registerObject, errors, "#customer_customer_contacts_attributes_0_employer_address", registerData.employment.address, "employmentAddress");
                 await (0, function_1.safeFill)(page, registerObject, errors, "#customer_customer_contacts_attributes_0_years_of_service", registerData.employment.years
@@ -343,6 +328,9 @@ const runDataRegistrationBeforeInterview = async (registerData, brand, pg_mail, 
         }
         catch (err) {
             console.error("メール送信に失敗しました:", err);
+        }
+        finally {
+            errors.length = 0;
         }
     }
     if (pg_id) {

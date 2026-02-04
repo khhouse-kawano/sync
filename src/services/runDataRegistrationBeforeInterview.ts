@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 import axios from 'axios';
 import nodemailer from 'nodemailer';
-import { pgLogin, safeFill, safeGetValue } from '../utils/function';
+import { pgLogin, safeFill, safeGetValue, safeSelect } from '../utils/function';
 
 const errors: string[] = [];
 
@@ -22,21 +22,6 @@ export const runDataRegistrationBeforeInterview = async (
 
         await page.click("//html/body/main/div/div[2]/div[1]/div[2]/div[7]/a");
         await page.waitForLoadState("networkidle");
-
-
-        const safeSelect = async (clickSelector: string, value: string, label: string, valueSelector: string) => {
-            if (!value) return;
-            const selector = valueSelector ?? clickSelector;
-            try {
-                await page.click(clickSelector);
-                label === 'staff' ? await page.click(`div[data-value='${value}']`) : await page.click(`div[data-label='${value}']`);
-                registerObject[`${label}Content`] = await page.locator(selector).getAttribute('data-label');
-            } catch (err) {
-                const msg = `${label}の入力に失敗: ${err}`;
-                console.error(msg);
-                errors.push(msg);
-            }
-        };
 
         type FillField = {
             path: string;
@@ -77,7 +62,7 @@ export const runDataRegistrationBeforeInterview = async (
         ];
 
         for (const item of selectObject) {
-            await safeSelect(item.path, item.value, item.label, item.labelPath);
+            await safeSelect(page, registerData, errors, item.path, item.value, item.label, item.labelPath);
         }
 
         const contactObject = [
@@ -146,7 +131,7 @@ export const runDataRegistrationBeforeInterview = async (
                     errors,
                     selectors.zipContent,
                     'zip',
-                    '',
+                    'inputValue',
                     '');
 
                 registerObject.prefContent = await safeGetValue(
@@ -206,7 +191,7 @@ export const runDataRegistrationBeforeInterview = async (
         );
 
         if (registerData.address) {
-            const streetValue = registerData.street
+            const streetValue = registerData.street && registerData.street
                 .replace(new RegExp(prefValue, 'g'), '')
                 .replace(new RegExp(cityValue, 'g'), '')
                 .replace(new RegExp(townValue, 'g'), '');
@@ -276,6 +261,7 @@ export const runDataRegistrationBeforeInterview = async (
 
         // 現居契約形態
         await safeSelect(
+            page, registerData, errors,
             "#current-contract-type-select",
             registerData.situation,
             "situation",
@@ -296,6 +282,7 @@ export const runDataRegistrationBeforeInterview = async (
                     "//html/body/main/div[1]/div[2]/div/form/div[1]/div[10]/div[3]/div[2]/div/div[1]"
                 );
                 await safeSelect(
+                    page, registerData, errors,
                     "#customer_contacts_employment_type",
                     registerData.employment.type,
                     "employmentType",
@@ -531,6 +518,8 @@ export const runDataRegistrationBeforeInterview = async (
             console.log("エラーメールを送信しました");
         } catch (err) {
             console.error("メール送信に失敗しました:", err);
+        } finally {
+            errors.length = 0;
         }
     }
 
