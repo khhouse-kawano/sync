@@ -29,7 +29,7 @@ const corsOptions = {
 app.use((0, cors_1.default)(corsOptions));
 // 3. OPTIONS（プリフライト）にも「同じ設定」を適用
 // ここで cors() を空にせず、corsOptions を渡します
-app.options("*", (0, cors_1.default)(corsOptions));
+app.options("(.*)", (0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 app.use(express_1.default.text());
 app.use("/api/update", updateRoutes_1.default);
