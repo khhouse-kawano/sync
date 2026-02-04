@@ -1,4 +1,4 @@
-import { runWeekday } from "./runWeekday";
+import { runWeekday} from './runWeekday';
 
 export const weekdayService = {
     process: async (postData: any) => {
