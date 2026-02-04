@@ -6,6 +6,15 @@ exports.weekdayController = {
     handleWeekday: async (req, res) => {
         const postData = req.body;
         const result = await weekdayService_1.weekdayService.process(postData);
-        res.send({ message: result.message, status: "processing" });
+        if (result.ok) {
+            return res.send({
+                message: result.message,
+                status: "success"
+            });
+        }
+        return res.send({
+            message: result.message,
+            status: "processing"
+        });
     }
 };
