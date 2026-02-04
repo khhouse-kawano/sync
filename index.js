@@ -280,12 +280,14 @@ app.post("/api/add_event", async (req, res) => {
   }
 });
 
+
+// 現在未使用
 app.post("/api/resale_ielove", async (req, res) => {
   console.log(`${formattedDate}_いえラブのアップデート処理受付開始`);
 
   const updateData = req.body;
-  const mail = "shinji.kawano@kh-group.jp";
-  const pass = "4081kokubukun";
+  const mail = process.env.IELOVE_MAIL;
+  const pass = process.env.IELOVE_PASS;
 
   res.send({
     message: `${formattedDate}_いえラブのアップデートを開始しました`,
@@ -294,6 +296,7 @@ app.post("/api/resale_ielove", async (req, res) => {
 
   process.nextTick(() => runCallResale(updateData, mail, pass));
 });
+// 現在未使用
 
 app.post("/api/breakaway", async (req, res) => {
   console.log("フォーム離脱情報の登録開始");

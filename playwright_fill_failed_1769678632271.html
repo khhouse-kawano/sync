@@ -1,0 +1,127 @@
+<!DOCTYPE html><html lang="ja"><head><style data-fullcalendar=""></style><style type="text/css">.turbo-progress-bar {
+  position: fixed;
+  display: block;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: #0076ff;
+  z-index: 2147483647;
+  transition:
+    width 300ms ease-out,
+    opacity 150ms 150ms ease-in;
+  transform: translate3d(0, 0, 0);
+}
+</style>
+    <title>ログイン | pg-cloud</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="csrf-param" content="authenticity_token">
+
+    
+
+    <link rel="stylesheet" href="/assets/application-59a32d05db23a41dc7efab6265cd386db7e04ad735e1ed81ab733d7a05f74d97.css" data-turbo-track="reload">
+    <script src="/assets/application-bfab71b87672fd30e91928d918a5bee65f3f3480df2bdcc64c0c415d5aacb926.js" data-turbo-track="reload" defer="defer"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/kenwheeler/slick@1.8.1/slick/slick.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/kenwheeler/slick@1.8.1/slick/slick-theme.css">
+
+    <link rel="icon" type="image/x-icon" href="/assets/favicon-f81423243fdf4106b0963b75e3f215c1ec5fece8a3a4edabb0d2661a45fa31a9.ico">
+  <meta name="csrf-token" content="GJrrBEHNg5I8e9RoDAYvdAZbSO2k45AY_PGXtAQVk1SbLZh5R4sxHynobiJDdbOYeAAS0GlxCakNTDiprysrxQ"></head>
+
+  <body>
+    <header>
+    <div class="header" data-controller="components--header">
+      <!-- 物件閲覧画面など、ログインしていない状態で閲覧している状態の顧客向け画面では、ロゴ画像を非表示とするか、利用企業向けにカスタマイズして表示します -->
+        <!-- デフォルトのヘッダーロゴ -->
+        <a class="header-left" href="/">
+          <img alt="ロゴ：ピュア・グロース株式会社" class="header-logo" src="/assets/header-logo-012b9388b9456aeef73f19ab61bbf6343c44c08a66444954c435371ff3e72653.png">
+</a>
+    </div>
+</header>
+
+    <div id="flash">
+
+</div>
+
+
+    <main>
+      
+<div class="text-center form-signin">
+  <form class="mb-2" action="/login" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="ZMvZMWySF7Tal_5NNutE6bKY6NQI7IwIwN7LbZZv4FERilb9smPNRXuTC6UZkeOFh-wgGeQjD9yF_0j9UEOneA" autocomplete="off" style="">
+    <div class="signin-block">
+      <h1 class="signin-heading">PGクラウドにログイン</h1>
+
+      <div class="signin-form-body">
+
+        <label for="form_email">ユーザーネーム</label>
+        <input placeholder="ユーザーネーム" class="w-480px" type="email" value="" name="form[email]" id="form_email" style="">
+
+        <label for="form_password">パスワード</label>
+        <div class="password-input-wrapper">
+          <input placeholder="パスワード" class="w-480px" type="password" name="form[password]" id="form_password" style="">
+
+          <label class="remember-me" for="form_remember_me">
+            <input name="form[remember_me]" type="hidden" value="0" autocomplete="off" style=""><input type="checkbox" value="1" checked="checked" name="form[remember_me]" id="form_remember_me" style="">
+            次回から自動ログイン
+</label>        </div>
+
+            <div class="error-message">
+              メールアドレスを入力してください
+            </div>
+      </div>
+
+      <div class="signin-form-footer">
+        <input autocomplete="off" type="hidden" value="" name="form[return_to]" id="form_return_to" style="">
+        <input type="submit" name="commit" value="ログイン" class="common-button btn-edit lg" data-disable-with="ログイン" style="">
+
+        <a class="common-link text-default text-center" href="/password/reset">パスワードを忘れた方</a>
+      </div>
+    </div>
+</form>
+  <!-- サービス無料相談フォーム※homeより移動 -->
+  <form data-turbo="false" data-controller="components--common-form" action="/inquiries" accept-charset="UTF-8" method="post"><input type="hidden" name="authenticity_token" value="TrpsVQqO_cCptYk3p1c8f4E-WydrdXdU_rcAN_R1IrO7RIfZQRuN9Hkh8we3oZJFONLuBDaiE6LMTHm1_lEcwA" autocomplete="off" style="">
+    <div class="inquiry-block">
+      <input value="public_form" autocomplete="off" type="hidden" name="send_from" id="send_from" style="">
+
+      <h1 class="inquiry-heading">サービスに関する無料相談はこちら</h1>
+
+      <div class="inquiry-body">
+        <label for="send_by_name">氏名</label>
+        <input placeholder="例）山田太郎" class="w-480px" type="text" name="send_by_name" id="send_by_name" style="">
+
+        <label for="company_name">会社名</label>
+        <input placeholder="例）〇〇株式会社" class="w-480px" type="text" name="company_name" id="company_name" style="">
+
+        <label for="email">Eメール</label>
+        <input placeholder="例）mail@example.com" class="w-480px" type="text" name="email" id="email" style="">
+
+        <label for="phone_number">電話番号</label>
+        <input placeholder="例）00000000000" class="w-480px" type="text" name="phone_number" id="phone_number" style="">
+
+        <label for="message">
+          ご質問ご要望があれば<br>ご記入ください
+</label>        <textarea placeholder="例）ご記入ください" class="w-480px" name="message" id="message" style=""></textarea>
+      </div>
+
+      <div class="inquiry-footer">
+        <div class="error-message"></div>
+        <div class="form-footer-message">
+          上記のフォーム内容を送信することにより、<a href="/privacy_policies">個人情報の取扱い</a>について同意したこととなります。
+        </div>
+        <input type="submit" name="commit" value="同意して送信" data-turbo-confirm="確認" data-disable-with="同意して送信" class="common-button btn-edit lg" style="">
+      </div>
+    </div>
+</form>
+  <turbo-frame id="special_login"></turbo-frame>
+</div>
+
+      <div class="footer" data-controller="components--footer">
+  <div class="footer-scroll-to-top-button" data-action="click-&gt;components--footer#scrollToTop">
+    <img alt="ページトップへ" class="footer-caret-up" src="/assets/icons/caret-up-white-910ef074dfac0dd99b26f08146874c78170a4fad7d5a56c1f69c81f8a6f50847.svg">
+    <span>ページ<br>トップ</span>
+  </div>
+</div>
+
+    </main>
+  
+
+</body></html>

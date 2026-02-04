@@ -20,8 +20,21 @@
     "express": "^5.1.0",
     "googleapi": "^1.0.2",
     "googleapis": "^161.0.0",
+    "mailparser": "^3.9.3",
     "node-fetch": "^2.7.0",
+    "node-imap": "^0.9.6",
     "nodemailer": "^7.0.6",
+    "playwright": "^1.58.0",
     "playwright-chromium": "^1.52.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/mailparser": "^3.4.6",
+    "@types/node": "^25.0.10",
+    "@types/node-imap": "^0.9.3",
+    "@types/nodemailer": "^7.0.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
