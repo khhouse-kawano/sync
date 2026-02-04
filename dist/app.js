@@ -27,7 +27,6 @@ app.use((0, cors_1.default)({
 app.options("*", (0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.text());
-app.use("/api/", indexRoutes_1.default);
 app.use("/api/update", updateRoutes_1.default);
 app.use("/api/robo", roboRoutes_1.default);
 app.use("/api/before_survey", beforeSurveyRoutes_1.default);
@@ -38,4 +37,5 @@ app.use("/api/weekday", weekdayRoutes_1.default);
 app.use("/api/summary", summaryRoutes_1.default);
 app.use("/api/areasummary", areaSummaryRoutes_1.default);
 app.use("/api/mail_scraping", mailScrapingRoutes_1.default);
+app.use("/api/", indexRoutes_1.default);
 exports.default = app;
