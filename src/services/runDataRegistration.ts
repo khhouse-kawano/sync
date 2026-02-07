@@ -64,7 +64,7 @@ export const runDataRegistration = async (registerData: any, brand: string, pg_m
         const contactObject = [
             {
                 path: '#customer_customer_contacts_attributes_0_mobile_phone_number',
-                value: String(registerData.mobile.replace(/=|'| /g, '').trim()),
+                value: String(registerData.mobile.replace(/=|'|"| /g, '')),
                 label: 'mobile'
 
             },
