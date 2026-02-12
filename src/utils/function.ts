@@ -47,10 +47,11 @@ export const safeUpdateFill = async (page: any, object: any, errors: string[], s
 
 export const safeSelect = async (page: any, object: any, errors: string[], clickSelector: string, value: string, label: string, valueSelector: string) => {
     if (!value || value === 'undefined') return;
+    const clearValue = value.replace(/\s+/g, '').replace(/\u200B/g,'');
     const selector = valueSelector ?? clickSelector;
     try {
         await page.click(clickSelector);
-        label === 'staff' ? await page.click(`div[data-value="${value}"]`) : await page.click(`div[data-label="${value}"]`);
+        label === 'staff' ? await page.click(`div[data-value="${clearValue}"]`) : await page.click(`div[data-label="${clearValue}"]`);
         object[`${label}Content`] = await page.locator(selector).getAttribute('data-label');
         console.log(`${label}の選択に成功`);
     } catch (err) {

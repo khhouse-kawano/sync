@@ -12,11 +12,12 @@ import weekdaysRoutes from "./routes/weekdayRoutes";
 import summaryRoutes from "./routes/summaryRoutes";
 import areaSummaryRoutes from "./routes/areaSummaryRoutes";
 import mailScrapingRoutes from "./routes/mailScrapingRoutes";
+import pdfToTtpRoutes from "./routes/pdfToPptRoutes";
 
 const app = express();
 app.use(cors());
-app.use(express.json());
-app.use(express.text());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.text({ limit: '50mb' }));
 
 app.use("/api/", indexRoutes);
 app.use("/api/update", updateRoutes);
@@ -29,5 +30,6 @@ app.use("/api/weekday", weekdaysRoutes);
 app.use("/api/summary", summaryRoutes);
 app.use("/api/areasummary", areaSummaryRoutes);
 app.use("/api/mail_scraping", mailScrapingRoutes);
+app.use("/api/pdftoppt", pdfToTtpRoutes);
 
 export default app;
