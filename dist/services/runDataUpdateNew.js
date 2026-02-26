@@ -182,7 +182,7 @@ const runDataUpdateNew = async (postData, brand, pg_mail, pg_pass) => {
             },
             {
                 path: '#customer_house_hunting_motivation',
-                value: String(postData.customer_desired_order),
+                value: String(postData.house_hunting_motivation),
                 label: 'interest' // 建築動機
             },
             {

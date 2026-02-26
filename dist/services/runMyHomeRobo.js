@@ -117,7 +117,7 @@ const runMyHomeRobo = async (updateData, roboId, roboPass) => {
         const mailOptions = {
             from: "error@khg-marketing.info",
             to: "shinji.kawano@kh-group.jp",
-            subject: "【自動送信】エラー発生通知",
+            subject: "マイホームロボ登録中にエラー発生",
             text: `以下のエラーが発生しました:\n\n${errors.join("\n")}`,
         };
         try {
