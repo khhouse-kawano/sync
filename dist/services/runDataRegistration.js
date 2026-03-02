@@ -223,12 +223,11 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
         }
         await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
         await page.waitForLoadState('networkidle');
-        const errorText = await page
-            .locator('xpath=/html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span')
-            .textContent();
-        if (errorText) {
-            console.log(errorText);
-            if (errorText.includes('メールアドレス')) {
+        const errorLocator = page.locator('xpath=/html/body/main/div[1]/div[2]/div/form/div[3]/div[1]/span');
+        if (await errorLocator.isVisible()) {
+            const errorText = await errorLocator.textContent();
+            console.log(`エラーが発生しました: ${errorText}`);
+            if (errorText?.includes('メールアドレス')) {
                 await page.click('xpath=/html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[1]');
                 await page.fill('#customer_customer_contacts_attributes_0_email', '');
                 try {
@@ -242,7 +241,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
                 await page.click('xpath=/html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]');
                 console.log('メールアドレスを空文字に修正');
             }
-            if (errorText.includes('担当者')) {
+            if (errorText?.includes('担当者')) {
                 await page.click('xpath=/html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[3]/div[2]/div/div[1]');
                 await page.click(`div[data-label='${registerData.shop} 管理']`);
                 try {
