@@ -82,7 +82,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
         }
         const mediumValue = registerData.response_medium
             .replace('ホームページ反響', 'インターネット検索')
-            .replace('ALLGRIT', '公式LINE');
+            .replace('ALLGRIT', '公式LINE') ?? '';
         const selectObject = [
             {
                 path: 'xpath=/html/body/main/div[1]/div[2]/div/form/div[1]/div[3]/div[1]/div[2]/div/div[1]',

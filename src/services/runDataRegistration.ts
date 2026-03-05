@@ -93,7 +93,7 @@ export const runDataRegistration = async (registerData: any, brand: string, pg_m
 
         const mediumValue = registerData.response_medium
             .replace('ホームページ反響', 'インターネット検索')
-            .replace('ALLGRIT', '公式LINE');
+            .replace('ALLGRIT', '公式LINE') ?? '';
 
         const selectObject = [
             {
