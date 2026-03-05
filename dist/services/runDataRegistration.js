@@ -80,7 +80,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
             console.error(msg);
             errors.push(msg);
         }
-        const mediumValue = registerData.response_medium
+        const mediumValue = registerData.response_status
             .replace('ホームページ反響', 'インターネット検索')
             .replace('ALLGRIT', '公式LINE') ?? '';
         const selectObject = [
