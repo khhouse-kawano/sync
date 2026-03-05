@@ -318,9 +318,11 @@ export const runDataRegistration = async (registerData: any, brand: string, pg_m
             .isVisible();
         console.log('ボタン表示状態:', isVisible);
         try {
-            await page.click(
-                'xpath=/html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]'
-            );
+            await Promise.all([
+                page.waitForURL(url => !url.toString().includes('new'), { timeout: 30000 }),
+                page.click(
+                    'xpath=/html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]')
+            ]);
         } catch (err) {
             const msg = `保存に失敗: ${err}`;
             console.error(msg);
@@ -344,9 +346,11 @@ export const runDataRegistration = async (registerData: any, brand: string, pg_m
                 } catch (e) {
                     console.warn('入力値失敗:', e);
                 }
-                await page.click(
-                    'xpath=/html/body/main/div[1]/div[2]/div/form/div[1]/div[6]/div[1]/div[2]/div/div[2]/div[2]/div[2]/button[1]'
-                );
+                await Promise.all([
+                    page.waitForURL(url => !url.toString().includes('new'), { timeout: 30000 }),
+                    page.click(
+                        'xpath=/html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]')
+                ]);
                 console.log('メールアドレスを空文字に修正');
             }
             if (errorText?.includes('担当者')) {
@@ -371,9 +375,11 @@ export const runDataRegistration = async (registerData: any, brand: string, pg_m
                 )
                 .isVisible();
             console.log('ボタン表示状態:', isVisible);
-            await page.click(
-                'xpath=/html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button'
-            );
+            await Promise.all([
+                page.waitForURL(url => !url.toString().includes('new'), { timeout: 30000 }),
+                page.click(
+                    'xpath=/html/body/main/div[1]/div[2]/div/form/div[3]/div[2]/div/button[1]')
+            ]);
             await page.waitForTimeout(4500); // 詳細編集画面が現れるまで待機
             await page.waitForLoadState('networkidle');
         }
