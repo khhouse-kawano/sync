@@ -91,7 +91,7 @@ export const runDataRegistration = async (registerData: any, brand: string, pg_m
             errors.push(msg);
         }
 
-        const mediumValue = registerData.response_status
+        const mediumValue = registerData.medium
             .replace('ホームページ反響', 'インターネット検索')
             .replace('ALLGRIT', '公式LINE') ?? '';
 
@@ -466,7 +466,7 @@ export const runDataRegistration = async (registerData: any, brand: string, pg_m
             customer_contacts_name_kana: postKana ?? '',
             shop: registerData.shop,
             reserved_status: registerData.reserved_status,
-            response_status: registerData.response_status,
+            response_status: registerData.response_medium,
             campaign: registerData.campaign,
             name: postName ?? '',
             kana: postKana ?? '',
