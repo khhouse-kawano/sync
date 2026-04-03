@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runDataRegistration = void 0;
 const playwright_1 = require("playwright");
-const axios_1 = __importDefault(require("axios"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const function_1 = require("../utils/function");
 const errors = [];
@@ -80,7 +79,7 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
             console.error(msg);
             errors.push(msg);
         }
-        const mediumValue = registerData.response_status
+        const mediumValue = registerData.medium
             .replace('ホームページ反響', 'インターネット検索')
             .replace('ALLGRIT', '公式LINE') ?? '';
         const selectObject = [
@@ -305,91 +304,98 @@ const runDataRegistration = async (registerData, brand, pg_mail, pg_pass) => {
             errors.length = 0;
         }
     }
-    if (pg_id) {
-        const now = new Date();
-        const nowString = now.toDateString();
-        const url = String(pg_id).replace('edit', 'summary');
-        console.log(`${nowString}_${registerData.shop}_${registerData.firstName}_同期処理完了:`, url);
-        let postName;
-        if (registerData.firstName && registerData.lastName) {
-            postName = `${registerData.firstName} ${registerData.lastName}`;
-        }
-        else if (registerData.firstName && !registerData.lastName) {
-            postName = registerData.firstName;
-        }
-        else if (!registerData.firstName && !registerData.lastName && registerData.name) {
-            postName = registerData.name;
-        }
-        let postKana;
-        if (registerData.firstKana && registerData.lastKana) {
-            postKana = `${registerData.firstKana} ${registerData.lastKana}`;
-        }
-        else if (registerData.firstKana && !registerData.lastKana) {
-            postKana = registerData.firstKana;
-        }
-        const postData = {
-            inquiry_id: registerData.id,
-            demand: 'sync',
-            pg_id: url,
-        };
-        let postAddress = `${registerData.pref}${registerData.city}${registerData.town}${registerData.street}${registerData.building}`;
-        const completeData = {
-            demand: 'new_customer',
-            id: url
-                .replace('https://pg-cloud.cloud/customers/', '')
-                .replace('/summary', ''),
-            customer_contacts_name: postName ?? '',
-            customer_contacts_name_kana: postKana ?? '',
-            shop: registerData.shop,
-            reserved_status: registerData.reserved_status,
-            response_status: registerData.response_status,
-            campaign: registerData.campaign,
-            name: postName ?? '',
-            kana: postKana ?? '',
-            register: registerData.date,
-            zip: registerData.zip ?? '',
-            postal_code: registerData.zip ?? '',
-            full_address: postAddress ?? '',
-            customer_contacts_mobile_phone_number: String(registerData.mobile.replace(/=|'|"| /g, '')) ?? '',
-            customer_contacts_email: registerData.mail,
-        };
-        try {
-            await axios_1.default.post('https://khg-marketing.info/dashboard/api/changeShop.php', postData, {
-                headers: { 'Content-Type': 'application/json' },
-            });
-            console.log('POST完了_inquiry_customer');
-        }
-        catch (error) {
-            console.error('エラー:', error);
-        }
-        try {
-            await axios_1.default.post('https://khg-marketing.info/dashboard/api/changeShop.php', completeData, {
-                headers: { 'Content-Type': 'application/json' },
-            });
-            console.log('POST完了_customers');
-        }
-        catch (error) {
-            console.error('エラー:', error);
-        }
-    }
-    else {
-        const postData = {
-            inquiry_id: registerData.id,
-            demand: 'sync_error',
-        };
-        try {
-            await axios_1.default.post('https://khg-marketing.info/dashboard/api/changeShop.php', postData, {
-                headers: { 'Content-Type': 'application/json' },
-            });
-            console.log('POST完了');
-        }
-        catch (error) {
-            console.error('エラー:', error);
-        }
-        finally {
-            errors.length = 0;
-        }
-        console.log('pg_idが取得できませんでした。');
-    }
+    // if (pg_id) {
+    //     const now = new Date();
+    //     const nowString = now.toDateString();
+    //     const url = String(pg_id).replace('edit', 'summary');
+    //     console.log(
+    //         `${nowString}_${registerData.shop}_${registerData.firstName}_同期処理完了:`,
+    //         url
+    //     );
+    //     let postName;
+    //     if (registerData.firstName && registerData.lastName) {
+    //         postName = `${registerData.firstName} ${registerData.lastName}`
+    //     } else if (registerData.firstName && !registerData.lastName) {
+    //         postName = registerData.firstName
+    //     } else if (!registerData.firstName && !registerData.lastName && registerData.name) {
+    //         postName = registerData.name;
+    //     }
+    //     let postKana;
+    //     if (registerData.firstKana && registerData.lastKana) {
+    //         postKana = `${registerData.firstKana} ${registerData.lastKana}`;
+    //     } else if (registerData.firstKana && !registerData.lastKana) {
+    //         postKana = registerData.firstKana;
+    //     }
+    //     const postData = {
+    //         inquiry_id: registerData.id,
+    //         demand: 'sync',
+    //         pg_id: url,
+    //     };
+    //     let postAddress = `${registerData.pref}${registerData.city}${registerData.town}${registerData.street}${registerData.building}`;
+    //     const completeData = {
+    //         demand: 'new_customer',
+    //         id: url
+    //             .replace('https://pg-cloud.cloud/customers/', '')
+    //             .replace('/summary', ''),
+    //         customer_contacts_name: postName ?? '',
+    //         customer_contacts_name_kana: postKana ?? '',
+    //         shop: registerData.shop,
+    //         reserved_status: registerData.reserved_status,
+    //         response_status: registerData.response_medium,
+    //         campaign: registerData.campaign,
+    //         name: postName ?? '',
+    //         kana: postKana ?? '',
+    //         register: registerData.date,
+    //         zip: registerData.zip ?? '',
+    //         postal_code: registerData.zip ?? '',
+    //         full_address: postAddress ?? '',
+    //         customer_contacts_mobile_phone_number: String(registerData.mobile.replace(/=|'|"| /g, '')) ?? '',
+    //         customer_contacts_email: registerData.mail,
+    //     };
+    //     try {
+    //         await axios.post(
+    //             'https://khg-marketing.info/dashboard/api/changeShop.php',
+    //             postData,
+    //             {
+    //                 headers: { 'Content-Type': 'application/json' },
+    //             }
+    //         );
+    //         console.log('POST完了_inquiry_customer');
+    //     } catch (error) {
+    //         console.error('エラー:', error);
+    //     }
+    //     try {
+    //         await axios.post(
+    //             'https://khg-marketing.info/dashboard/api/changeShop.php',
+    //             completeData,
+    //             {
+    //                 headers: { 'Content-Type': 'application/json' },
+    //             }
+    //         );
+    //         console.log('POST完了_customers');
+    //     } catch (error) {
+    //         console.error('エラー:', error);
+    //     }
+    // } else {
+    //     const postData = {
+    //         inquiry_id: registerData.id,
+    //         demand: 'sync_error',
+    //     };
+    //     try {
+    //         await axios.post(
+    //             'https://khg-marketing.info/dashboard/api/changeShop.php',
+    //             postData,
+    //             {
+    //                 headers: { 'Content-Type': 'application/json' },
+    //             }
+    //         );
+    //         console.log('POST完了');
+    //     } catch (error) {
+    //         console.error('エラー:', error);
+    //     } finally {
+    //         errors.length = 0;
+    //     }
+    //     console.log('pg_idが取得できませんでした。');
+    // }
 };
 exports.runDataRegistration = runDataRegistration;
