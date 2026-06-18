@@ -16,7 +16,7 @@ import pdfToTtpRoutes from "./routes/pdfToPptRoutes";
 import estateInfoRoutes from "./routes/estateInfoRoutes";
 import portalKaeruRoutes from "./routes/portalKaeruRoutes";
 
-const app = express();
+const app = express();  
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.text({ limit: '50mb' }));
