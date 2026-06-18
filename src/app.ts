@@ -13,6 +13,8 @@ import summaryRoutes from "./routes/summaryRoutes";
 import areaSummaryRoutes from "./routes/areaSummaryRoutes";
 import mailScrapingRoutes from "./routes/mailScrapingRoutes";
 import pdfToTtpRoutes from "./routes/pdfToPptRoutes";
+import estateInfoRoutes from "./routes/estateInfoRoutes";
+import portalKaeruRoutes from "./routes/portalKaeruRoutes";
 
 const app = express();
 app.use(cors());
@@ -31,5 +33,7 @@ app.use("/api/summary", summaryRoutes);
 app.use("/api/areasummary", areaSummaryRoutes);
 app.use("/api/mail_scraping", mailScrapingRoutes);
 app.use("/api/pdftoppt", pdfToTtpRoutes);
+app.use("/api/estate_info", estateInfoRoutes);
+app.use("/api/portal_kaeru", portalKaeruRoutes);
 
 export default app;
