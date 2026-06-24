@@ -31,9 +31,10 @@ const runEstateInfo = async (estate_robo_id, estate_robo_pass) => {
         // ==========================================
         console.log('物件検索画面へ移動...');
         await page.waitForLoadState("networkidle");
-        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]'); // メニュークリック「物件」
-        await page.waitForLoadState("networkidle");
-        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]/ul/li[1]/a'); // メニュークリック「物件検索編集」
+        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]');
+        await page.waitForSelector('xpath=/html/body/div[1]/aside/section/ul/li[3]/ul/li[1]/a', { state: 'visible' });
+        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]/ul/li[1]/a');
+        await page.waitForURL('https://www.tochi-shinchaku.net/estaterobo/search/?p=1');
         await page.waitForLoadState("networkidle");
         await page.click('#req_created'); // カレンダーをクリック
         await page.click('xpath=/html/body/div[2]/div[1]/ul/li[1]'); // 直近30日をクリック

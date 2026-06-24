@@ -41,13 +41,13 @@ const sample = [
 ];
 
 (async () => {
-  const res = await fetch("http://localhost:3000/api/portal_kaeru", {
+  const res = await fetch("https://sync-pg-cloud-9f739ab131ed.herokuapp.com/api/portal_kaeru", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ estates: sample }),
   });
 
-  const res2 = await fetch("http://localhost:3000/api/estate_info", {
+  const res2 = await fetch("https://sync-pg-cloud-9f739ab131ed.herokuapp.com/api/estate_info", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ estates: sample }),

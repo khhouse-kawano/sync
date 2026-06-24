@@ -8,7 +8,7 @@ export const runEstateInfo = async (estate_robo_id: string, estate_robo_pass: st
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
-    
+
     const headers = {
         Authorization: "4081Kokubu",
         "Content-Type": "application/json",
@@ -30,9 +30,15 @@ export const runEstateInfo = async (estate_robo_id: string, estate_robo_pass: st
         // ==========================================
         console.log('物件検索画面へ移動...');
         await page.waitForLoadState("networkidle");
-        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]'); // メニュークリック「物件」
-        await page.waitForLoadState("networkidle");
-        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]/ul/li[1]/a'); // メニュークリック「物件検索編集」
+        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]');
+
+        await page.waitForSelector('xpath=/html/body/div[1]/aside/section/ul/li[3]/ul/li[1]/a', { state: 'visible' });
+
+        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]/ul/li[1]/a');
+
+        await page.waitForURL('https://www.tochi-shinchaku.net/estaterobo/search/?p=1');
+
+
         await page.waitForLoadState("networkidle");
         await page.click('#req_created'); // カレンダーをクリック
         await page.click('xpath=/html/body/div[2]/div[1]/ul/li[1]'); // 直近30日をクリック
@@ -45,7 +51,7 @@ export const runEstateInfo = async (estate_robo_id: string, estate_robo_pass: st
             page.waitForEvent('download', { timeout: 120000 }),
             page.click('xpath=/html/body/div[1]/form/div/section[2]/div/div/div[1]/div[2]/div/p/button[2]', { noWaitAfter: true }) //「Excel出力」
         ]);
-        
+
         const savePath = '/tmp/land.xlsx'; // ※サーバーの/tmpディレクトリに保存されます
         await download.saveAs(savePath);
         console.log('ダウンロード完了');
