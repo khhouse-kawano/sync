@@ -138,7 +138,8 @@ const runSuumoKaeru = async (suumo_kaeru_id, suumo_kaeru_pass) => {
             //     'xpath=/html/body/div/div/div/div/main/div[3]/div[1]/div[1]/div[1]/span/div',
             //     { state: 'visible', timeout: 10000 }
             // );
-            await page.click('xpath=/html/body/div[1]/div/div/div/main/div[1]/div/button/div');
+            await page.getByText('検索結果をダウンロード').click();
+            // await page.click('xpath=/html/body/div/div/div/div/main/div[2]/div/button/div');
         }
         catch (err) {
             const msg = `お客様ページへの遷移に失敗${err}`;
