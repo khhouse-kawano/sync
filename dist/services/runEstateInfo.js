@@ -7,6 +7,7 @@ exports.runEstateInfo = void 0;
 const playwright_1 = require("playwright");
 const xlsx_1 = __importDefault(require("xlsx"));
 const axios_1 = __importDefault(require("axios"));
+const sendErrorMail_1 = require("./sendErrorMail");
 const errors = [];
 const runEstateInfo = async (estate_robo_id, estate_robo_pass) => {
     const browser = await playwright_1.chromium.launch({ args: ["--no-sandbox"], headless: true });
@@ -94,5 +95,6 @@ const runEstateInfo = async (estate_robo_id, estate_robo_pass) => {
         console.log('ブラウザを終了します');
         await browser.close();
     }
+    (0, sendErrorMail_1.sendErrorMail)(errors, 'runEstateInfo.ts');
 };
 exports.runEstateInfo = runEstateInfo;

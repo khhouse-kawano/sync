@@ -9,6 +9,7 @@ const errors = [];
 const promises_1 = require("fs/promises");
 const sync_1 = require("csv-parse/sync");
 const axios_1 = __importDefault(require("axios"));
+const sendErrorMail_1 = require("./sendErrorMail");
 const runSuumoKaeru = async (suumo_kaeru_id, suumo_kaeru_pass) => {
     const browser = await playwright_1.chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
@@ -225,5 +226,6 @@ const runSuumoKaeru = async (suumo_kaeru_id, suumo_kaeru_pass) => {
     await customerSearch();
     await customerSave();
     await browser.close();
+    await (0, sendErrorMail_1.sendErrorMail)(errors, 'runSuumoKaeru.ts');
 };
 exports.runSuumoKaeru = runSuumoKaeru;

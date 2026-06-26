@@ -9,6 +9,8 @@ const fs_1 = __importDefault(require("fs"));
 const encoding_japanese_1 = __importDefault(require("encoding-japanese"));
 const csv_parser_1 = __importDefault(require("csv-parser"));
 const axios_1 = __importDefault(require("axios"));
+const sendErrorMail_1 = require("./sendErrorMail");
+const errors = [];
 const runSumaiStep = async (id, pass) => {
     let browser;
     const fileName = "/tmp/data_sumaistep.csv";
@@ -132,13 +134,15 @@ const runSumaiStep = async (id, pass) => {
         });
         console.log("全ての処理が完了しました！");
     }
-    catch (err) {
-        console.error(`予期せぬエラーが発生しました: ${err}`);
+    catch (error) {
+        console.error(`予期せぬエラーが発生しました: ${error}`);
+        errors.push(JSON.stringify(error));
     }
     finally {
         if (browser && browser.isConnected()) {
             await browser.close();
         }
     }
+    (0, sendErrorMail_1.sendErrorMail)(errors, 'runSumaiStep.ts');
 };
 exports.runSumaiStep = runSumaiStep;

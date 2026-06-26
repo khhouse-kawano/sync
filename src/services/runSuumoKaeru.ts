@@ -3,6 +3,7 @@ const errors: string[] = [];
 import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
+import { sendErrorMail } from "./sendErrorMail";
 
 export const runSuumoKaeru = async (suumo_kaeru_id: string, suumo_kaeru_pass: string) => {
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
@@ -242,4 +243,6 @@ export const runSuumoKaeru = async (suumo_kaeru_id: string, suumo_kaeru_pass: st
     await customerSave();
 
     await browser.close();
+    await sendErrorMail(errors, 'runSuumoKaeru.ts');
+
 };

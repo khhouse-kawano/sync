@@ -3,11 +3,12 @@ import { readFile, writeFile } from 'fs/promises';
 import iconv from 'iconv-lite';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
-
+import { sendErrorMail } from './sendErrorMail';
+const errors: string[] = [];
 // テーブル定義順のカラム名配列（id と created_at は除外）
 const resaleColumns = [
     'received_at', 'sequence_no', 'source_campaign', 'recipient_type', 'recipient_code',
-    'spare_1','spare_2','spare_3','spare_4','spare_5',
+    'spare_1', 'spare_2', 'spare_3', 'spare_4', 'spare_5',
     'last_name_kanji', 'first_name_kanji', 'last_name_kana', 'first_name_kana',
     'zip_code_1', 'zip_code_2', 'address_1', 'address_2', 'address_3', 'email',
     'phone_1', 'phone_2', 'phone_3', 'fax_1', 'fax_2', 'fax_3',
@@ -34,33 +35,33 @@ const resaleColumns = [
 // ★ 追加: 英語キーを日本語名に変換する辞書
 // ※もし実際のSUUMOの画面上の項目名と少し違う場合は、ここの右側の日本語を書き換えてください
 const columnNameMap: Record<string, string> = {
-    'received_at': '受付日時', 'sequence_no': '連番', 'source_campaign': '発生元キャンペーン', 
+    'received_at': '受付日時', 'sequence_no': '連番', 'source_campaign': '発生元キャンペーン',
     'recipient_type': '宛先種別', 'recipient_code': '宛先コード',
     'spare_1': '予備1', 'spare_2': '予備2', 'spare_3': '予備3', 'spare_4': '予備4', 'spare_5': '予備5',
-    'last_name_kanji': '氏名（漢字）姓', 'first_name_kanji': '氏名（漢字）名', 
+    'last_name_kanji': '氏名（漢字）姓', 'first_name_kanji': '氏名（漢字）名',
     'last_name_kana': '氏名（カナ）姓', 'first_name_kana': '氏名（カナ）名',
-    'zip_code_1': '郵便番号1', 'zip_code_2': '郵便番号2', 
+    'zip_code_1': '郵便番号1', 'zip_code_2': '郵便番号2',
     'address_1': '住所1', 'address_2': '住所2', 'address_3': '住所3', 'email': 'メールアドレス',
-    'phone_1': '電話番号1', 'phone_2': '電話番号2', 'phone_3': '電話番号3', 
+    'phone_1': '電話番号1', 'phone_2': '電話番号2', 'phone_3': '電話番号3',
     'fax_1': 'FAX1', 'fax_2': 'FAX2', 'fax_3': 'FAX3',
-    'current_residence': '現住居形態', 'planned_occupants': '入居予定人数', 
+    'current_residence': '現住居形態', 'planned_occupants': '入居予定人数',
     'eldest_child_lifestage': '第一子ライフステージ', 'parking_available': '駐車場の有無',
     'annual_income': '年収', 'birth_date': '生年月日', 'age': '年齢', 'desired_move_in': '入居希望時期',
     'preferred_area_1': '希望エリア1', 'preferred_area_2': '希望エリア2', 'preferred_area_3': '希望エリア3', 'budget_rent': '予算/賃料',
-    'preferred_layout_1': '希望間取り1', 'preferred_layout_2': '希望間取り2', 'preferred_layout_3': '希望間取り3', 
-    'preferred_layout_4': '希望間取り4', 'preferred_layout_5': '希望間取り5', 'preferred_layout_6': '希望間取り6', 
+    'preferred_layout_1': '希望間取り1', 'preferred_layout_2': '希望間取り2', 'preferred_layout_3': '希望間取り3',
+    'preferred_layout_4': '希望間取り4', 'preferred_layout_5': '希望間取り5', 'preferred_layout_6': '希望間取り6',
     'preferred_living_area': '希望専有面積',
-    'other_property_type_1': 'その他希望物件種別1', 'other_property_type_2': 'その他希望物件種別2', 
+    'other_property_type_1': 'その他希望物件種別1', 'other_property_type_2': 'その他希望物件種別2',
     'other_property_type_3': 'その他希望物件種別3', 'other_property_type_4': 'その他希望物件種別4',
     'inquiry_unit': '反響単位', 'other': 'その他', 'preferred_contact_method': '希望連絡方法', 'preferred_contact_time': '希望連絡時間帯',
-    'inquiry_content_1': 'お問い合わせ内容1', 'inquiry_content_2': 'お問い合わせ内容2', 'inquiry_content_3': 'お問い合わせ内容3', 
+    'inquiry_content_1': 'お問い合わせ内容1', 'inquiry_content_2': 'お問い合わせ内容2', 'inquiry_content_3': 'お問い合わせ内容3',
     'inquiry_content_4': 'お問い合わせ内容4', 'inquiry_content_5': 'お問い合わせ内容5',
     'inquiry_comment': 'お問い合わせコメント', 'inquiry_other': 'その他のお問い合わせ',
     'reserve_1': '予約1', 'reserve_2': '予約2', 'reserve_3': '予約3', 'reserve_4': '予約4', 'reserve_5': '予約5',
     'customer_notes': '顧客メモ', 'sale_assessment_info': '売却査定情報', 'commercial_info': '事業用情報',
     'company_name': '会社名', 'branch_name': '支店名', 'company_location': '会社所在地', 'company_tel': '会社電話番号',
     'media_name': '媒体名', 'media_type': '媒体種別', 'issue': '発行', 'page': 'ページ',
-    'property_type': '物件種別', 'status': 'ステータス', 'property_code': '物件コード', 
+    'property_type': '物件種別', 'status': 'ステータス', 'property_code': '物件コード',
     'property_name_1': '物件名1', 'property_name_2': '物件名2',
     'company_property_code': '自社物件コード', 'contact_person': '担当者', 'inquiry_unit_detail': '反響単位詳細',
     'line_name': '沿線名', 'nearest_station': '最寄り駅', 'bus_or_walk': 'バス・徒歩', 'property_location': '物件所在地',
@@ -69,7 +70,6 @@ const columnNameMap: Record<string, string> = {
 };
 
 export const runSuumoResale = async (id: string, pass: string) => {
-    const errors: string[] = [];
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -97,11 +97,11 @@ export const runSuumoResale = async (id: string, pass: string) => {
         try {
             await page.click('xpath=/html/body/div/div[1]/div[1]/div[9]/a');
             await waitForMinute();
-            await page.click('xpath=/html/body/div/div[2]/div/form/div[5]/div[2]/input'); 
+            await page.click('xpath=/html/body/div/div[2]/div/form/div[5]/div[2]/input');
             await waitForMinute();
-            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[1]/div[2]/div[2]/input[1]'); 
-            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[1]/div[2]/div[3]/input[2]'); 
-            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[2]/input[1]'); 
+            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[1]/div[2]/div[2]/input[1]');
+            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[1]/div[2]/div[3]/input[2]');
+            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[2]/input[1]');
             await waitForMinute();
         } catch (err) {
             const msg = `お客様ページへの遷移に失敗${err}`;
@@ -114,7 +114,7 @@ export const runSuumoResale = async (id: string, pass: string) => {
         try {
             const [download] = await Promise.all([
                 page.waitForEvent('download', { timeout: 120000 }),
-                page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[2]/a') 
+                page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[2]/a')
             ]);
 
             const savePath = '/tmp/resale.csv';
@@ -137,11 +137,11 @@ export const runSuumoResale = async (id: string, pass: string) => {
             // ★ 修正: remarks作成時に日本語名へ変換
             const mappedRecords = records.map(record => {
                 const remarksList: string[] = [];
-                
+
                 for (const [key, valRaw] of Object.entries(record)) {
                     const cell = valRaw === undefined || valRaw === null ? "" : String(valRaw).trim();
                     // columnNameMapから日本語名を取得。もし未定義のキーがあれば英語キーをそのまま使う
-                    const jaKey = columnNameMap[key] || key; 
+                    const jaKey = columnNameMap[key] || key;
                     remarksList.push(`${jaKey}：${cell}`);
                 }
 
@@ -211,4 +211,6 @@ export const runSuumoResale = async (id: string, pass: string) => {
     await processAndPostData();
 
     await browser.close();
+    await sendErrorMail(errors, 'runSuumoKaeru.ts');
+
 };

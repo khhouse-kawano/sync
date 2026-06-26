@@ -1,6 +1,7 @@
 import { chromium } from 'playwright';
 import xlsx from 'xlsx';
 import axios from 'axios';
+import { sendErrorMail } from './sendErrorMail';
 
 const errors: string[] = [];
 
@@ -102,4 +103,6 @@ export const runEstateInfo = async (estate_robo_id: string, estate_robo_pass: st
         console.log('ブラウザを終了します');
         await browser.close();
     }
+
+    sendErrorMail(errors, 'runEstateInfo.ts');
 };

@@ -5,8 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RunGeoCode = void 0;
 const axios_1 = __importDefault(require("axios"));
+const sendErrorMail_1 = require("./sendErrorMail");
 const API_KEY = process.env.API_KEY;
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const errors = [];
 const RunGeoCode = async () => {
     const fetchLatLng = async (address) => {
         if (!API_KEY) {
@@ -39,8 +41,10 @@ const RunGeoCode = async () => {
             // ⭐ 修正: statusだけでなく、PHPから返ってきた生データを全て表示させる
             console.log("POST完了:", JSON.stringify(response.data));
         }
-        catch (error) {
-            console.error("データ送信エラー:", error);
+        catch (err) {
+            const msg = `処理中にエラーが発生しました: ${err}`;
+            console.error(msg);
+            errors.push(msg);
         }
     };
     const fetchData = async () => {
@@ -82,8 +86,11 @@ const RunGeoCode = async () => {
                         await postLatLng(postData, headers);
                         await sleep(200);
                     }
-                    catch (e) {
-                        console.error(`ID: ${item.property_number} の処理中にエラー発生:`, e);
+                    catch (err) {
+                        console.error(`ID: ${item.property_number} の処理中にエラー発生:`, err);
+                        const msg = `処理中にエラーが発生しました: ${err}`;
+                        console.error(msg);
+                        errors.push(msg);
                     }
                 }
             }
@@ -116,8 +123,11 @@ const RunGeoCode = async () => {
                         await postLatLng(postData, headers);
                         await sleep(200);
                     }
-                    catch (e) {
-                        console.error(`ID: ${item.id} の処理中にエラー発生:`, e);
+                    catch (err) {
+                        console.error(`ID: ${item.property_number} の処理中にエラー発生:`, err);
+                        const msg = `処理中にエラーが発生しました: ${err}`;
+                        console.error(msg);
+                        errors.push(msg);
                     }
                 }
             }
@@ -127,5 +137,6 @@ const RunGeoCode = async () => {
         }
     };
     await fetchData();
+    (0, sendErrorMail_1.sendErrorMail)(errors, 'runGeocode.ts.ts');
 };
 exports.RunGeoCode = RunGeoCode;

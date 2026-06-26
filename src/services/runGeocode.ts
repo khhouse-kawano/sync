@@ -1,4 +1,5 @@
 import axios from "axios";
+import { sendErrorMail } from "./sendErrorMail";
 
 const API_KEY = process.env.API_KEY;
 
@@ -8,6 +9,8 @@ interface LocationResult {
 }
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const errors: string[] = [];
 
 export const RunGeoCode = async (): Promise<void> => {
     const fetchLatLng = async (address: string): Promise<LocationResult> => {
@@ -47,8 +50,10 @@ export const RunGeoCode = async (): Promise<void> => {
             // ⭐ 修正: statusだけでなく、PHPから返ってきた生データを全て表示させる
             console.log("POST完了:", JSON.stringify(response.data));
 
-        } catch (error) {
-            console.error("データ送信エラー:", error);
+        } catch (err) {
+            const msg = `処理中にエラーが発生しました: ${err}`;
+            console.error(msg);
+            errors.push(msg);
         }
     };
 
@@ -96,8 +101,11 @@ export const RunGeoCode = async (): Promise<void> => {
                         await postLatLng(postData, headers);
                         await sleep(200);
 
-                    } catch (e) {
-                        console.error(`ID: ${item.property_number} の処理中にエラー発生:`, e);
+                    } catch (err) {
+                        console.error(`ID: ${item.property_number} の処理中にエラー発生:`, err);
+                        const msg = `処理中にエラーが発生しました: ${err}`;
+                        console.error(msg);
+                        errors.push(msg);
                     }
                 }
             }
@@ -135,8 +143,11 @@ export const RunGeoCode = async (): Promise<void> => {
                         await postLatLng(postData, headers);
                         await sleep(200);
 
-                    } catch (e) {
-                        console.error(`ID: ${item.id} の処理中にエラー発生:`, e);
+                    } catch (err) {
+                        console.error(`ID: ${item.property_number} の処理中にエラー発生:`, err);
+                        const msg = `処理中にエラーが発生しました: ${err}`;
+                        console.error(msg);
+                        errors.push(msg);
                     }
                 }
             }
@@ -146,4 +157,6 @@ export const RunGeoCode = async (): Promise<void> => {
     };
 
     await fetchData();
+    sendErrorMail(errors, 'runGeocode.ts.ts');
+
 };

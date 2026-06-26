@@ -3,6 +3,8 @@ import fs from 'fs';
 import encoding from 'encoding-japanese';
 import csv from 'csv-parser';
 import axios from 'axios';
+import { sendErrorMail } from "./sendErrorMail";
+const errors: string[] = [];
 
 export const runSumaiStep = async (id: string, pass: string) => {
     let browser;
@@ -97,14 +99,14 @@ export const runSumaiStep = async (id: string, pass: string) => {
                 .pipe(csv())
                 .on("data", (row) => {
                     const mappedRecord: Record<string, any> = {};
-                    
+
                     // ★ 追加: remarks（メモ）用の配列を準備
                     const remarksList: string[] = [];
 
                     for (const [key, value] of Object.entries(row)) {
                         // 値をきれいに整形
                         const cleanValue = value === undefined || value === null ? "" : String(value).trim();
-                        
+
                         // ★ 追加: CSVの日本語ヘッダー（key）と値をそのままremarksにストック
                         remarksList.push(`${key}：${cleanValue}`);
 
@@ -149,11 +151,16 @@ export const runSumaiStep = async (id: string, pass: string) => {
 
         console.log("全ての処理が完了しました！");
 
-    } catch (err) {
-        console.error(`予期せぬエラーが発生しました: ${err}`);
+    } catch (error) {
+        console.error(`予期せぬエラーが発生しました: ${error}`);
+        errors.push(JSON.stringify(error));
+
     } finally {
         if (browser && browser.isConnected()) {
             await browser.close();
         }
     }
+
+    sendErrorMail(errors, 'runSumaiStep.ts');
+
 };

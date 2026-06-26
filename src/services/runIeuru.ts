@@ -1,7 +1,9 @@
 import Imap from "node-imap";
 import { simpleParser } from "mailparser";
 import axios from 'axios';
+import { sendErrorMail } from "./sendErrorMail";
 
+const errors: string[] = [];
 // ★ 追加: 英語キーを日本語名に変換する辞書
 // ★ 追加: 英語キーを日本語名に変換する辞書（イエウール全項目対応版）
 const memberColumnNameMap: Record<string, string> = {
@@ -148,80 +150,86 @@ export const runIeuru = async (id: string, pass: string) => {
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-    imapClient.once("ready", () => {
-        imapClient.openBox("INBOX", true, (err, _) => {
-            if (err) throw err;
-
-            const searchCriteria = [
-                ["FROM", "ieul-support@ieul.jp"],
-                ["SUBJECT", "【イエウール】不動産査定依頼のお知らせ"],
-                ["BODY", "株式会社国分ハウジング不動産 中古住宅専門店"],
-                ["SINCE", twoDaysAgo]
-            ];
-
-            imapClient.search(searchCriteria, (err, results) => {
+    try {
+        imapClient.once("ready", () => {
+            imapClient.openBox("INBOX", true, (err, _) => {
                 if (err) throw err;
 
-                if (results.length === 0) {
-                    console.log("該当するメールが見つかりませんでした");
-                    imapClient.end();
-                    return;
-                }
+                const searchCriteria = [
+                    ["FROM", "ieul-support@ieul.jp"],
+                    ["SUBJECT", "【イエウール】不動産査定依頼のお知らせ"],
+                    ["BODY", "株式会社国分ハウジング不動産 中古住宅専門店"],
+                    ["SINCE", twoDaysAgo]
+                ];
 
-                const f = imapClient.fetch(results, { bodies: "", struct: true });
+                imapClient.search(searchCriteria, (err, results) => {
+                    if (err) throw err;
 
-                f.on("message", (msg, seqno) => {
-                    msg.on("body", (stream) => {
-                        simpleParser(stream, async (err, parsed) => {
-                            if (err) return;
+                    if (results.length === 0) {
+                        console.log("該当するメールが見つかりませんでした");
+                        imapClient.end();
+                        return;
+                    }
 
-                            const emailText = parsed.text || "";
+                    const f = imapClient.fetch(results, { bodies: "", struct: true });
 
-                            const extractedData = extractCustomerData(emailText);
+                    f.on("message", (msg, seqno) => {
+                        msg.on("body", (stream) => {
+                            simpleParser(stream, async (err, parsed) => {
+                                if (err) return;
 
-                            const d = parsed.date || new Date();
-                            const year = d.getFullYear();
-                            const month = String(d.getMonth() + 1).padStart(2, '0');
-                            const day = String(d.getDate()).padStart(2, '0');
-                            const hours = String(d.getHours()).padStart(2, '0');
-                            const minutes = String(d.getMinutes()).padStart(2, '0');
-                            const seconds = String(d.getSeconds()).padStart(2, '0');
+                                const emailText = parsed.text || "";
 
-                            const registered = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                                const extractedData = extractCustomerData(emailText);
 
-                            const finalData: Record<string, string> = {
-                                ...extractedData,
-                                registered: registered
-                            };
+                                const d = parsed.date || new Date();
+                                const year = d.getFullYear();
+                                const month = String(d.getMonth() + 1).padStart(2, '0');
+                                const day = String(d.getDate()).padStart(2, '0');
+                                const hours = String(d.getHours()).padStart(2, '0');
+                                const minutes = String(d.getMinutes()).padStart(2, '0');
+                                const seconds = String(d.getSeconds()).padStart(2, '0');
 
-                            // ★ 追加: remarks（メモ）の生成処理
-                            const remarksList: string[] = [];
-                            for (const [key, val] of Object.entries(finalData)) {
-                                const jaKey = memberColumnNameMap[key] || key;
-                                remarksList.push(`${jaKey}：${val}`);
-                            }
+                                const registered = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
-                            // 最後に remarks として改行区切りで追加
-                            finalData.remarks = remarksList.join('\n');
+                                const finalData: Record<string, string> = {
+                                    ...extractedData,
+                                    registered: registered
+                                };
 
-                            console.log(`[メール #${seqno}] 抽出データ:`, finalData);
+                                // ★ 追加: remarks（メモ）の生成処理
+                                const remarksList: string[] = [];
+                                for (const [key, val] of Object.entries(finalData)) {
+                                    const jaKey = memberColumnNameMap[key] || key;
+                                    remarksList.push(`${jaKey}：${val}`);
+                                }
 
-                            if (finalData.name) {
-                                await postToPhpApi(finalData);
-                            } else {
-                                console.log(`[メール #${seqno}] 必要なデータが抽出できなかったためスキップします。`);
-                            }
+                                // 最後に remarks として改行区切りで追加
+                                finalData.remarks = remarksList.join('\n');
+
+                                console.log(`[メール #${seqno}] 抽出データ:`, finalData);
+
+                                if (finalData.name) {
+                                    await postToPhpApi(finalData);
+                                } else {
+                                    console.log(`[メール #${seqno}] 必要なデータが抽出できなかったためスキップします。`);
+                                }
+                            });
                         });
                     });
-                });
 
-                f.once("end", () => {
-                    console.log("全てのメッセージの処理が完了しました");
-                    imapClient.end();
+                    f.once("end", () => {
+                        console.log("全てのメッセージの処理が完了しました");
+                        imapClient.end();
+                    });
                 });
             });
         });
-    });
+    } catch (error) {
+        errors.push(JSON.stringify(error));
+    }
 
     imapClient.connect();
+    sendErrorMail(errors, 'runIeuru.ts');
+
 };

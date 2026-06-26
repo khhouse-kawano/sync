@@ -1,6 +1,9 @@
 import Imap from "node-imap";
 import { simpleParser } from "mailparser";
 import axios from 'axios';
+import { sendErrorMail } from "./sendErrorMail";
+
+const errors: string[] = [];
 
 // ★ 追加: 英語キーを日本語名に変換する辞書（HOMESのフォーマット準拠）
 const homesColumnNameMap: Record<string, string> = {
@@ -63,6 +66,7 @@ const postToPhpApi = async (data: Record<string, string>) => {
             console.error("エラー詳細:", error.response?.data);
         } else {
             console.error("API送信中に予期せぬエラーが発生しました:", error);
+            errors.push(JSON.stringify(error));
         }
     }
 };
@@ -83,84 +87,92 @@ export const runHomesResale = async (id: string, pass: string) => {
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-    imapClient.once("ready", () => {
-        imapClient.openBox("INBOX", true, (err, _) => {
-            if (err) throw err;
-
-            const searchCriteria = [
-                ["FROM", "support@homes.co.jp"],
-                ["SUBJECT", "お客様からの問合せ"],
-                ["BODY", "株式会社国分ハウジング不動産　中古住宅専門店様"],
-                ["SINCE", twoDaysAgo]
-            ];
-
-            imapClient.search(searchCriteria, (err, results) => {
+    try {
+        imapClient.once("ready", () => {
+            imapClient.openBox("INBOX", true, (err, _) => {
                 if (err) throw err;
 
-                if (results.length === 0) {
-                    console.log("該当するメールが見つかりませんでした");
-                    imapClient.end();
-                    return;
-                }
+                const searchCriteria = [
+                    ["FROM", "support@homes.co.jp"],
+                    ["SUBJECT", "お客様からの問合せ"],
+                    ["BODY", "株式会社国分ハウジング不動産　中古住宅専門店様"],
+                    ["SINCE", twoDaysAgo]
+                ];
 
-                const f = imapClient.fetch(results, { bodies: "", struct: true });
+                imapClient.search(searchCriteria, (err, results) => {
+                    if (err) throw err;
 
-                f.on("message", (msg, seqno) => {
-                    msg.on("body", (stream) => {
-                        simpleParser(stream, async (err, parsed) => {
-                            if (err) return;
+                    if (results.length === 0) {
+                        console.log("該当するメールが見つかりませんでした");
+                        imapClient.end();
+                        return;
+                    }
 
-                            const emailText = parsed.text || "";
-                            const extractedData = extractHomesData(emailText);
+                    const f = imapClient.fetch(results, { bodies: "", struct: true });
 
-                            // ==========================================
-                            // ★追加: メールの受信日時を取得し、YYYY-MM-DD HH:mm:ss 形式に整形
-                            // ==========================================
-                            const d = parsed.date || new Date(); // parsed.date が無い場合は現在時刻
-                            const year = d.getFullYear();
-                            const month = String(d.getMonth() + 1).padStart(2, '0');
-                            const day = String(d.getDate()).padStart(2, '0');
-                            const hours = String(d.getHours()).padStart(2, '0');
-                            const minutes = String(d.getMinutes()).padStart(2, '0');
-                            const seconds = String(d.getSeconds()).padStart(2, '0');
-                            
-                            const registered = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                    f.on("message", (msg, seqno) => {
+                        msg.on("body", (stream) => {
+                            simpleParser(stream, async (err, parsed) => {
+                                if (err) return;
 
-                            // 抽出データと日時(registered)を合体させる
-                            const finalData: Record<string, string> = {
-                                ...extractedData,
-                                registered: registered
-                            };
+                                const emailText = parsed.text || "";
+                                const extractedData = extractHomesData(emailText);
 
-                            // ★ 追加: remarks（メモ）の生成処理
-                            const remarksList: string[] = [];
-                            for (const [key, val] of Object.entries(finalData)) {
-                                const jaKey = homesColumnNameMap[key] || key;
-                                remarksList.push(`${jaKey}：${val}`);
-                            }
-                            
-                            // 最後に remarks として改行区切りで追加
-                            finalData.remarks = remarksList.join('\n');
+                                // ==========================================
+                                // ★追加: メールの受信日時を取得し、YYYY-MM-DD HH:mm:ss 形式に整形
+                                // ==========================================
+                                const d = parsed.date || new Date(); // parsed.date が無い場合は現在時刻
+                                const year = d.getFullYear();
+                                const month = String(d.getMonth() + 1).padStart(2, '0');
+                                const day = String(d.getDate()).padStart(2, '0');
+                                const hours = String(d.getHours()).padStart(2, '0');
+                                const minutes = String(d.getMinutes()).padStart(2, '0');
+                                const seconds = String(d.getSeconds()).padStart(2, '0');
 
-                            console.log(`[メール #${seqno}] 抽出データ:`, finalData);
+                                const registered = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 
-                            // 合体させた finalData をAPIに送る
-                            if (finalData.propertyId && finalData.userId) {
-                                await postToPhpApi(finalData);
-                            } else {
-                                console.log(`[メール #${seqno}] 必要なデータが抽出できなかったためスキップします。`);
-                            }
+                                // 抽出データと日時(registered)を合体させる
+                                const finalData: Record<string, string> = {
+                                    ...extractedData,
+                                    registered: registered
+                                };
+
+                                // ★ 追加: remarks（メモ）の生成処理
+                                const remarksList: string[] = [];
+                                for (const [key, val] of Object.entries(finalData)) {
+                                    const jaKey = homesColumnNameMap[key] || key;
+                                    remarksList.push(`${jaKey}：${val}`);
+                                }
+
+                                // 最後に remarks として改行区切りで追加
+                                finalData.remarks = remarksList.join('\n');
+
+                                console.log(`[メール #${seqno}] 抽出データ:`, finalData);
+
+                                // 合体させた finalData をAPIに送る
+                                if (finalData.propertyId && finalData.userId) {
+                                    await postToPhpApi(finalData);
+                                } else {
+                                    console.log(`[メール #${seqno}] 必要なデータが抽出できなかったためスキップします。`);
+                                }
+                            });
                         });
                     });
-                });
 
-                f.once("end", () => {
-                    console.log("全てのメッセージの処理が完了しました");
-                    imapClient.end();
+                    f.once("end", () => {
+                        console.log("全てのメッセージの処理が完了しました");
+                        imapClient.end();
+                    });
                 });
             });
         });
-    });
+    } catch (error) {
+        errors.push(JSON.stringify(error));
+
+    }
+
 
     imapClient.connect();
+    sendErrorMail(errors, 'runHomesResales.ts');
+
 };

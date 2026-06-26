@@ -9,6 +9,8 @@ const promises_1 = require("fs/promises");
 const iconv_lite_1 = __importDefault(require("iconv-lite"));
 const sync_1 = require("csv-parse/sync");
 const axios_1 = __importDefault(require("axios"));
+const sendErrorMail_1 = require("./sendErrorMail");
+const errors = [];
 // テーブル定義順のカラム名配列（id と created_at は除外）
 const resaleColumns = [
     'received_at', 'sequence_no', 'source_campaign', 'recipient_type', 'recipient_code',
@@ -72,7 +74,6 @@ const columnNameMap = {
     'free_1': 'フリー項目1', 'free_2': 'フリー項目2'
 };
 const runSuumoResale = async (id, pass) => {
-    const errors = [];
     const browser = await playwright_1.chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -198,5 +199,6 @@ const runSuumoResale = async (id, pass) => {
     await customerSearch();
     await processAndPostData();
     await browser.close();
+    await (0, sendErrorMail_1.sendErrorMail)(errors, 'runSuumoKaeru.ts');
 };
 exports.runSuumoResale = runSuumoResale;
