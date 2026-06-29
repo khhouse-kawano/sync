@@ -12,6 +12,7 @@ const runIei_1 = require("./runIei");
 const runAtHomeKaeru_1 = require("./runAtHomeKaeru");
 const runGeocode_1 = require("./runGeocode");
 const runIeuru_1 = require("./runIeuru");
+const runAllGritKaeru_1 = require("./runAllGritKaeru");
 exports.portalKaeruService = {
     process: async () => {
         const actionMap = {
@@ -25,7 +26,8 @@ exports.portalKaeruService = {
             'iei_resale': runIei_1.runIei,
             'athome_kaeru': runAtHomeKaeru_1.runAthomeKaeru,
             'geoCode': runGeocode_1.RunGeoCode,
-            'ieuru_resale': runIeuru_1.runIeuru
+            'ieuru_resale': runIeuru_1.runIeuru,
+            'allGrit_kaeru': runAllGritKaeru_1.runAllGritKaeru
         };
         const portal = [
             { name: 'suumo_kaeru', id: process.env.SUUMO_KAERU_ID ?? "", pass: process.env.SUUMO_KAERU_PASS ?? "" },
@@ -39,6 +41,7 @@ exports.portalKaeruService = {
             { name: 'athome_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'geoCode', },
             { name: 'ieuru_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+            { name: 'allGrit_kaeru', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
         ];
         const results = [];
         for (const brand of portal) {

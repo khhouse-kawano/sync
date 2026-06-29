@@ -9,6 +9,7 @@ import { runIei } from "./runIei";
 import { runAthomeKaeru } from "./runAtHomeKaeru";
 import { RunGeoCode } from "./runGeocode";
 import { runIeuru } from "./runIeuru";
+import { runAllGritKaeru } from "./runAllGritKaeru";
 
 export const portalKaeruService = {
   process: async () => {
@@ -23,7 +24,8 @@ export const portalKaeruService = {
       'iei_resale': runIei,
       'athome_kaeru': runAthomeKaeru,
       'geoCode': RunGeoCode,
-      'ieuru_resale': runIeuru
+      'ieuru_resale': runIeuru,
+      'allGrit_kaeru': runAllGritKaeru
     };
 
     const portal = [
@@ -38,6 +40,7 @@ export const portalKaeruService = {
       { name: 'athome_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'geoCode', },
       { name: 'ieuru_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+      { name: 'allGrit_kaeru', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
     ];
 
     const results = [];
