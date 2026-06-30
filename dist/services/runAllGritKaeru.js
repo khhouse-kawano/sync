@@ -163,11 +163,10 @@ const runAllGritKaeru = async (allgrit_id, allgrit_pass) => {
                 const isTestUser = lastName.includes("テスト") || firstName.includes("テスト");
                 return (isReserved || isTargetStatus) && lastName !== "" && !isTestUser;
             });
-            // 登録日のフォーマット上書き等
+            // 登録日のフォーマット変更（「YYYY-MM-DD HH:MM」→「YYYY-MM-DD」）
             for (const record of mappedRecords) {
-                if (record.line_registered_at) {
-                    const now = new Date();
-                    record.line_registered_at = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")}`;
+                if (typeof record.line_registered_at === 'string' && record.line_registered_at) {
+                    record.line_registered_at = record.line_registered_at.split(' ')[0];
                 }
             }
             console.log(`Parsed & filtered rows:`, mappedRecords.length);

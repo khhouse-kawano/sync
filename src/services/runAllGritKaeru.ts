@@ -70,7 +70,7 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
         for (const [jpKeyRaw, valRaw] of Object.entries(jpRecord)) {
             const jpKey = String(jpKeyRaw).trim().replace(/^"|"$/g, '');
             const cell = valRaw === undefined || valRaw === null ? "" : String(valRaw).trim();
-            
+
             if (jpKey) {
                 remarksList.push(`${jpKey}：${cell}`);
             }
@@ -79,7 +79,7 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
             if (!mapped) continue;
             obj[mapped] = cell;
         }
-        
+
         obj['remarks'] = remarksList.join('\n');
         return obj;
     }
@@ -87,7 +87,7 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
     // ★ 修正2: request名をPHP側と一致するように「allgrit_kaeru」に修正
     async function postChunkWithRetry(url: string, chunk: any[], retries = 2, delayMs = 1000) {
         const payload = {
-            request: 'allGrit_kaeru', 
+            request: 'allGrit_kaeru',
             data: chunk
         };
         let lastErr: any = null;
@@ -128,14 +128,14 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
             await page.click('xpath=/html/body/div[2]/div/div/div/main/div/div[2]/div/div/div/div[2]/div[4]/div[3]/button');
 
             // 左上メニュー > お客様一覧 をクリック
-            await page.click("//html/body/div[2]/div/div/div/div[1]/nav/div[1]/div/div/div[1]/div"); 
-            await page.click("//html/body/div[2]/div/div/div/div[1]/div/div/a[2]"); 
+            await page.click("//html/body/div[2]/div/div/div/div[1]/nav/div[1]/div/div/div[1]/div");
+            await page.click("//html/body/div[2]/div/div/div/div[1]/div/div/a[2]");
             await page.waitForLoadState("load");
 
             // ダウンロードボタンをクリック
             const downloadPromise = page.waitForEvent("download");
             await page.waitForLoadState("load");
-            await page.click("//html/body/div[2]/div/div/div/main/div/div/div/div[1]/div/div[3]/div[4]/button[4]/span"); 
+            await page.click("//html/body/div[2]/div/div/div/main/div/div/div/div[1]/div/div[3]/div[4]/button[4]/span");
             const download = await downloadPromise;
 
             if (!existsSync("/tmp")) {
@@ -145,7 +145,7 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
             const today = new Date();
             const yyyymmdd = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}`;
             const savePath = `/tmp/${yyyymmdd}_ALLGRIT.csv`;
-            
+
             await download.saveAs(savePath);
 
             // ファイル読み込みとパース
@@ -166,7 +166,7 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
                     const isReserved = rec.visit_reservation === "1";
                     const status = String(rec.lead_status || "");
                     const isTargetStatus = status === "資料郵送後" || status.includes("アンケート回答後");
-                    
+
                     const lastName = String(rec.last_name || "");
                     const firstName = String(rec.first_name || "");
                     const isTestUser = lastName.includes("テスト") || firstName.includes("テスト");
@@ -174,11 +174,11 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
                     return (isReserved || isTargetStatus) && lastName !== "" && !isTestUser;
                 });
 
-            // 登録日のフォーマット上書き等
+            // 登録日のフォーマット変更（「YYYY-MM-DD HH:MM」→「YYYY-MM-DD」）
             for (const record of mappedRecords) {
-                if (record.line_registered_at) {
-                    const now = new Date();
-                    record.line_registered_at = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")}`;
+                if (typeof record.line_registered_at === 'string' && record.line_registered_at) {
+
+                    record.line_registered_at = record.line_registered_at.split(' ')[0];
                 }
             }
 
@@ -202,12 +202,12 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
                 } catch (err: any) {
                     const apiErrorDetail = err.response?.data ? JSON.stringify(err.response.data) : "";
                     const errMsg = err instanceof Error ? err.message : String(err);
-                    
+
                     console.error(`Failed chunk ${chunkNumber}:`, errMsg);
                     if (apiErrorDetail) {
                         console.error(`★APIからのエラー詳細:`, apiErrorDetail);
                     }
-                    
+
                     failures.push({ chunkIndex: chunkNumber, error: errMsg, apiErrorDetail });
                 }
             }
@@ -217,8 +217,8 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
         } catch (e) {
             // ★ 万が一Playwrightがコケた場合、カレントディレクトリにスクショを残す
             const errPath = `./error_screenshot_${Date.now()}.png`;
-            await page.screenshot({ path: errPath, fullPage: true }).catch(() => {});
-            
+            await page.screenshot({ path: errPath, fullPage: true }).catch(() => { });
+
             const msg = `ダウンロード/インポート処理に失敗:${e}\n※スクリーンショットを ${errPath} に保存しました。`;
             console.error(msg);
             errors.push(msg);
