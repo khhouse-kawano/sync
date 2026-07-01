@@ -131,7 +131,7 @@ const runIeloveProperty = async (ielove_id, ielove_pass) => {
                 const targetUrl = `https://cloud.ielove.jp/sale/index/index/num/500/search/1/scow/0/sccm/0/renmm/0/spdtm/1/kcdt/0/scld/0/grid/${storeId}/notAddBknTo/0/udcdr/1/ttcd1/0/ttcd2/0/ttcd3/0/ttcd4/0/ttcd5/0/ttcd8/0/ttcd99/0/kyzk/0/ptcm/0/exun/0/ices/2/exes/1/pbst/1/past/1/ipco/0/dluf/0/buda/0/ortgr/1/optt/1/`;
                 await page.goto(targetUrl);
                 await page.waitForLoadState("networkidle");
-                await page.waitForTimeout(2000);
+                await page.waitForTimeout(5000);
                 // 一覧をダウンロードボタンのクリック
                 const downloadBtn = page.locator('#listDownloadFooter');
                 await downloadBtn.waitFor({ state: 'visible' });
