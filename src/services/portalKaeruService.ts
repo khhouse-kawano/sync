@@ -10,9 +10,13 @@ import { runAthomeKaeru } from "./runAtHomeKaeru";
 import { RunGeoCode } from "./runGeocode";
 import { runIeuru } from "./runIeuru";
 import { runAllGritKaeru } from "./runAllGritKaeru";
+import { runReserveKaeru } from "./runReserveKaeru";
+import { runReserveResale } from "./runReserveResale";
+import { runCatalogResale } from "./runCatalogResale";
+import { runCatalogKaeru } from "./runCatalogKaeru";
 
 export const portalKaeruService = {
-  process: async () => {
+  process: async (options?: { targetTasks?: string[] }) => {
     const actionMap: Record<string, (id: string, pass: string) => Promise<void>> = {
       'suumo_kaeru': runSuumoKaeru,
       'suumo_resale': runSuumoResale,
@@ -25,7 +29,11 @@ export const portalKaeruService = {
       'athome_kaeru': runAthomeKaeru,
       'geoCode': RunGeoCode,
       'ieuru_resale': runIeuru,
-      'allGrit_kaeru': runAllGritKaeru
+      'allGrit_kaeru': runAllGritKaeru,
+      'reserve_kaeru': runReserveKaeru,
+      'reserve_resale': runReserveResale,
+      'catalog_resale': runCatalogResale,
+      'catalog_kaeru': runCatalogKaeru,
     };
 
     const portal = [
@@ -41,11 +49,19 @@ export const portalKaeruService = {
       { name: 'geoCode', },
       { name: 'ieuru_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'allGrit_kaeru', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
+      { name: 'reserve_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+      { name: 'reserve_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+      { name: 'catalog_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+      { name: 'catalog_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
     ];
 
     const results = [];
 
-    for (const brand of portal) {
+    const targets = options?.targetTasks && options.targetTasks.length > 0
+      ? portal.filter(p => options.targetTasks!.includes(p.name))
+      : portal;
+
+    for (const brand of targets) {
       if (brand.name !== 'geoCode' && (!brand.id || !brand.pass)) {
         results.push({
           name: brand.name,
@@ -86,7 +102,7 @@ export const portalKaeruService = {
 
     return {
       ok: true,
-      message: "全ブランドの処理が完了しました",
+      message: `${targets.length}件のブランド処理が完了しました`,
       results
     };
   }

@@ -147,8 +147,8 @@ export const runIeuru = async (id: string, pass: string) => {
         tls: true,
     });
 
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
 
     try {
         imapClient.once("ready", () => {
@@ -159,7 +159,7 @@ export const runIeuru = async (id: string, pass: string) => {
                     ["FROM", "ieul-support@ieul.jp"],
                     ["SUBJECT", "【イエウール】不動産査定依頼のお知らせ"],
                     ["BODY", "株式会社国分ハウジング不動産 中古住宅専門店"],
-                    ["SINCE", twoDaysAgo]
+                    ["SINCE", yesterday]
                 ];
 
                 imapClient.search(searchCriteria, (err, results) => {

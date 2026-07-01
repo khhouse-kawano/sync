@@ -117,8 +117,8 @@ const runIei = async (id, pass) => {
     imapClient.on("error", (err) => {
         console.error("IMAP接続エラーが発生しました:", err.message);
     });
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
     try {
         imapClient.once("ready", () => {
             imapClient.openBox("INBOX", true, (err, _) => {
@@ -128,7 +128,7 @@ const runIei = async (id, pass) => {
                     ["FROM", "order@sell.yeay.jp"],
                     ["SUBJECT", "イエイからの査定依頼です。"],
                     ["BODY", "下記の物件の査定依頼がありました"],
-                    ["SINCE", twoDaysAgo]
+                    ["SINCE", yesterday]
                 ];
                 imapClient.search(searchCriteria, (err, results) => {
                     if (err)

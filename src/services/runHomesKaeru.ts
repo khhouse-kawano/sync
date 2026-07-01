@@ -84,8 +84,8 @@ export const runHomesKaeru = async (id: string, pass: string) => {
         tls: true,
     });
 
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
 
     try {
         imapClient.once("ready", () => {
@@ -97,7 +97,7 @@ export const runHomesKaeru = async (id: string, pass: string) => {
                     ["TO", "kaeru@kh-house.jp"],
                     ["SUBJECT", "お客様からの問合せ"],
                     ["BODY", "株式会社国分ハウジング不動産様"],
-                    ["SINCE", twoDaysAgo]
+                    ["SINCE", yesterday]
                 ];
 
                 imapClient.search(searchCriteria, (err, results) => {

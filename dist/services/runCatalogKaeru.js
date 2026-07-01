@@ -3,68 +3,96 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runMemberKaeru = void 0;
+exports.runCatalogKaeru = void 0;
 const node_imap_1 = __importDefault(require("node-imap"));
 const mailparser_1 = require("mailparser");
 const axios_1 = __importDefault(require("axios"));
-const sendErrorMail_1 = require("./sendErrorMail");
 const errors = [];
-// ★ 追加: 英語キーを日本語名に変換する辞書
-const memberKaeruColumnNameMap = {
-    email: "メールアドレス",
+// 英語キーを日本語名に変換する辞書 (remarks生成用)
+const catalogKaeruColumnNameMap = {
+    property: "物件情報",
+    note: "お問い合わせ内容",
+    date: "ご希望日",
+    time: "ご希望時間",
     name: "お名前",
     nameKana: "フリガナ",
+    email: "メールアドレス",
     zip: "郵便番号",
-    address: "住所",
+    address: "ご住所",
     age: "ご年齢",
     tel: "電話番号",
-    mobile: "携帯番号",
-    source: "当サイトをどこでお知りになりましたか？",
-    desiredArea1: "第一希望エリア",
-    desiredArea2: "第二希望エリア",
-    desiredArea3: "第三希望エリア",
-    areaNotes: "※市区町村、学区など",
-    otherConditions: "その他希望条件",
-    registered: "システム受付日時" // プログラム内で付与している日時用
+    source: "認知媒体",
+    registered: "メール受信日時"
 };
-const extractMemberData = (text) => {
-    const extract = (keyword) => {
-        const regex = new RegExp(`【${keyword}】[\\s　]*([\\s\\S]*?)(?=\\n【|$)`);
-        const match = text.match(regex);
-        return match ? match[1].trim() : "";
+// 日本語キーワードと内部キーのマッピング辞書
+const keywordToKeyMap = {
+    "物件情報": "property",
+    "お問い合わせ内容": "note",
+    "ご希望日": "date",
+    "ご希望時間": "time",
+    "お名前": "name",
+    "フリガナ": "nameKana",
+    "メールアドレス": "email",
+    "郵便番号": "zip",
+    "ご住所": "address",
+    "ご年齢": "age",
+    "電話番号": "tel",
+    "何を見てかえるホームをお知りになりましたか？": "source"
+};
+const extractCatalogKaeruData = (text) => {
+    const normalizedText = text.replace(/\r\n/g, '\n');
+    const lines = normalizedText.split('\n');
+    // 初期オブジェクトの準備
+    const result = {
+        property: "", note: "", date: "", time: "", name: "", nameKana: "",
+        email: "", zip: "", address: "", age: "", tel: "", source: ""
     };
-    const conditionsText = extract("ご希望条件");
-    const extractCondition = (keyword) => {
-        // 「・キーワード」の直後から、次の「・」が来るまで（または文末まで）を取得
-        const regex = new RegExp(`・${keyword}[\\s　]*([\\s\\S]*?)(?=\\n[\\s　]*・|$)`);
-        const match = conditionsText.match(regex);
-        return match ? match[1].trim() : "";
-    };
-    return {
-        email: extract("メールアドレス"),
-        name: extract("お名前"),
-        nameKana: extract("フリガナ"),
-        // ★修正ポイント: 「〒」を取り除く
-        zip: extract("郵便番号").replace("〒", "").trim(),
-        address: extract("住所"),
-        // ★修正ポイント: 「歳」を取り除く
-        age: extract("ご年齢").replace("歳", "").trim(),
-        tel: extract("電話番号"),
-        mobile: extract("携帯番号"), // 今回のメール文面にはありませんが、他パターン用として残しています
-        source: extract("当サイトをどこでお知りになりましたか？"),
-        // ★追加ポイント: ご希望条件の中身をそれぞれ抽出
-        desiredArea1: extractCondition("第一希望エリア"),
-        desiredArea2: extractCondition("第二希望エリア"),
-        desiredArea3: extractCondition("第三希望エリア"),
-        areaNotes: extractCondition("※市区町村、学区など"),
-        otherConditions: extractCondition("その他希望条件"),
-    };
+    let currentKey = "";
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed)
+            continue; // 空行はスルー
+        if (trimmed.startsWith("--"))
+            break; // メールのフッター（署名）以降は終了
+        let matched = false;
+        // コロンの有無や全角半角に関わらず、キーワードで始まっていれば検知
+        for (const [kw, key] of Object.entries(keywordToKeyMap)) {
+            if (trimmed.startsWith(kw)) {
+                currentKey = key;
+                const val = trimmed.substring(kw.length).replace(/^[：:\s]+/, '').trim();
+                result[currentKey] = val;
+                matched = true;
+                break;
+            }
+        }
+        // キーワードに該当しない行の処理
+        if (!matched) {
+            if (currentKey === 'note') {
+                // 「お問い合わせ内容（note）」の時だけ、複数行の入力を許可して追記する
+                result[currentKey] = result[currentKey] ? `${result[currentKey]}\n${trimmed}` : trimmed;
+            }
+            else {
+                // それ以外の項目は1行完結ガード！
+                currentKey = "";
+            }
+        }
+    }
+    // データのクリーニング処理
+    if (result.age)
+        result.age = result.age.replace("歳", "").trim();
+    if (result.zip)
+        result.zip = result.zip.replace("〒", "").trim();
+    // ★ 物件情報が取得できなかった場合のデフォルト値設定
+    if (!result.property || result.property.trim() === "") {
+        result.property = "ホームページ資料請求";
+    }
+    return result;
 };
 const postToPhpApi = async (data) => {
     const API_URL = "https://khg-marketing.info/dashboard/api/gateway/";
     const payload = {
         ...data,
-        request: 'member_kaeru_update'
+        request: 'catalog_kaeru_update'
     };
     try {
         const response = await axios_1.default.post(API_URL, payload, { headers: { "Content-Type": "application/json" } });
@@ -80,7 +108,7 @@ const postToPhpApi = async (data) => {
         }
     }
 };
-const runMemberKaeru = async (id, pass) => {
+const runCatalogKaeru = async (id, pass) => {
     if (!process.env.GMAIL || !process.env.GMAIL_PASS) {
         throw new Error("環境変数 GMAIL または GMAIL_PASS が設定されていません。");
     }
@@ -91,18 +119,22 @@ const runMemberKaeru = async (id, pass) => {
         port: 993,
         tls: true,
     });
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    imapClient.on('error', (err) => {
+        console.error('IMAPエラーが発生しました:', err);
+        errors.push(`IMAP接続エラー: ${err}`);
+    });
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
     try {
         imapClient.once("ready", () => {
             imapClient.openBox("INBOX", true, (err, _) => {
                 if (err)
                     throw err;
+                // 検索条件（※実態に合わせて調整してください）
                 const searchCriteria = [
                     ["FROM", "ask@kaeruhome.jp"],
-                    ["SUBJECT", "新規会員登録発生通知メール"],
-                    ["BODY", "かえるホームの新規会員登録情報"],
-                    ["SINCE", yesterday]
+                    ["SUBJECT", "物件のお問い合わせ"], // または「お問い合わせ」など実態に合わせる
+                    ["SINCE", twoDaysAgo]
                 ];
                 imapClient.search(searchCriteria, (err, results) => {
                     if (err)
@@ -119,7 +151,8 @@ const runMemberKaeru = async (id, pass) => {
                                 if (err)
                                     return;
                                 const emailText = parsed.text || "";
-                                const extractedData = extractMemberData(emailText);
+                                const extractedData = extractCatalogKaeruData(emailText);
+                                // 実際のメール受信日時を取得
                                 const d = parsed.date || new Date();
                                 const year = d.getFullYear();
                                 const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -132,13 +165,14 @@ const runMemberKaeru = async (id, pass) => {
                                     ...extractedData,
                                     registered: registered
                                 };
-                                // ★ 追加: remarks（メモ）の生成処理
+                                // remarks（メモ）の生成処理
                                 const remarksList = [];
                                 for (const [key, val] of Object.entries(finalData)) {
-                                    const jaKey = memberKaeruColumnNameMap[key] || key;
-                                    remarksList.push(`${jaKey}：${val}`);
+                                    if (val) {
+                                        const jaKey = catalogKaeruColumnNameMap[key] || key;
+                                        remarksList.push(`${jaKey}：${val}`);
+                                    }
                                 }
-                                // 最後に remarks として改行区切りで追加
                                 finalData.remarks = remarksList.join('\n');
                                 console.log(`[メール #${seqno}] 抽出データ:`, finalData);
                                 if (finalData.name) {
@@ -162,6 +196,5 @@ const runMemberKaeru = async (id, pass) => {
         errors.push(JSON.stringify(error));
     }
     imapClient.connect();
-    (0, sendErrorMail_1.sendErrorMail)(errors, 'runMemberKaeru.ts');
 };
-exports.runMemberKaeru = runMemberKaeru;
+exports.runCatalogKaeru = runCatalogKaeru;

@@ -83,8 +83,8 @@ const runHomesKaeru = async (id, pass) => {
         port: 993,
         tls: true,
     });
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
     try {
         imapClient.once("ready", () => {
             imapClient.openBox("INBOX", true, (err, _) => {
@@ -95,7 +95,7 @@ const runHomesKaeru = async (id, pass) => {
                     ["TO", "kaeru@kh-house.jp"],
                     ["SUBJECT", "お客様からの問合せ"],
                     ["BODY", "株式会社国分ハウジング不動産様"],
-                    ["SINCE", twoDaysAgo]
+                    ["SINCE", yesterday]
                 ];
                 imapClient.search(searchCriteria, (err, results) => {
                     if (err)

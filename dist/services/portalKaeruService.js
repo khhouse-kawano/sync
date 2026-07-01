@@ -13,6 +13,10 @@ const runAtHomeKaeru_1 = require("./runAtHomeKaeru");
 const runGeocode_1 = require("./runGeocode");
 const runIeuru_1 = require("./runIeuru");
 const runAllGritKaeru_1 = require("./runAllGritKaeru");
+const runReserveKaeru_1 = require("./runReserveKaeru");
+const runReserveResale_1 = require("./runReserveResale");
+const runCatalogResale_1 = require("./runCatalogResale");
+const runCatalogKaeru_1 = require("./runCatalogKaeru");
 exports.portalKaeruService = {
     process: async () => {
         const actionMap = {
@@ -27,21 +31,29 @@ exports.portalKaeruService = {
             'athome_kaeru': runAtHomeKaeru_1.runAthomeKaeru,
             'geoCode': runGeocode_1.RunGeoCode,
             'ieuru_resale': runIeuru_1.runIeuru,
-            'allGrit_kaeru': runAllGritKaeru_1.runAllGritKaeru
+            'allGrit_kaeru': runAllGritKaeru_1.runAllGritKaeru,
+            'reserve_kaeru': runReserveKaeru_1.runReserveKaeru,
+            'reserve_resale': runReserveResale_1.runReserveResale,
+            'catalog_resale': runCatalogResale_1.runCatalogResale,
+            'catalog_kaeru': runCatalogKaeru_1.runCatalogKaeru,
         };
         const portal = [
-            { name: 'suumo_kaeru', id: process.env.SUUMO_KAERU_ID ?? "", pass: process.env.SUUMO_KAERU_PASS ?? "" },
-            { name: 'suumo_resale', id: process.env.SUUMO_RESALE_ID ?? "", pass: process.env.SUUMO_RESALE_PASS ?? "" },
+            // { name: 'suumo_kaeru', id: process.env.SUUMO_KAERU_ID ?? "", pass: process.env.SUUMO_KAERU_PASS ?? "" },
+            // { name: 'suumo_resale', id: process.env.SUUMO_RESALE_ID ?? "", pass: process.env.SUUMO_RESALE_PASS ?? "" },
             { name: 'homes_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'homes_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'member_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'member_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
-            { name: 'sumai_step_resale', id: process.env.SUMAI_STEP_ID ?? "", pass: process.env.SUMAI_STEP_PASS ?? "" },
+            // { name: 'sumai_step_resale', id: process.env.SUMAI_STEP_ID ?? "", pass: process.env.SUMAI_STEP_PASS ?? "" },
             { name: 'iei_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'athome_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'geoCode', },
             { name: 'ieuru_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
-            { name: 'allGrit_kaeru', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
+            // { name: 'allGrit_kaeru', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
+            { name: 'reserve_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+            { name: 'reserve_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+            { name: 'catalog_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+            { name: 'catalog_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
         ];
         const results = [];
         for (const brand of portal) {

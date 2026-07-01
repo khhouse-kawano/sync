@@ -2,92 +2,103 @@ import Imap from "node-imap";
 import { simpleParser } from "mailparser";
 import axios from 'axios';
 import { sendErrorMail } from "./sendErrorMail";
-
 const errors: string[] = [];
 
-// ★ 追加: 英語キーを日本語名に変換する辞書（イエイのフォーマット準拠）
-const ieiColumnNameMap: Record<string, string> = {
-    assessmentMethod: "査定方法",
-    assessmentType: "査定種別",
-    propertyType: "物件種別",
-    propertyAddress: "物件所在地",
-    buildingArea: "建物(専有)面積",
-    landArea: "土地面積",
-    floorPlan: "間取り",
-    builtYear: "築年",
-    currentStatus: "現況",
-    rent: "賃料",
-    ownership: "ご名義",
-    reason: "ご依頼理由",
-    saleTiming: "売却時期",
-    contactDate: "連絡希望日",
-    contactTime: "希望連絡時間",
-    hopes: "希望など",
-    requests: "ご要望など",
-    name: "姓名",
-    nameKana: "姓名（カナ）",
-    age: "年齢",
-    address: "住所",
-    tel1: "電話番号1",
-    tel2: "電話番号2",
-    email: "E-mailアドレス",
-    registered: "システム受付日時" // プログラム内で付与している日時用
+// 英語キーを日本語名に変換する辞書 (remarks生成用)
+const reserveResaleColumnNameMap: Record<string, string> = {
+    event: "ご希望イベント/物件番号",
+    date: "ご来店・参加希望日",
+    time: "ご来店・参加希望時間",
+    name: "お名前",
+    nameKana: "フリガナ",
+    email: "メールアドレス",
+    tel: "お電話番号",
+    zip: "郵便番号",
+    address: "ご住所",
+    source: "ご予約のきっかけ",
+    note: "その他お問い合わせ",
+    registered: "メール受信日時"
 };
 
-const extractMemberData = (text: string) => {
-    const escapeRegex = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// 表記揺れを吸収するための日本語キーワードと内部キーのマッピング辞書
+const keywordToKeyMap: Record<string, string> = {
+    "【ご希望イベント1】": "event",
+    "【ご希望の物件番号】": "event",
+    "【参加希望日】": "date",
+    "【ご来店希望日】": "date",
+    "【参加希望時間】": "time",
+    "【ご来店希望時間】": "time",
+    "【お名前】": "name",
+    "【フリガナ】": "nameKana",
+    "【メールアドレス】": "email",
+    "【お電話番号】": "tel",
+    "【郵便番号】": "zip",
+    "【ご住所】": "address",
+    "【ご予約のきっかけ】": "source",
+    "【その他お問い合わせ】": "note",
+    "【その他】": "note"
+};
 
-    const extractBracket = (keyword: string) => {
-        const regex = new RegExp(`［${escapeRegex(keyword)}］[\\s　]*\\n([\\s\\S]*?)(?=\\n［|\\n▼|$)`);
-        const match = text.match(regex);
-        return match ? match[1].trim() : "";
+const extractResaleData = (text: string) => {
+    const normalizedText = text.replace(/\r\n/g, '\n');
+    const lines = normalizedText.split('\n');
+
+    // 初期オブジェクトの準備
+    const result: Record<string, string> = {
+        event: "", date: "", time: "", name: "", nameKana: "",
+        email: "", tel: "", zip: "", address: "", source: "", note: ""
     };
 
-    const nameBlock = extractBracket("姓名");
-    const contactBlock = extractBracket("連絡先");
+    let currentKey = "";
+    let expectValueNextLine = false;
 
-    const nameMatch = nameBlock.match(/^([^\n]+)/);
-    const name = nameMatch ? nameMatch[1].trim() : "";
-    const kanaMatch = nameBlock.match(/（(.*?)）/);
-    const nameKana = kanaMatch ? kanaMatch[1].trim() : "";
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith("--")) break;
 
-    const tel1Match = contactBlock.match(/電話番号1：([^\n]*)/);
-    const tel2Match = contactBlock.match(/電話番号2：([^\n]*)/);
-    const emailMatch = contactBlock.match(/E-mailアドレス：([^\n]*)/);
+        let matchedKeyword = false;
+        for (const [kw, key] of Object.entries(keywordToKeyMap)) {
+            if (trimmed.startsWith(kw)) {
+                currentKey = key;
+                expectValueNextLine = true;
+                matchedKeyword = true;
+                break;
+            }
+        }
 
-    return {
-        assessmentMethod: extractBracket("査定方法"),
-        assessmentType: extractBracket("査定種別"),
-        propertyType: extractBracket("物件種別"),
-        propertyAddress: extractBracket("物件所在地"),
-        buildingArea: extractBracket("建物(専有)面積"),
-        landArea: extractBracket("土地面積"),
-        floorPlan: extractBracket("間取り"),
-        builtYear: extractBracket("築年"),
-        currentStatus: extractBracket("現況"),
-        rent: extractBracket("賃料"),
-        ownership: extractBracket("ご名義"),
-        reason: extractBracket("ご依頼理由"),
-        saleTiming: extractBracket("売却時期"),
-        contactDate: extractBracket("連絡希望日"),
-        contactTime: extractBracket("希望連絡時間"),
-        hopes: extractBracket("希望など"),
-        requests: extractBracket("ご要望など"),
-        name: name,
-        nameKana: nameKana,
-        age: extractBracket("年齢"),
-        address: extractBracket("住所"),
-        tel1: tel1Match ? tel1Match[1].trim() : "",
-        tel2: tel2Match ? tel2Match[1].trim() : "",
-        email: emailMatch ? emailMatch[1].trim() : "",
-    };
+        if (matchedKeyword) continue;
+
+        if (currentKey) {
+            if (expectValueNextLine) {
+                if (trimmed !== "") {
+                    result[currentKey] = trimmed;
+                    if (currentKey !== 'note') {
+                        currentKey = "";
+                    }
+                    expectValueNextLine = false;
+                }
+            } else if (currentKey === 'note' && trimmed !== "") {
+                result[currentKey] = result[currentKey] ? `${result[currentKey]}\n${trimmed}` : trimmed;
+            }
+        }
+    }
+
+    // データのクリーニング処理
+    if (result.zip) result.zip = result.zip.replace("〒", "").trim();
+
+    // ★ 修正: イベント/物件番号が取得できなかった（空文字、null、undefined）場合のデフォルト値設定
+    if (!result.event || result.event.trim() === "") {
+        result.event = "ホームページ来場予約";
+    }
+
+    return result;
 };
 
 const postToPhpApi = async (data: Record<string, string>) => {
     const API_URL = "https://khg-marketing.info/dashboard/api/gateway/";
     const payload = {
         ...data,
-        request: 'iei_resale_update'
+        request: 'reserve_resale_update' // ★後ほどPHP側と合わせる識別子
     };
     try {
         const response = await axios.post(API_URL, payload, { headers: { "Content-Type": "application/json" } });
@@ -99,11 +110,10 @@ const postToPhpApi = async (data: Record<string, string>) => {
         } else {
             console.error("API送信中に予期せぬエラーが発生しました:", error);
         }
-        errors.push(JSON.stringify(error));
     }
 };
 
-export const runIei = async (id: string, pass: string) => {
+export const runReserveResale = async (id: string, pass: string) => {
     if (!process.env.GMAIL || !process.env.GMAIL_PASS) {
         throw new Error("環境変数 GMAIL または GMAIL_PASS が設定されていません。");
     }
@@ -114,12 +124,11 @@ export const runIei = async (id: string, pass: string) => {
         host: "imap.gmail.com",
         port: 993,
         tls: true,
-        authTimeout: 30000,
-        tlsOptions: { rejectUnauthorized: false }
     });
 
-    imapClient.on("error", (err: Error) => {
-        console.error("IMAP接続エラーが発生しました:", err.message);
+    imapClient.on('error', (err) => {
+        console.error('IMAPエラーが発生しました:', err);
+        errors.push(`IMAP接続エラー: ${err}`);
     });
 
     const yesterday = new Date();
@@ -130,10 +139,10 @@ export const runIei = async (id: string, pass: string) => {
             imapClient.openBox("INBOX", true, (err, _) => {
                 if (err) throw err;
 
+                // ★ 検索条件（FROMやSUBJECTは実態に合わせて調整してください）
                 const searchCriteria = [
-                    ["FROM", "order@sell.yeay.jp"],
-                    ["SUBJECT", "イエイからの査定依頼です。"],
-                    ["BODY", "下記の物件の査定依頼がありました"],
+                    ["FROM", "ask@chuko-senmon.jp"],
+                    ["OR", ["SUBJECT", "イベント"], ["SUBJECT", "来店予約"]],
                     ["SINCE", yesterday]
                 ];
 
@@ -154,10 +163,9 @@ export const runIei = async (id: string, pass: string) => {
                                 if (err) return;
 
                                 const emailText = parsed.text || "";
+                                const extractedData = extractResaleData(emailText);
 
-                                // 抽出処理を実行
-                                const extractedData = extractMemberData(emailText);
-
+                                // ★ 前回同様、実際のメールの受信日時（parsed.date）を使用
                                 const d = parsed.date || new Date();
                                 const year = d.getFullYear();
                                 const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -173,18 +181,19 @@ export const runIei = async (id: string, pass: string) => {
                                     registered: registered
                                 };
 
-                                // ★ 追加: remarks（メモ）の生成処理
+                                // remarks（メモ）の生成処理
                                 const remarksList: string[] = [];
                                 for (const [key, val] of Object.entries(finalData)) {
-                                    const jaKey = ieiColumnNameMap[key] || key;
-                                    remarksList.push(`${jaKey}：${val}`);
+                                    if (val) {
+                                        const jaKey = reserveResaleColumnNameMap[key] || key;
+                                        remarksList.push(`${jaKey}：${val}`);
+                                    }
                                 }
-
-                                // 最後に remarks として改行区切りで追加
                                 finalData.remarks = remarksList.join('\n');
 
                                 console.log(`[メール #${seqno}] 抽出データ:`, finalData);
 
+                                // 必須項目（お名前）が取れている場合のみPOST
                                 if (finalData.name) {
                                     await postToPhpApi(finalData);
                                 } else {
@@ -206,6 +215,4 @@ export const runIei = async (id: string, pass: string) => {
     }
 
     imapClient.connect();
-    sendErrorMail(errors, 'runHomesResales.ts');
-
 };

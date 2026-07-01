@@ -107,8 +107,8 @@ const runAthomeKaeru = async (id, pass) => {
         port: 993,
         tls: true,
     });
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
     try {
         imapClient.once("ready", () => {
             imapClient.openBox("INBOX", true, (err, _) => {
@@ -118,7 +118,7 @@ const runAthomeKaeru = async (id, pass) => {
                     ["FROM", "mailtofax@athome.jp"],
                     ["SUBJECT", "アットホーム（スマートフォンサイト・アプリ）からのお知らせ"],
                     ["BODY", "国分ハウジング不動産 御中"],
-                    ["SINCE", twoDaysAgo]
+                    ["SINCE", yesterday]
                 ];
                 imapClient.search(searchCriteria, (err, results) => {
                     if (err)

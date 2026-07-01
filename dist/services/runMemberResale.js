@@ -69,8 +69,8 @@ const runMemberResale = async (id, pass) => {
         port: 993,
         tls: true,
     });
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
     try {
         imapClient.once("ready", () => {
             imapClient.openBox("INBOX", true, (err, _) => {
@@ -80,7 +80,7 @@ const runMemberResale = async (id, pass) => {
                     ["FROM", "ask@chuko-senmon.jp"],
                     ["SUBJECT", "新規会員登録発生通知メール"],
                     ["BODY", "国分ハウジンググループ中古住宅専門店の新規会員登録情報"],
-                    ["SINCE", twoDaysAgo]
+                    ["SINCE", yesterday]
                 ];
                 imapClient.search(searchCriteria, (err, results) => {
                     if (err)

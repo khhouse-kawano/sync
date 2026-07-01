@@ -109,8 +109,8 @@ export const runAthomeKaeru = async (id: string, pass: string) => {
         tls: true,
     });
 
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
 
     try {
         imapClient.once("ready", () => {
@@ -121,7 +121,7 @@ export const runAthomeKaeru = async (id: string, pass: string) => {
                     ["FROM", "mailtofax@athome.jp"],
                     ["SUBJECT", "アットホーム（スマートフォンサイト・アプリ）からのお知らせ"],
                     ["BODY", "国分ハウジング不動産 御中"],
-                    ["SINCE", twoDaysAgo]
+                    ["SINCE", yesterday]
                 ];
 
                 imapClient.search(searchCriteria, (err, results) => {

@@ -84,8 +84,8 @@ export const runHomesResale = async (id: string, pass: string) => {
         tls: true,
     });
 
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
 
     try {
         imapClient.once("ready", () => {
@@ -96,7 +96,7 @@ export const runHomesResale = async (id: string, pass: string) => {
                     ["FROM", "support@homes.co.jp"],
                     ["SUBJECT", "お客様からの問合せ"],
                     ["BODY", "株式会社国分ハウジング不動産　中古住宅専門店様"],
-                    ["SINCE", twoDaysAgo]
+                    ["SINCE", yesterday]
                 ];
 
                 imapClient.search(searchCriteria, (err, results) => {

@@ -141,8 +141,8 @@ const runIeuru = async (id, pass) => {
         port: 993,
         tls: true,
     });
-    const twoDaysAgo = new Date();
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
     try {
         imapClient.once("ready", () => {
             imapClient.openBox("INBOX", true, (err, _) => {
@@ -152,7 +152,7 @@ const runIeuru = async (id, pass) => {
                     ["FROM", "ieul-support@ieul.jp"],
                     ["SUBJECT", "【イエウール】不動産査定依頼のお知らせ"],
                     ["BODY", "株式会社国分ハウジング不動産 中古住宅専門店"],
-                    ["SINCE", twoDaysAgo]
+                    ["SINCE", yesterday]
                 ];
                 imapClient.search(searchCriteria, (err, results) => {
                     if (err)
