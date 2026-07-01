@@ -99,7 +99,7 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
                 await page.goto(targetUrl);
                 await page.waitForLoadState("networkidle");
 
-                await page.waitForTimeout(2000);
+                await page.waitForTimeout(5000);
 
 
                 // 一覧をダウンロードボタンのクリック
