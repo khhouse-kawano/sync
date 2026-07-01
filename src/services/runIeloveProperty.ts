@@ -66,8 +66,19 @@ const postToPhpApi = async (data: Record<string, string>[]) => {
 };
 
 export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) => {
-    const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
-    const context = await browser.newContext();
+    // HerokuのLinux環境でクラッシュを防ぐための引数を追加
+    const browser = await chromium.launch({
+        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+        headless: true
+    });
+
+    // ★ 対策: 人間がPCからアクセスしているように完全に偽装（画面サイズとUser-Agentを固定）
+    const context = await browser.newContext({
+        viewport: { width: 1920, height: 1080 }, // フルHDのPCモニターサイズに固定
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        locale: 'ja-JP',
+        timezoneId: 'Asia/Tokyo'
+    });
     const page = await context.newPage();
 
     const login = async () => {
@@ -102,9 +113,9 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
                 await page.waitForTimeout(5000);
 
 
-                // 一覧をダウンロードボタンのクリック
+                // 一覧をダウンロードボタンのクリック（待機時間を60秒に延長）
                 const downloadBtn = page.locator('#listDownloadFooter');
-                await downloadBtn.waitFor({ state: 'visible' });
+                await downloadBtn.waitFor({ state: 'visible', timeout: 60000 });
                 await downloadBtn.click();
 
                 // CSV形式でダウンロードボタンのクリック
@@ -166,10 +177,12 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
                 }
 
             } catch (err) {
-                const msg = `[店舗: ${storeId}] の処理中にエラーが発生しました: ${err}`;
+                const currentUrl = page.url();
+                const pageTitle = await page.title().catch(() => '取得不可');
+
+                const msg = `[店舗: ${storeId}] の処理中にエラーが発生しました: ${err}\n(エラー発生時のURL: ${currentUrl} | タイトル: ${pageTitle})`;
                 console.error(msg);
                 errors.push(msg);
-                // エラーが起きても continue で次の店舗の処理へ進む
             }
         }
     };
