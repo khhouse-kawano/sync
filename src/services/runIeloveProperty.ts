@@ -67,14 +67,20 @@ const postToPhpApi = async (data: Record<string, string>[]) => {
 
 export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) => {
     // HerokuのLinux環境でクラッシュを防ぐための引数を追加
+    // ★ 修正: Heroku環境でのクラッシュ防止 ＆ Bot検知回避の引数を追加
     const browser = await chromium.launch({
-        args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-blink-features=AutomationControlled" // 自動操作ツールであることを隠す
+        ],
         headless: true
     });
 
-    // ★ 対策: 人間がPCからアクセスしているように完全に偽装（画面サイズとUser-Agentを固定）
+    // ★ 修正: 画面サイズをフルHDに固定し、User-Agent（ブラウザ情報）を一般的なPCに偽装
     const context = await browser.newContext({
-        viewport: { width: 1920, height: 1080 }, // フルHDのPCモニターサイズに固定
+        viewport: { width: 1920, height: 1080 },
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         locale: 'ja-JP',
         timezoneId: 'Asia/Tokyo'
@@ -177,12 +183,14 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
                 }
 
             } catch (err) {
+                // ★ 追加: エラーが起きた瞬間の「実際のURL」と「画面タイトル」を取得する
                 const currentUrl = page.url();
                 const pageTitle = await page.title().catch(() => '取得不可');
 
-                const msg = `[店舗: ${storeId}] の処理中にエラーが発生しました: ${err}\n(エラー発生時のURL: ${currentUrl} | タイトル: ${pageTitle})`;
+                const msg = `[店舗: ${storeId}] の処理中にエラーが発生しました: ${err}\n👉 【デバッグ】現在地URL: ${currentUrl}\n👉 【デバッグ】画面タイトル: ${pageTitle}`;
                 console.error(msg);
                 errors.push(msg);
+                // エラーが起きても continue で次の店舗の処理へ進む
             }
         }
     };
