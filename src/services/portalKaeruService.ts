@@ -14,6 +14,7 @@ import { runReserveKaeru } from "./runReserveKaeru";
 import { runReserveResale } from "./runReserveResale";
 import { runCatalogResale } from "./runCatalogResale";
 import { runCatalogKaeru } from "./runCatalogKaeru";
+import { runIeloveProperty } from "./runIeloveProperty";
 
 export const portalKaeruService = {
   process: async (options?: { targetTasks?: string[] }) => {
@@ -34,6 +35,7 @@ export const portalKaeruService = {
       'reserve_resale': runReserveResale,
       'catalog_resale': runCatalogResale,
       'catalog_kaeru': runCatalogKaeru,
+      'property': runIeloveProperty
     };
 
     const portal = [
@@ -53,6 +55,7 @@ export const portalKaeruService = {
       { name: 'reserve_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'catalog_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'catalog_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+      { name: 'property', id: process.env.IELOVE_MAIL ?? "", pass: process.env.IELOVE_PASS ?? "" },
     ];
 
     const results = [];

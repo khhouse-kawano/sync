@@ -29,20 +29,22 @@ export const runEstateInfo = async (estate_robo_id: string, estate_robo_pass: st
         // ==========================================
         // 2. 物件検索画面へ移動・条件指定
         // ==========================================
-        console.log('物件検索画面へ移動...');
+        console.log('物件検索画面へ直接移動...');
+
+        // ★ 修正: メニューのクリック操作をすべて削除し、直接検索画面のURLへジャンプ！
+        await page.goto('https://www.tochi-shinchaku.net/estaterobo/search/?p=1', { waitUntil: "domcontentloaded" });
         await page.waitForLoadState("networkidle");
-        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]');
 
-        await page.waitForSelector('xpath=/html/body/div[1]/aside/section/ul/li[3]/ul/li[1]/a', { state: 'visible' });
+        // (保険) 画面の描画ラグを少し待つ
+        await page.waitForTimeout(2000);
 
-        await page.click('xpath=/html/body/div[1]/aside/section/ul/li[3]/ul/li[1]/a');
+        // カレンダーをクリックして「直近30日」を指定
+        await page.click('#req_created');
 
-        await page.waitForURL('https://www.tochi-shinchaku.net/estaterobo/search/?p=1');
+        // カレンダーのポップアップが出るアニメーションを少し待つ
+        await page.waitForTimeout(1000);
 
-
-        await page.waitForLoadState("networkidle");
-        await page.click('#req_created'); // カレンダーをクリック
-        await page.click('xpath=/html/body/div[2]/div[1]/ul/li[1]'); // 直近30日をクリック
+        await page.click('xpath=/html/body/div[2]/div[1]/ul/li[1]');
 
         // ==========================================
         // 3. ダウンロードとデータ抽出・API送信
