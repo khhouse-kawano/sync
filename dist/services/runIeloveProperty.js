@@ -103,8 +103,24 @@ const postToPhpApi = async (data) => {
     }
 };
 const runIeloveProperty = async (ielove_id, ielove_pass) => {
-    const browser = await playwright_1.chromium.launch({ args: ["--no-sandbox"], headless: true });
-    const context = await browser.newContext();
+    // HerokuのLinux環境でクラッシュを防ぐための引数を追加
+    // ★ 修正: Heroku環境でのクラッシュ防止 ＆ Bot検知回避の引数を追加
+    const browser = await playwright_1.chromium.launch({
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-blink-features=AutomationControlled" // 自動操作ツールであることを隠す
+        ],
+        headless: true
+    });
+    // ★ 修正: 画面サイズをフルHDに固定し、User-Agent（ブラウザ情報）を一般的なPCに偽装
+    const context = await browser.newContext({
+        viewport: { width: 1920, height: 1080 },
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        locale: 'ja-JP',
+        timezoneId: 'Asia/Tokyo'
+    });
     const page = await context.newPage();
     const login = async () => {
         try {
@@ -132,9 +148,9 @@ const runIeloveProperty = async (ielove_id, ielove_pass) => {
                 await page.goto(targetUrl);
                 await page.waitForLoadState("networkidle");
                 await page.waitForTimeout(5000);
-                // 一覧をダウンロードボタンのクリック
+                // 一覧をダウンロードボタンのクリック（待機時間を60秒に延長）
                 const downloadBtn = page.locator('#listDownloadFooter');
-                await downloadBtn.waitFor({ state: 'visible' });
+                await downloadBtn.waitFor({ state: 'visible', timeout: 60000 });
                 await downloadBtn.click();
                 // CSV形式でダウンロードボタンのクリック
                 const csvBtn = page.locator('#bukkaku_csv_download');
@@ -185,7 +201,10 @@ const runIeloveProperty = async (ielove_id, ielove_pass) => {
                 }
             }
             catch (err) {
-                const msg = `[店舗: ${storeId}] の処理中にエラーが発生しました: ${err}`;
+                // ★ 追加: エラーが起きた瞬間の「実際のURL」と「画面タイトル」を取得する
+                const currentUrl = page.url();
+                const pageTitle = await page.title().catch(() => '取得不可');
+                const msg = `[店舗: ${storeId}] の処理中にエラーが発生しました: ${err}\n👉 【デバッグ】現在地URL: ${currentUrl}\n👉 【デバッグ】画面タイトル: ${pageTitle}`;
                 console.error(msg);
                 errors.push(msg);
                 // エラーが起きても continue で次の店舗の処理へ進む
