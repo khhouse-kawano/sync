@@ -125,7 +125,7 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
         try {
             console.log("データダウンロード処理スタート");
             await page.waitForLoadState("load");
-            await page.click('xpath=/html/body/div[2]/div/div/div/main/div/div[2]/div/div/div/div[2]/div[4]/div[3]/button');
+            await page.click('xpath=/html/body/div[2]/div/div/div/main/div/div/div/div/div/div[2]/div[4]/div[3]/button');
 
             // 左上メニュー > お客様一覧 をクリック
             await page.click("//html/body/div[2]/div/div/div/div[1]/nav/div[1]/div/div/div[1]/div");
