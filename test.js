@@ -47,11 +47,11 @@ const sample = [
     body: JSON.stringify({ estates: sample }),
   });
 
-  const res2 = await fetch("https://sync-pg-cloud-9f739ab131ed.herokuapp.com/api/estate_info", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ estates: sample }),
-  });
+  // const res2 = await fetch("https://sync-pg-cloud-9f739ab131ed.herokuapp.com/api/estate_info", {
+  //   method: "POST",
+  //   headers: { "Content-Type": "application/json" },
+  //   body: JSON.stringify({ estates: sample }),
+  // });
 
     const json = await res.json();
     console.log(json);

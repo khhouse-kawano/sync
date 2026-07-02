@@ -126,36 +126,45 @@ export const runSuumoKaeru = async (suumo_kaeru_id: string, suumo_kaeru_pass: st
 
     const customerSearch = async () => {
         try {
-            // await page.waitForSelector(
-            //     'xpath=/html/body/div/div/div/header/nav/ul/li[3]/a',
-            //     { state: 'visible', timeout: 10000 }
-            // );
-            // await page.click('xpath=/html/body/div/div/div/header/nav/ul/li[3]/a');
             await page.goto('https://kr-hometour.suumo.jp/customers');
             await page.waitForLoadState("networkidle");
 
-            // ★ 3秒待つ（描画が追いつくまで）
-            // await page.waitForTimeout(5000);
+            // ★ 対策1: SUUMOのようなSPAは、ネットワーク通信が終わってから
+            // HTML(ボタン)が描画されるまでにタイムラグがあるため、ここで必ず数秒待ちます。
+            await page.waitForTimeout(5000);
 
-            // await page.waitForSelector(
-            //     'xpath=/html/body/div/div/div/div/main/div[3]/div[1]/div[1]/div[1]/span/div',
-            //     { state: 'visible', timeout: 10000 }
-            // );
-            await page.getByText('検索結果をダウンロード').click();
-            // await page.click('xpath=/html/body/div/div/div/div/main/div[2]/div/button/div');
+            // ★ 対策2: ボタンが「確実に見える状態」になるまで待ってからクリックする
+            // exact: false を入れることで、前後のスペース等による不一致を防ぎます
+            const downloadBtn = page.getByText('検索結果をダウンロード', { exact: false }).first();
+            await downloadBtn.waitFor({ state: 'visible', timeout: 30000 });
+            await downloadBtn.click();
+
+            console.log("「検索結果をダウンロード」をクリックしました。");
+
         } catch (err) {
-            const msg = `お客様ページへの遷移に失敗${err}`;
+            const msg = `お客様ページへの遷移に失敗: ${err}`;
             console.log(msg);
             errors.push(msg);
+            throw err; // ★ 対策3: ここで失敗したら、次の customerSave を実行させないために throw する
         }
     };
 
     const customerSave = async () => {
         try {
+            await page.waitForTimeout(2000);
+
+            // ★ 対策5: XPathは画面構造が1ミリでも変わると壊れるため、要素の出現をしっかり待機する
+            const confirmBtn = page.locator('xpath=/html/body/div[2]/div[2]/div[2]/div/div/div[2]/button[2]');
+            await confirmBtn.waitFor({ state: 'visible', timeout: 30000 });
+
+            console.log("ダウンロード確認ボタンをクリックします...");
+
             const [download] = await Promise.all([
                 page.waitForEvent('download', { timeout: 120000 }),
-                page.click('xpath=/html/body/div[2]/div[2]/div[2]/div/div/div[2]/button[2]')
+                confirmBtn.click()
             ]);
+
+            console.log("ダウンロードが正常に開始されました。");
 
             const savePath = '/tmp/customer.csv';
             const summaryPath = '/tmp/import_result_summary.json';
