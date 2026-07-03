@@ -113,7 +113,7 @@ export const RunGeoCode = async (): Promise<void> => {
             // === 2. 顧客データの処理 ===
             const customerResponse = await axios.post("https://khg-marketing.info/dashboard/api/gateway/", { request: "customer_address" }, { headers });
             const customerPropertyList = customerResponse.data.address;
-            const customerAddressList = customerPropertyList.filter((item: any) => item.full_address && item.lat_lng !== '取得不可');
+            const customerAddressList = customerPropertyList.filter((item: any) => item.full_address && !item.lat_lng);
 
             if (customerAddressList.length > 0) {
                 for (const item of customerAddressList) {
