@@ -123,10 +123,17 @@ export const runCatalogKaeru = async (id: string, pass: string) => {
         tls: true,
     });
 
-    imapClient.on('error', (err) => {
-        console.error('IMAPエラーが発生しました:', err);
-        errors.push(`IMAP接続エラー: ${err}`);
+// =========================================================
+    // ★ ここを追加！: IMAPの通信切断エラー（ECONNRESET等）を受け止める
+    // =========================================================
+    imapClient.on("error", (err: any) => {
+        console.error("IMAP通信で予期せぬエラー・切断が発生しました:", err.message);
+        errors.push(`IMAP通信エラー: ${err.message}`);
+        // エラーをここでキャッチするため、Heroku全体が落ちるのを防ぎます。
+        // ※ 念のため、壊れた接続リソースを安全に破棄します。
+        imapClient.destroy(); 
     });
+    // =========================================================
 
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);

@@ -114,9 +114,17 @@ const runIei = async (id, pass) => {
         authTimeout: 30000,
         tlsOptions: { rejectUnauthorized: false }
     });
+    // =========================================================
+    // ★ ここを追加！: IMAPの通信切断エラー（ECONNRESET等）を受け止める
+    // =========================================================
     imapClient.on("error", (err) => {
-        console.error("IMAP接続エラーが発生しました:", err.message);
+        console.error("IMAP通信で予期せぬエラー・切断が発生しました:", err.message);
+        errors.push(`IMAP通信エラー: ${err.message}`);
+        // エラーをここでキャッチするため、Heroku全体が落ちるのを防ぎます。
+        // ※ 念のため、壊れた接続リソースを安全に破棄します。
+        imapClient.destroy();
     });
+    // =========================================================
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     try {
