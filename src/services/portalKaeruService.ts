@@ -37,7 +37,7 @@ export const portalKaeruService = {
       'catalog_resale': runCatalogResale,
       'catalog_kaeru': runCatalogKaeru,
       'property': runIeloveProperty,
-      'preKaeru': runPreKaeru,
+      'pre_kaeru': runPreKaeru,
     };
 
     const portal = [
