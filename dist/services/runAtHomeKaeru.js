@@ -75,15 +75,15 @@ const extractAthomeData = (text) => {
         tourDate1: extract("第一希望日時"),
     };
 };
-const postToPhpApi = async (data) => {
+const postToPhpApi = async (data, requestType) => {
     const API_URL = "https://khg-marketing.info/dashboard/api/gateway/";
     const payload = {
         ...data,
-        request: 'athome_kaeru_update'
+        request: requestType // ★ ここを動的に設定
     };
     try {
         const response = await axios_1.default.post(API_URL, payload, { headers: { "Content-Type": "application/json" } });
-        console.log("DB登録成功:", response.data);
+        console.log(`DB登録成功 (${requestType}):`, response.data);
     }
     catch (error) {
         if (axios_1.default.isAxiosError(error)) {
@@ -125,10 +125,11 @@ const runAthomeKaeru = async (id, pass) => {
             imapClient.openBox("INBOX", true, (err, _) => {
                 if (err)
                     throw err;
+                // ★ 検索条件: 共通する「国分ハウジング不動産」で幅広く拾う
                 const searchCriteria = [
                     ["FROM", "mailtofax@athome.jp"],
                     ["SUBJECT", "アットホーム（スマートフォンサイト・アプリ）からのお知らせ"],
-                    ["BODY", "国分ハウジング不動産 御中"],
+                    ["BODY", "国分ハウジング不動産"],
                     ["SINCE", yesterday]
                 ];
                 imapClient.search(searchCriteria, (err, results) => {
@@ -146,6 +147,18 @@ const runAthomeKaeru = async (id, pass) => {
                                 if (err)
                                     return;
                                 const emailText = parsed.text || "";
+                                let requestType = "";
+                                if (emailText.includes("国分ハウジング不動産 中古住宅専門店 御中")) {
+                                    requestType = "athome_resale_update";
+                                }
+                                else if (emailText.includes("国分ハウジング不動産 御中")) {
+                                    requestType = "athome_kaeru_update";
+                                }
+                                else {
+                                    console.log(`[メール #${seqno}] 該当する宛先がないためスキップします。`);
+                                    return;
+                                }
+                                // =========================================================
                                 const extractedData = extractAthomeData(emailText);
                                 const d = parsed.date || new Date();
                                 const year = d.getFullYear();
@@ -159,19 +172,16 @@ const runAthomeKaeru = async (id, pass) => {
                                     ...extractedData,
                                     registered: registered
                                 };
-                                // ★ 追加: remarks（メモ）の生成処理
                                 const remarksList = [];
                                 for (const [key, val] of Object.entries(finalData)) {
-                                    // 空の値は飛ばしたい場合はここのコメントアウトを外してください
-                                    // if (!val) continue; 
                                     const jaKey = athomeColumnNameMap[key] || key;
                                     remarksList.push(`${jaKey}：${val}`);
                                 }
-                                // 最後に remarks として改行区切りで追加
                                 finalData.remarks = remarksList.join('\n');
-                                console.log(`[メール #${seqno}] 抽出データ:`, finalData);
+                                console.log(`[メール #${seqno}] 抽出データ (${requestType}):`, finalData);
                                 if (finalData.name || finalData.email) {
-                                    await postToPhpApi(finalData);
+                                    // ★ 判定した requestType を渡してPOSTする
+                                    await postToPhpApi(finalData, requestType);
                                 }
                                 else {
                                     console.log(`[メール #${seqno}] 必要なデータが抽出できなかったためスキップします。`);
