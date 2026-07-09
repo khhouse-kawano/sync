@@ -211,6 +211,6 @@ export const runSuumoResale = async (id: string, pass: string) => {
     await processAndPostData();
 
     await browser.close();
-    await sendErrorMail(errors, 'runSuumoKaeru.ts');
+    await sendErrorMail(errors, 'runSuumoResale.ts');
 
 };

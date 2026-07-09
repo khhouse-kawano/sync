@@ -69,6 +69,8 @@ export const RunGeoCode = async (): Promise<void> => {
             const propertyList = propertyResponse.data.property;
             const addressList = propertyList.filter((item: any) => !item.latitude || !item.longitude);
 
+            console.log(addressList.length);
+
             if (addressList.length > 0) {
                 for (const item of addressList) {
                     try {

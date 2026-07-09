@@ -57,6 +57,7 @@ const RunGeoCode = async () => {
             const propertyResponse = await axios_1.default.post("https://khg-marketing.info/dashboard/api/gateway/", { request: "property" }, { headers });
             const propertyList = propertyResponse.data.property;
             const addressList = propertyList.filter((item) => !item.latitude || !item.longitude);
+            console.log(addressList.length);
             if (addressList.length > 0) {
                 for (const item of addressList) {
                     try {

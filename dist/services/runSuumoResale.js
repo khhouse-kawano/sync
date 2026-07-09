@@ -199,6 +199,6 @@ const runSuumoResale = async (id, pass) => {
     await customerSearch();
     await processAndPostData();
     await browser.close();
-    await (0, sendErrorMail_1.sendErrorMail)(errors, 'runSuumoKaeru.ts');
+    await (0, sendErrorMail_1.sendErrorMail)(errors, 'runSuumoResale.ts');
 };
 exports.runSuumoResale = runSuumoResale;
