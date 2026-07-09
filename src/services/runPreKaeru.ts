@@ -85,8 +85,8 @@ export const runPreKaeru = async (id: string, pass: string) => {
                 if (err) throw err;
 
                 const searchCriteria = [
-                    ["FROM", "ask@kaeruhome.jp"], // 元のままとしています
-                    ["BODY", "かえるホームの先取物件問い合わせ"], // メール本文に含まれる文言
+                    ["FROM", "ask@kaeruhome.jp"],
+                    ["BODY", "【かえるホーム】先取物件問い合わせ"],
                     ["SINCE", yesterday]
                 ];
 
