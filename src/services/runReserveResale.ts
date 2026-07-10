@@ -114,6 +114,7 @@ const postToPhpApi = async (data: Record<string, string>) => {
 };
 
 export const runReserveResale = async (id: string, pass: string) => {
+    const processedMessageIds = new Set<string>();
     if (!process.env.GMAIL || !process.env.GMAIL_PASS) {
         throw new Error("環境変数 GMAIL または GMAIL_PASS が設定されていません。");
     }
@@ -167,6 +168,15 @@ export const runReserveResale = async (id: string, pass: string) => {
                         msg.on("body", (stream) => {
                             simpleParser(stream, async (err, parsed) => {
                                 if (err) return;
+
+                                const messageId = parsed.messageId || "";
+                                if (messageId && processedMessageIds.has(messageId)) {
+                                    console.log(`[メール #${seqno}] 重複するMessage-IDのためスキップします: ${messageId}`);
+                                    return;
+                                }
+                                if (messageId) {
+                                    processedMessageIds.add(messageId);
+                                }
 
                                 const emailText = parsed.text || "";
                                 const extractedData = extractResaleData(emailText);

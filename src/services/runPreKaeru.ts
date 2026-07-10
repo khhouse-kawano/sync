@@ -42,7 +42,7 @@ const postToPhpApi = async (data: Record<string, string>) => {
     const API_URL = "https://khg-marketing.info/dashboard/api/gateway/";
     const payload = {
         ...data,
-        request: 'pre_kaeru_update' 
+        request: 'pre_kaeru_update'
     };
     try {
         const response = await axios.post(API_URL, payload, { headers: { "Content-Type": "application/json" } });
@@ -58,6 +58,7 @@ const postToPhpApi = async (data: Record<string, string>) => {
 };
 
 export const runPreKaeru = async (id: string, pass: string) => {
+    const processedMessageIds = new Set<string>();
     if (!process.env.GMAIL || !process.env.GMAIL_PASS) {
         throw new Error("環境変数 GMAIL または GMAIL_PASS が設定されていません。");
     }
@@ -105,6 +106,15 @@ export const runPreKaeru = async (id: string, pass: string) => {
                         msg.on("body", (stream) => {
                             simpleParser(stream, async (err, parsed) => {
                                 if (err) return;
+
+                                const messageId = parsed.messageId || "";
+                                if (messageId && processedMessageIds.has(messageId)) {
+                                    console.log(`[メール #${seqno}] 重複するMessage-IDのためスキップします: ${messageId}`);
+                                    return;
+                                }
+                                if (messageId) {
+                                    processedMessageIds.add(messageId);
+                                }
 
                                 const emailText = parsed.text || "";
                                 const extractedData = extractPreKaeruData(emailText);

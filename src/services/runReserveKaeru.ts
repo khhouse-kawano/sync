@@ -121,6 +121,7 @@ const postToPhpApi = async (data: Record<string, string>) => {
 };
 
 export const runReserveKaeru = async (id: string, pass: string) => {
+    const processedMessageIds = new Set<string>();
     if (!process.env.GMAIL || !process.env.GMAIL_PASS) {
         throw new Error("環境変数 GMAIL または GMAIL_PASS が設定されていません。");
     }
@@ -133,7 +134,7 @@ export const runReserveKaeru = async (id: string, pass: string) => {
         tls: true,
     });
 
-// =========================================================
+    // =========================================================
     // ★ ここを追加！: IMAPの通信切断エラー（ECONNRESET等）を受け止める
     // =========================================================
     imapClient.on("error", (err: any) => {
@@ -141,7 +142,7 @@ export const runReserveKaeru = async (id: string, pass: string) => {
         errors.push(`IMAP通信エラー: ${err.message}`);
         // エラーをここでキャッチするため、Heroku全体が落ちるのを防ぎます。
         // ※ 念のため、壊れた接続リソースを安全に破棄します。
-        imapClient.destroy(); 
+        imapClient.destroy();
     });
     // =========================================================
 
@@ -175,6 +176,15 @@ export const runReserveKaeru = async (id: string, pass: string) => {
                         msg.on("body", (stream) => {
                             simpleParser(stream, async (err, parsed) => {
                                 if (err) return;
+
+                                const messageId = parsed.messageId || "";
+                                if (messageId && processedMessageIds.has(messageId)) {
+                                    console.log(`[メール #${seqno}] 重複するMessage-IDのためスキップします: ${messageId}`);
+                                    return;
+                                }
+                                if (messageId) {
+                                    processedMessageIds.add(messageId);
+                                }
 
                                 const emailText = parsed.text || "";
                                 const extractedData = extractReserveData(emailText);
