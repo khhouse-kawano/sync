@@ -131,6 +131,7 @@ const postToPhpApi = async (data) => {
     }
 };
 const runIeuru = async (id, pass) => {
+    const processedMessageIds = new Set();
     if (!process.env.GMAIL || !process.env.GMAIL_PASS) {
         throw new Error("環境変数 GMAIL または GMAIL_PASS が設定されていません。");
     }
@@ -179,6 +180,14 @@ const runIeuru = async (id, pass) => {
                             (0, mailparser_1.simpleParser)(stream, async (err, parsed) => {
                                 if (err)
                                     return;
+                                const messageId = parsed.messageId || "";
+                                if (messageId && processedMessageIds.has(messageId)) {
+                                    console.log(`[メール #${seqno}] 重複するMessage-IDのためスキップします: ${messageId}`);
+                                    return;
+                                }
+                                if (messageId) {
+                                    processedMessageIds.add(messageId);
+                                }
                                 const emailText = parsed.text || "";
                                 const extractedData = extractCustomerData(emailText);
                                 const d = parsed.date || new Date();

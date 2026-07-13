@@ -7,6 +7,7 @@ exports.runCatalogResale = void 0;
 const node_imap_1 = __importDefault(require("node-imap"));
 const mailparser_1 = require("mailparser");
 const axios_1 = __importDefault(require("axios"));
+const sendErrorMail_1 = require("./sendErrorMail");
 const errors = [];
 // 英語キーを日本語名に変換する辞書 (remarks生成用)
 const catalogResaleColumnNameMap = {
@@ -103,6 +104,7 @@ const postToPhpApi = async (data) => {
     }
 };
 const runCatalogResale = async (id, pass) => {
+    const processedMessageIds = new Set();
     if (!process.env.GMAIL || !process.env.GMAIL_PASS) {
         throw new Error("環境変数 GMAIL または GMAIL_PASS が設定されていません。");
     }
@@ -151,6 +153,14 @@ const runCatalogResale = async (id, pass) => {
                             (0, mailparser_1.simpleParser)(stream, async (err, parsed) => {
                                 if (err)
                                     return;
+                                const messageId = parsed.messageId || "";
+                                if (messageId && processedMessageIds.has(messageId)) {
+                                    console.log(`[メール #${seqno}] 重複するMessage-IDのためスキップします: ${messageId}`);
+                                    return;
+                                }
+                                if (messageId) {
+                                    processedMessageIds.add(messageId);
+                                }
                                 const emailText = parsed.text || "";
                                 const extractedData = extractCatalogData(emailText);
                                 // 実際のメール受信日時を取得
@@ -197,5 +207,6 @@ const runCatalogResale = async (id, pass) => {
         errors.push(JSON.stringify(error));
     }
     imapClient.connect();
+    (0, sendErrorMail_1.sendErrorMail)(errors, 'runCatalogResale.ts');
 };
 exports.runCatalogResale = runCatalogResale;

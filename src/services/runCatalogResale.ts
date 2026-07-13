@@ -221,4 +221,5 @@ export const runCatalogResale = async (id: string, pass: string) => {
     }
 
     imapClient.connect();
+    sendErrorMail(errors, 'runCatalogResale.ts');
 };

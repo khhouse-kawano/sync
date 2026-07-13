@@ -228,4 +228,5 @@ export const runCatalogKaeru = async (id: string, pass: string) => {
     }
 
     imapClient.connect();
+    sendErrorMail(errors, 'runCatalogKaeru.ts');
 };

@@ -19,6 +19,7 @@ const runCatalogResale_1 = require("./runCatalogResale");
 const runCatalogKaeru_1 = require("./runCatalogKaeru");
 const runIeloveProperty_1 = require("./runIeloveProperty");
 const runPreKaeru_1 = require("./runPreKaeru");
+const runPGMail_1 = require("./runPGMail");
 exports.portalKaeruService = {
     process: async (options) => {
         const actionMap = {
@@ -40,6 +41,7 @@ exports.portalKaeruService = {
             'catalog_kaeru': runCatalogKaeru_1.runCatalogKaeru,
             'property': runIeloveProperty_1.runIeloveProperty,
             'pre_kaeru': runPreKaeru_1.runPreKaeru,
+            'pg_mail': runPGMail_1.runPGMail
         };
         const portal = [
             { name: 'suumo_kaeru', id: process.env.SUUMO_KAERU_ID ?? "", pass: process.env.SUUMO_KAERU_PASS ?? "" },
@@ -58,8 +60,9 @@ exports.portalKaeruService = {
             { name: 'catalog_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'catalog_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'pre_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
-            // { name: 'property', id: process.env.IELOVE_MAIL ?? "", pass: process.env.IELOVE_PASS ?? "" },
-            // { name: 'geoCode' },
+            { name: 'property', id: process.env.IELOVE_MAIL ?? "", pass: process.env.IELOVE_PASS ?? "" },
+            { name: 'pg_mail', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
+            { name: 'geoCode' },
         ];
         const results = [];
         const targets = options?.targetTasks && options.targetTasks.length > 0

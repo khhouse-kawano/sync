@@ -41,12 +41,12 @@ const sample = [
 ];
 
 (async () => {
-  const res = await fetch("https://sync-pg-cloud-9f739ab131ed.herokuapp.com/api/portal_kaeru", {
+  const res = await fetch("http://localhost:3000/api/portal_kaeru", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ estates: sample }),
-  },{
-    'targetTasks': ['pre_kaeru']
+    body: JSON.stringify({
+      targetTasks: ["pg_mail"],
+    }),
   });
 
   // const res2 = await fetch("https://sync-pg-cloud-9f739ab131ed.herokuapp.com/api/estate_info", {
@@ -55,6 +55,6 @@ const sample = [
   //   body: JSON.stringify({ estates: sample }),
   // });
 
-    const json = await res.json();
-    console.log(json);
+  const json = await res.json();
+  console.log(json);
 })();

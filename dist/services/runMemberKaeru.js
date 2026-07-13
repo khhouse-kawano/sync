@@ -81,6 +81,7 @@ const postToPhpApi = async (data) => {
     }
 };
 const runMemberKaeru = async (id, pass) => {
+    const processedMessageIds = new Set();
     if (!process.env.GMAIL || !process.env.GMAIL_PASS) {
         throw new Error("環境変数 GMAIL または GMAIL_PASS が設定されていません。");
     }
@@ -91,9 +92,6 @@ const runMemberKaeru = async (id, pass) => {
         port: 993,
         tls: true,
     });
-    // =========================================================
-    // ★ ここを追加！: IMAPの通信切断エラー（ECONNRESET等）を受け止める
-    // =========================================================
     imapClient.on("error", (err) => {
         console.error("IMAP通信で予期せぬエラー・切断が発生しました:", err.message);
         errors.push(`IMAP通信エラー: ${err.message}`);
@@ -129,6 +127,14 @@ const runMemberKaeru = async (id, pass) => {
                             (0, mailparser_1.simpleParser)(stream, async (err, parsed) => {
                                 if (err)
                                     return;
+                                const messageId = parsed.messageId || "";
+                                if (messageId && processedMessageIds.has(messageId)) {
+                                    console.log(`[メール #${seqno}] 重複するMessage-IDのためスキップします: ${messageId}`);
+                                    return;
+                                }
+                                if (messageId) {
+                                    processedMessageIds.add(messageId);
+                                }
                                 const emailText = parsed.text || "";
                                 const extractedData = extractMemberData(emailText);
                                 const d = parsed.date || new Date();
