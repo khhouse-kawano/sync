@@ -45,7 +45,7 @@ const sample = [
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      targetTasks: ["pg_mail"],
+      targetTasks: ["reserve_resale"],
     }),
   });
 

@@ -26,8 +26,10 @@ const keywordToKeyMap: Record<string, string> = {
     "【ご希望の物件番号】": "event",
     "【参加希望日】": "date",
     "【ご来店希望日】": "date",
+    "【ご来場希望日】": "date",   // ← 新規追加
     "【参加希望時間】": "time",
     "【ご来店希望時間】": "time",
+    "【ご来場希望時間】": "time", // ← 新規追加
     "【お名前】": "name",
     "【フリガナ】": "nameKana",
     "【メールアドレス】": "email",
@@ -149,7 +151,6 @@ export const runReserveResale = async (id: string, pass: string) => {
                 // ★ 検索条件（FROMやSUBJECTは実態に合わせて調整してください）
                 const searchCriteria = [
                     ["FROM", "ask@chuko-senmon.jp"],
-                    ["OR", ["SUBJECT", "イベント"], ["SUBJECT", "来店予約"]],
                     ["SINCE", yesterday]
                 ];
 
@@ -168,6 +169,12 @@ export const runReserveResale = async (id: string, pass: string) => {
                         msg.on("body", (stream) => {
                             simpleParser(stream, async (err, parsed) => {
                                 if (err) return;
+
+                                const subject = parsed.subject || "";
+
+                                if (!subject.includes("イベント") && !subject.includes("来店予約") && !subject.includes("来場予約発生")) {
+                                    return;
+                                }
 
                                 const messageId = parsed.messageId || "";
                                 if (messageId && processedMessageIds.has(messageId)) {
