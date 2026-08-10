@@ -129,8 +129,10 @@ const runAthomeKaeru = async (id, pass) => {
                 // ★ 検索条件: 共通する「国分ハウジング不動産」で幅広く拾う
                 const searchCriteria = [
                     ["FROM", "mailtofax@athome.jp"],
-                    ["SUBJECT", "アットホーム（スマートフォンサイト・アプリ）からのお知らせ"],
-                    ["BODY", "国分ハウジング不動産"],
+                    ["OR",
+                        ["SUBJECT", "アットホーム（スマートフォンサイト・アプリ）からのお知らせ"],
+                        ["SUBJECT", "アットホーム（PC）からのお知らせ"]
+                    ], ["BODY", "国分ハウジング不動産"],
                     ["SINCE", yesterday]
                 ];
                 imapClient.search(searchCriteria, (err, results) => {

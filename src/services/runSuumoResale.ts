@@ -95,13 +95,13 @@ export const runSuumoResale = async (id: string, pass: string) => {
 
     const customerSearch = async () => {
         try {
-            await page.click('xpath=/html/body/div/div[1]/div[1]/div[9]/a');
+            await page.click('xpath=/html/body/div/div[1]/div[1]/div[9]/a'); //反響ダウンロード
             await waitForMinute();
-            await page.click('xpath=/html/body/div/div[2]/div/form/div[5]/div[2]/input');
+            await page.click('xpath=/html/body/div/div[2]/div/form/div[5]/div[2]/input'); //ダウンロードボタンクリック
             await waitForMinute();
-            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[1]/div[2]/div[2]/input[1]');
-            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[1]/div[2]/div[3]/input[2]');
-            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[2]/input[1]');
+            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[1]/div[2]/div[2]/input[1]'); //CSVにチェック
+            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[1]/div[2]/div[3]/input[2]'); //見出しなしにチェック
+            await page.click('xpath=/html/body/div/div[2]/div/form/div[3]/div[2]/input[1]'); //実行するボタン
             await waitForMinute();
         } catch (err) {
             const msg = `お客様ページへの遷移に失敗${err}`;

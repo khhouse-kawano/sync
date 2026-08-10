@@ -20,6 +20,9 @@ const runCatalogKaeru_1 = require("./runCatalogKaeru");
 const runIeloveProperty_1 = require("./runIeloveProperty");
 const runPreKaeru_1 = require("./runPreKaeru");
 const runPGMail_1 = require("./runPGMail");
+const runSuumoResaleSummary_1 = require("./runSuumoResaleSummary");
+const runAtHomeSummary_1 = require("./runAtHomeSummary");
+const runHomesSummary_1 = require("./runHomesSummary");
 exports.portalKaeruService = {
     process: async (options) => {
         const actionMap = {
@@ -41,17 +44,27 @@ exports.portalKaeruService = {
             'catalog_kaeru': runCatalogKaeru_1.runCatalogKaeru,
             'property': runIeloveProperty_1.runIeloveProperty,
             'pre_kaeru': runPreKaeru_1.runPreKaeru,
-            'pg_mail': runPGMail_1.runPGMail
+            'pg_mail': runPGMail_1.runPGMail,
+            'suumo_summary': runSuumoResaleSummary_1.runSuumoResaleSummary,
+            'suumo_summary_2': runSuumoResaleSummary_1.runSuumoResaleSummary,
+            'athome_summary': runAtHomeSummary_1.runAtHomeSummary,
+            'homes_summary': runHomesSummary_1.runHomesSummary,
+            'homes_summary_2': runHomesSummary_1.runHomesSummary
         };
         const portal = [
             { name: 'suumo_kaeru', id: process.env.SUUMO_KAERU_ID ?? "", pass: process.env.SUUMO_KAERU_PASS ?? "" },
             { name: 'suumo_resale', id: process.env.SUUMO_RESALE_ID ?? "", pass: process.env.SUUMO_RESALE_PASS ?? "" },
+            { name: 'suumo_summary', id: process.env.SUUMO_KAERU_SUMMARY_ID ?? "", pass: process.env.SUUMO_KAERU_SUMMARY_PASS ?? "" },
+            { name: 'suumo_summary_2', id: process.env.SUUMO_RESALE_SUMMARY_ID ?? "", pass: process.env.SUUMO_RESALE_SUMMARY_PASS ?? "" },
             { name: 'homes_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'homes_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+            { name: 'homes_summary', id: process.env.HOMES_SUMMARY_ID ?? "", pass: process.env.HOMES_SUMMARY_PASS ?? "", brand: 'spec' },
+            { name: 'homes_summary_2', id: process.env.HOMES_SUMMARY_ID_2 ?? "", pass: process.env.HOMES_SUMMARY_PASS_2 ?? "", brand: 'used' },
             { name: 'member_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'member_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'sumai_step_resale', id: process.env.SUMAI_STEP_ID ?? "", pass: process.env.SUMAI_STEP_PASS ?? "" },
             { name: 'iei_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+            { name: 'athome_summary', id: process.env.ATHOME_SUMMARY_ID ?? "", pass: process.env.ATHOME_SUMMARY_PASS ?? "" },
             { name: 'athome_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'ieuru_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'allGrit_kaeru', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
@@ -87,7 +100,7 @@ exports.portalKaeruService = {
                 continue;
             }
             try {
-                await executeTask(brand.id ?? '', brand.pass ?? '');
+                await executeTask(brand.id ?? '', brand.pass ?? '', brand.brand);
                 results.push({
                     name: brand.name,
                     ok: true,
