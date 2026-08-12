@@ -45,7 +45,7 @@ const sample = [
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      targetTasks: [ "athome_kaeru", 'suumo_summary', 'suumo_summary_2', 'homes_summary', 'homes_summary_2', 'athome_summary'],
+      targetTasks: [  'kaeeru'],
     }),
   });
 

@@ -120,7 +120,7 @@ const runAthomeKaeru = async (id, pass) => {
     });
     // =========================================================
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setDate(yesterday.getDate() - 10);
     try {
         imapClient.once("ready", () => {
             imapClient.openBox("INBOX", true, (err, _) => {
@@ -159,10 +159,10 @@ const runAthomeKaeru = async (id, pass) => {
                                 }
                                 const emailText = parsed.text || "";
                                 let requestType = "";
-                                if (emailText.includes("国分ハウジング不動産 中古住宅専門店 御中")) {
+                                if (emailText.includes("中古住宅専門店")) {
                                     requestType = "athome_resale_update";
                                 }
-                                else if (emailText.includes("国分ハウジング不動産 御中")) {
+                                else if (emailText.includes("国分ハウジング不動産")) {
                                     requestType = "athome_kaeru_update";
                                 }
                                 else {

@@ -20,6 +20,7 @@ import { runPGMail } from "./runPGMail";
 import { runSuumoResaleSummary } from "./runSuumoResaleSummary";
 import { runAtHomeSummary } from "./runAtHomeSummary";
 import { runHomesSummary } from "./runHomesSummary";
+import { runKaeeru } from "./runKaeeru";
 
 export const portalKaeruService = {
   process: async (options?: { targetTasks?: string[] }) => {
@@ -32,7 +33,7 @@ export const portalKaeruService = {
       'member_resale': runMemberResale,
       'sumai_step_resale': runSumaiStep,
       'iei_resale': runIei,
-      'athome_kaeru': runAthomeKaeru,
+      'athome': runAthomeKaeru,
       'geoCode': RunGeoCode,
       'ieuru_resale': runIeuru,
       'allGrit_kaeru': runAllGritKaeru,
@@ -46,8 +47,10 @@ export const portalKaeruService = {
       'suumo_summary': runSuumoResaleSummary,
       'suumo_summary_2': runSuumoResaleSummary,
       'athome_summary': runAtHomeSummary,
+      'athome_summary_2': runAtHomeSummary,
       'homes_summary': runHomesSummary,
-      'homes_summary_2': runHomesSummary
+      'homes_summary_2': runHomesSummary,
+      'kaeeru': runKaeeru
     };
 
     const portal = [
@@ -63,8 +66,9 @@ export const portalKaeruService = {
       { name: 'member_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'sumai_step_resale', id: process.env.SUMAI_STEP_ID ?? "", pass: process.env.SUMAI_STEP_PASS ?? "" },
       { name: 'iei_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
-      { name: 'athome_summary', id: process.env.ATHOME_SUMMARY_ID ?? "", pass: process.env.ATHOME_SUMMARY_PASS ?? "" },
-      { name: 'athome_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+      { name: 'athome_summary', id: process.env.ATHOME_SUMMARY_ID_KAERU ?? "", pass: process.env.ATHOME_SUMMARY_PASS_KAERU ?? "" },
+      { name: 'athome_summary_2', id: process.env.ATHOME_SUMMARY_ID_RESALE ?? "", pass: process.env.ATHOME_SUMMARY_PASS_RESALE ?? "" },
+      { name: 'athome', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'ieuru_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'allGrit_kaeru', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
       { name: 'reserve_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
@@ -74,6 +78,7 @@ export const portalKaeruService = {
       { name: 'pre_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'property', id: process.env.IELOVE_MAIL ?? "", pass: process.env.IELOVE_PASS ?? "" },
       { name: 'pg_mail', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
+      { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
       { name: 'geoCode' },
     ];
 
