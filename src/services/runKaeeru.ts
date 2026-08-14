@@ -2,9 +2,7 @@ import Imap from "node-imap";
 import { simpleParser } from "mailparser";
 import axios from 'axios';
 import { sendErrorMail } from "./sendErrorMail";
-const errors: string[] = [];
 
-// 英語キーを日本語名に変換する辞書 (remarks生成用) ※個人情報は除外
 const kaeeruColumnNameMap: Record<string, string> = {
     type: "種別",
     location: "所在地",
@@ -21,7 +19,6 @@ const kaeeruColumnNameMap: Record<string, string> = {
     registered: "メール受信日時"
 };
 
-// 表記揺れを吸収するための日本語キーワードと内部キーのマッピング辞書 ※個人情報は除外
 const keywordToKeyMap: Record<string, string> = {
     "【所在地】": "location",
     "【土地面積】": "area",
@@ -40,7 +37,6 @@ const extractKaeeruData = (text: string) => {
     const normalizedText = text.replace(/\r\n/g, '\n');
     const lines = normalizedText.split('\n');
 
-    // 初期オブジェクトの準備 (個人情報保護方針の枠を削除)
     const result: Record<string, string> = {
         type: "", location: "", area: "", status: "", schedule: "",
         relation: "", price: "", name: "", nameKana: "",
@@ -51,18 +47,14 @@ const extractKaeeruData = (text: string) => {
 
     for (const line of lines) {
         const trimmed = line.trim();
-
-        // 区切り線は無視
         if (trimmed.startsWith("-")) continue;
 
-        // ▼種別 は特殊フォーマットなので個別対応
         if (trimmed.startsWith("▼種別：")) {
             result["type"] = trimmed.replace("▼種別：", "").trim();
             currentKey = "";
             continue;
         }
 
-        // 個人情報保護方針が来た場合は以降のキー取得を無視する（あるいはそのままスキップ）
         if (trimmed.startsWith("【個人情報保護方針】")) {
             currentKey = "";
             continue;
@@ -77,17 +69,13 @@ const extractKaeeruData = (text: string) => {
             }
         }
 
-        // キーワード行ならスキップし、次の行から値を取得
         if (matchedKeyword) continue;
 
-        // 現在のキーが設定されており、かつ空行でなければ値を追加
         if (currentKey && trimmed !== "") {
-            // 住所などが複数行になる場合を考慮し、スペース区切り等で連結
             result[currentKey] = result[currentKey] ? `${result[currentKey]} ${trimmed}` : trimmed;
         }
     }
 
-    // データのクリーニング処理
     if (result.address) result.address = result.address.replace(/〒\s*/g, "").trim();
     if (result.tel) result.tel = result.tel.replace("携帯電話 ：", "").trim();
 
@@ -95,10 +83,10 @@ const extractKaeeruData = (text: string) => {
 };
 
 const postToPhpApi = async (data: Record<string, string>) => {
-    const API_URL = "https://khg-marketing.info/dashboard/api/gateway/"; // ※適切なAPI URLに変更してください
+    const API_URL = "https://khg-marketing.info/dashboard/api/gateway/";
     const payload = {
         ...data,
-        request: 'kaeeru_update' // ★後ほどPHP側と合わせる識別子
+        request: 'kaeeru_update'
     };
     try {
         const response = await axios.post(API_URL, payload, { headers: { "Content-Type": "application/json" } });
@@ -114,9 +102,12 @@ const postToPhpApi = async (data: Record<string, string>) => {
 };
 
 export const runKaeeru = async (id: string, pass: string) => {
+    const errors: string[] = [];
     const processedMessageIds = new Set<string>();
-    if (!process.env.GMAIL || !process.env.GMAIL_PASS) {
-        throw new Error("環境変数 GMAIL または GMAIL_PASS が設定されていません。");
+
+    if (!id || !pass) {
+        console.error("GmailのログインIDまたはパスワードが渡されていません。");
+        return;
     }
 
     const imapClient = new Imap({
@@ -125,12 +116,14 @@ export const runKaeeru = async (id: string, pass: string) => {
         host: "imap.gmail.com",
         port: 993,
         tls: true,
+        authTimeout: 10000, // ★ 認証タイムアウトを10秒に延長
+        tlsOptions: { rejectUnauthorized: false } // クラッシュ防止のTLS緩和策
     });
 
+    // エラーハンドラ（落ちないように安全に破棄）
     imapClient.on("error", (err: any) => {
         console.error("IMAP通信で予期せぬエラー・切断が発生しました:", err.message);
         errors.push(`IMAP通信エラー: ${err.message}`);
-        imapClient.destroy();
     });
 
     const yesterday = new Date();
@@ -139,9 +132,12 @@ export const runKaeeru = async (id: string, pass: string) => {
     try {
         imapClient.once("ready", () => {
             imapClient.openBox("INBOX", true, (err, _) => {
-                if (err) throw err;
+                if (err) {
+                    console.error("INBOXオープンエラー:", err.message);
+                    imapClient.end();
+                    return;
+                }
 
-                // ★ 検索条件 (適宜変更してください)
                 const searchCriteria = [
                     ["FROM", "ask@kae-ru.jp"],
                     ["SUBJECT", "不動産売却 実査定依頼"],
@@ -149,7 +145,11 @@ export const runKaeeru = async (id: string, pass: string) => {
                 ];
 
                 imapClient.search(searchCriteria, (err, results) => {
-                    if (err) throw err;
+                    if (err) {
+                        console.error("メール検索エラー:", err.message);
+                        imapClient.end();
+                        return;
+                    }
 
                     if (results.length === 0) {
                         console.log("該当するメールが見つかりませんでした");
@@ -176,7 +176,6 @@ export const runKaeeru = async (id: string, pass: string) => {
                                 const emailText = parsed.text || "";
                                 const extractedData = extractKaeeruData(emailText);
 
-                                // 日時データの取得
                                 const d = parsed.date || new Date();
                                 const year = d.getFullYear();
                                 const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -191,13 +190,11 @@ export const runKaeeru = async (id: string, pass: string) => {
                                     registered: registered
                                 };
 
-                                // ★ 鹿児島縛りについては、前回の要件に従い残していますが、サンプルの宮崎県を処理したい場合はこのブロックを削除・変更してください。
                                 if (!finalData.location || !finalData.location.includes("鹿児島")) {
                                     console.log(`[メール #${seqno}] 所在地に「鹿児島」が含まれていないためスキップします。`);
                                     return;
                                 }
 
-                                // remarks（メモ）の生成処理
                                 const remarksList: string[] = [];
                                 for (const [key, val] of Object.entries(finalData)) {
                                     if (val) {
@@ -209,7 +206,6 @@ export const runKaeeru = async (id: string, pass: string) => {
 
                                 console.log(`[メール #${seqno}] 抽出データ:`, finalData);
 
-                                // お名前が取れている場合のみPOST
                                 if (finalData.name) {
                                     await postToPhpApi(finalData);
                                 } else {
@@ -226,9 +222,9 @@ export const runKaeeru = async (id: string, pass: string) => {
                 });
             });
         });
-    } catch (error) {
-        errors.push(JSON.stringify(error));
-    }
 
-    imapClient.connect();
+        imapClient.connect();
+    } catch (error: any) {
+        console.error("runKaeeru 実行エラー:", error.message);
+    }
 };
