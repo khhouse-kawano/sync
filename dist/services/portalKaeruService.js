@@ -79,7 +79,7 @@ exports.portalKaeruService = {
             { name: 'pre_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'property', id: process.env.IELOVE_MAIL ?? "", pass: process.env.IELOVE_PASS ?? "" },
             { name: 'pg_mail', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
-            { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
+            { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'geoCode' },
         ];
         const results = [];
