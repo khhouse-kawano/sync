@@ -20,6 +20,9 @@ const mailScrapingRoutes_1 = __importDefault(require("./routes/mailScrapingRoute
 const pdfToPptRoutes_1 = __importDefault(require("./routes/pdfToPptRoutes"));
 const estateInfoRoutes_1 = __importDefault(require("./routes/estateInfoRoutes"));
 const portalKaeruRoutes_1 = __importDefault(require("./routes/portalKaeruRoutes"));
+process.on('uncaughtException', (err) => {
+    console.error('💥 補足されなかったエラーが発生しましたが、サーバーは稼働を続けます:', err.message);
+});
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json({ limit: '50mb' }));
