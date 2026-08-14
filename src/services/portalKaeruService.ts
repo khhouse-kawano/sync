@@ -88,6 +88,8 @@ export const portalKaeruService = {
       ? portal.filter(p => options.targetTasks!.includes(p.name))
       : portal;
 
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
     for (const brand of targets) {
       if (brand.name !== 'geoCode' && (!brand.id || !brand.pass)) {
         results.push({
@@ -117,6 +119,9 @@ export const portalKaeruService = {
           ok: true,
           message: `${brand.name} の更新が完了しました`
         });
+
+        console.log(`[待機] ${brand.name} の実行後、5秒待機します...`);
+        await delay(5000);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err);
         results.push({
