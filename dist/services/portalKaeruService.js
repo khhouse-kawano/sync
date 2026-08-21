@@ -24,6 +24,7 @@ const runSuumoResaleSummary_1 = require("./runSuumoResaleSummary");
 const runAtHomeSummary_1 = require("./runAtHomeSummary");
 const runHomesSummary_1 = require("./runHomesSummary");
 const runKaeeru_1 = require("./runKaeeru");
+const runHotlead_1 = require("./runHotlead");
 exports.portalKaeruService = {
     process: async (options) => {
         const actionMap = {
@@ -52,7 +53,8 @@ exports.portalKaeruService = {
             'athome_summary_2': runAtHomeSummary_1.runAtHomeSummary,
             'homes_summary': runHomesSummary_1.runHomesSummary,
             'homes_summary_2': runHomesSummary_1.runHomesSummary,
-            'kaeeru': runKaeeru_1.runKaeeru
+            'kaeeru': runKaeeru_1.runKaeeru,
+            'hotlead': runHotlead_1.runHotlead
         };
         const portal = [
             { name: 'suumo_kaeru', id: process.env.SUUMO_KAERU_ID ?? "", pass: process.env.SUUMO_KAERU_PASS ?? "" },
@@ -80,6 +82,7 @@ exports.portalKaeruService = {
             { name: 'property', id: process.env.IELOVE_MAIL ?? "", pass: process.env.IELOVE_PASS ?? "" },
             { name: 'pg_mail', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
             { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+            { name: 'hotlead', id: process.env.HOTLEAD_ID ?? "", pass: process.env.HOTLEAD_PASS ?? "" },
             { name: 'geoCode' },
         ];
         const results = [];

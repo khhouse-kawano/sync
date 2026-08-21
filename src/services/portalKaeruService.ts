@@ -21,6 +21,7 @@ import { runSuumoResaleSummary } from "./runSuumoResaleSummary";
 import { runAtHomeSummary } from "./runAtHomeSummary";
 import { runHomesSummary } from "./runHomesSummary";
 import { runKaeeru } from "./runKaeeru";
+import { runHotlead } from "./runHotlead";
 
 export const portalKaeruService = {
   process: async (options?: { targetTasks?: string[] }) => {
@@ -50,7 +51,8 @@ export const portalKaeruService = {
       'athome_summary_2': runAtHomeSummary,
       'homes_summary': runHomesSummary,
       'homes_summary_2': runHomesSummary,
-      'kaeeru': runKaeeru
+      'kaeeru': runKaeeru,
+      'hotlead': runHotlead
     };
 
     const portal = [
@@ -79,6 +81,7 @@ export const portalKaeruService = {
       { name: 'property', id: process.env.IELOVE_MAIL ?? "", pass: process.env.IELOVE_PASS ?? "" },
       { name: 'pg_mail', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
       { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
+      { name: 'hotlead', id: process.env.HOTLEAD_ID ?? "", pass: process.env.HOTLEAD_PASS ?? ""},
       { name: 'geoCode' },
     ];
 
