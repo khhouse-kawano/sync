@@ -22,8 +22,22 @@ import { runAtHomeSummary } from "./runAtHomeSummary";
 import { runHomesSummary } from "./runHomesSummary";
 import { runKaeeru } from "./runKaeeru";
 import { runHotlead } from "./runHotlead";
+import { runSuumoOrder } from "./runSuumoOrder";
+import { runHomesOrder } from "./runHomesOrder";
+import { runTownlifeOrder } from "./runTownlifeOrder";
+import { runAllgritOrder } from "./runAllgritOrder";
 
-export const portalKaeruService = {
+// 認証情報を portal 配列で持たないタスク。
+// geoCode は認証不要、*_order は各サービスがブランドごとの認証情報を process.env から直接読む。
+const noCredentialTasks = new Set([
+  'geoCode',
+  'suumo_order',
+  'homes_order',
+  'townlife_order',
+  'allgrit_order'
+]);
+
+export const portalService = {
   process: async (options?: { targetTasks?: string[] }) => {
     const actionMap: Record<string, (id: string, pass: string, brand?: string) => Promise<void>> = {
       'suumo_kaeru': runSuumoKaeru,
@@ -52,7 +66,11 @@ export const portalKaeruService = {
       'homes_summary': runHomesSummary,
       'homes_summary_2': runHomesSummary,
       'kaeeru': runKaeeru,
-      'hotlead': runHotlead
+      'hotlead': runHotlead,
+      'suumo_order': runSuumoOrder,
+      'homes_order': runHomesOrder,
+      'townlife_order': runTownlifeOrder,
+      'allgrit_order': runAllgritOrder
     };
 
     const portal = [
@@ -83,6 +101,11 @@ export const portalKaeruService = {
       { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'hotlead', id: process.env.HOTLEAD_ID ?? "", pass: process.env.HOTLEAD_PASS ?? ""},
       { name: 'geoCode' },
+      // 注文事業のポータル反響（portal-app から移植）。認証情報は各サービスが直接読む。
+      { name: 'suumo_order' },
+      { name: 'homes_order' },
+      { name: 'townlife_order' },
+      { name: 'allgrit_order' },
     ];
 
     const results = [];
@@ -94,7 +117,7 @@ export const portalKaeruService = {
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     for (const brand of targets) {
-      if (brand.name !== 'geoCode' && (!brand.id || !brand.pass)) {
+      if (!noCredentialTasks.has(brand.name) && (!brand.id || !brand.pass)) {
         results.push({
           name: brand.name,
           ok: false,

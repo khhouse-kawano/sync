@@ -14,7 +14,7 @@ import areaSummaryRoutes from "./routes/areaSummaryRoutes";
 import mailScrapingRoutes from "./routes/mailScrapingRoutes";
 import pdfToTtpRoutes from "./routes/pdfToPptRoutes";
 import estateInfoRoutes from "./routes/estateInfoRoutes";
-import portalKaeruRoutes from "./routes/portalKaeruRoutes";
+import portalRoutes from "./routes/portalRoutes";
 
 process.on('uncaughtException', (err) => {
     console.error('💥 補足されなかったエラーが発生しましたが、サーバーは稼働を続けます:', err.message);
@@ -38,6 +38,8 @@ app.use("/api/areasummary", areaSummaryRoutes);
 app.use("/api/mail_scraping", mailScrapingRoutes);
 app.use("/api/pdftoppt", pdfToTtpRoutes);
 app.use("/api/estate_info", estateInfoRoutes);
-app.use("/api/portal_kaeru", portalKaeruRoutes);
+app.use("/api/portal", portalRoutes);
+// 旧エンドポイント。既存の呼び出し元が移行するまで互換のため残す。
+app.use("/api/portal_kaeru", portalRoutes);
 
 export default app;

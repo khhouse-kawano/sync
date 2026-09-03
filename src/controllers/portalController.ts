@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { portalKaeruService } from "../services/portalKaeruService";
+import { portalService } from "../services/portalService";
 
-export const portalKaeruController = {
-  handleSuumoKaeruController: (req: Request, res: Response) => {
+export const portalController = {
+  handlePortalController: (req: Request, res: Response) => {
     // ==========================================
     // ★ 原因究明のためのデバッグログ（重要）
     // ==========================================
@@ -23,7 +23,7 @@ export const portalKaeruController = {
     });
 
     // Serviceに targetTasks をオプションとして渡す
-    portalKaeruService.process({ targetTasks })
+    portalService.process({ targetTasks })
       .then(result => console.log("処理完了:", result))
       .catch(err => console.error("処理エラー:", err));
   }
