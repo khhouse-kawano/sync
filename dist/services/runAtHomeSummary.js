@@ -8,8 +8,8 @@ const playwright_1 = require("playwright");
 const promises_1 = require("fs/promises");
 const sync_1 = require("csv-parse/sync");
 const axios_1 = __importDefault(require("axios"));
+const portalPage_1 = require("../utils/portalPage");
 const sendErrorMail_1 = require("./sendErrorMail");
-const errors = [];
 // テーブル定義順のカラム名配列（index順にマッピングするため）
 const athomeColumns = [
     'management_no', 'property_no', 'property_type', 'building_name', 'address',
@@ -19,6 +19,8 @@ const athomeColumns = [
     'favorite_count', 'movie_play_count', 'secondary_ad_auto'
 ];
 const runAtHomeSummary = async (id, pass) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors = [];
     const browser = await playwright_1.chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -168,16 +170,27 @@ const runAtHomeSummary = async (id, pass) => {
             errors.push(`処理エラー: ${err}`);
         }
     };
-    await login();
-    // 💡 変数の受け取り方を変更
-    const searchResult = await summarySearch();
-    if (searchResult) {
-        // 💡 取得した startDate と endDate を引数として渡す
-        await processAndPostData(searchResult.newPage, searchResult.startDate, searchResult.endDate);
+    try {
+        await login();
+        // 💡 変数の受け取り方を変更
+        const searchResult = await summarySearch();
+        if (searchResult) {
+            // 💡 取得した startDate と endDate を引数として渡す
+            await processAndPostData(searchResult.newPage, searchResult.startDate, searchResult.endDate);
+        }
     }
-    await browser.close();
-    if (errors.length > 0) {
-        await (0, sendErrorMail_1.sendErrorMail)(errors, 'runAtHomeSummary.ts');
+    catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    }
+    finally {
+        // 例外が起きても Chromium を必ず終了させる。
+        // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await (0, portalPage_1.closeBrowser)(browser);
+        if (errors.length > 0) {
+            await (0, sendErrorMail_1.sendErrorMail)(errors, 'runAtHomeSummary.ts');
+        }
     }
 };
 exports.runAtHomeSummary = runAtHomeSummary;

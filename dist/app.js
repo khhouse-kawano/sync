@@ -19,7 +19,7 @@ const areaSummaryRoutes_1 = __importDefault(require("./routes/areaSummaryRoutes"
 const mailScrapingRoutes_1 = __importDefault(require("./routes/mailScrapingRoutes"));
 const pdfToPptRoutes_1 = __importDefault(require("./routes/pdfToPptRoutes"));
 const estateInfoRoutes_1 = __importDefault(require("./routes/estateInfoRoutes"));
-const portalKaeruRoutes_1 = __importDefault(require("./routes/portalKaeruRoutes"));
+const portalRoutes_1 = __importDefault(require("./routes/portalRoutes"));
 process.on('uncaughtException', (err) => {
     console.error('💥 補足されなかったエラーが発生しましたが、サーバーは稼働を続けます:', err.message);
 });
@@ -40,5 +40,7 @@ app.use("/api/areasummary", areaSummaryRoutes_1.default);
 app.use("/api/mail_scraping", mailScrapingRoutes_1.default);
 app.use("/api/pdftoppt", pdfToPptRoutes_1.default);
 app.use("/api/estate_info", estateInfoRoutes_1.default);
-app.use("/api/portal_kaeru", portalKaeruRoutes_1.default);
+app.use("/api/portal", portalRoutes_1.default);
+// 旧エンドポイント。既存の呼び出し元が移行するまで互換のため残す。
+app.use("/api/portal_kaeru", portalRoutes_1.default);
 exports.default = app;

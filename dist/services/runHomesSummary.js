@@ -41,9 +41,9 @@ const playwright_1 = require("playwright");
 const promises_1 = require("fs/promises");
 const sync_1 = require("csv-parse/sync");
 const axios_1 = __importDefault(require("axios"));
+const portalPage_1 = require("../utils/portalPage");
 const sendErrorMail_1 = require("./sendErrorMail");
 const iconv = __importStar(require("iconv-lite")); // 💡 追加: Shift-JIS変換用の堅牢なライブラリ
-const errors = [];
 // テーブル定義順のカラム名配列
 const homesColumns = [
     'property_id', 'company_management_number', 'property_name', 'room_section', 'address',
@@ -53,6 +53,8 @@ const homesColumns = [
     'lifull_homes_published', 'special_ad_impressions', 'special_ad_clicks', 'detail_page_views', 'inquiries_count', 'inquiry_rate'
 ];
 const runHomesSummary = async (id, pass, brand) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors = [];
     const target = {
         spec: {
             name: 'かえるホーム',
@@ -237,14 +239,25 @@ const runHomesSummary = async (id, pass, brand) => {
             errors.push(`処理エラー: ${err}`);
         }
     };
-    await login();
-    const activePage = await summarySearch();
-    if (activePage) {
-        await processAndPostData(activePage);
+    try {
+        await login();
+        const activePage = await summarySearch();
+        if (activePage) {
+            await processAndPostData(activePage);
+        }
     }
-    await browser.close();
-    if (errors.length > 0) {
-        await (0, sendErrorMail_1.sendErrorMail)(errors, 'runHomesSummary.ts');
+    catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    }
+    finally {
+        // 例外が起きても Chromium を必ず終了させる。
+        // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await (0, portalPage_1.closeBrowser)(browser);
+        if (errors.length > 0) {
+            await (0, sendErrorMail_1.sendErrorMail)(errors, 'runHomesSummary.ts');
+        }
     }
 };
 exports.runHomesSummary = runHomesSummary;

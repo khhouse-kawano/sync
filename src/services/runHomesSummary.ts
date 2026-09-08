@@ -2,10 +2,10 @@ import { chromium } from 'playwright';
 import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
+import { closeBrowser } from '../utils/portalPage';
 import { sendErrorMail } from './sendErrorMail';
 import * as iconv from 'iconv-lite'; // 💡 追加: Shift-JIS変換用の堅牢なライブラリ
 
-const errors: string[] = [];
 
 // テーブル定義順のカラム名配列
 const homesColumns = [
@@ -17,6 +17,8 @@ const homesColumns = [
 ];
 
 export const runHomesSummary = async (id: string, pass: string, brand?: string) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors: string[] = [];
     const target: Record<string, { name: string; path: string }> = {
         spec: {
             name: 'かえるホーム',
@@ -230,17 +232,24 @@ const responseData = res.data ?? {};
         }
     };
 
-    await login();
+    try {
+        await login();
 
-    const activePage = await summarySearch();
+        const activePage = await summarySearch();
 
-    if (activePage) {
-        await processAndPostData(activePage);
-    }
-
-    await browser.close();
-
-    if (errors.length > 0) {
-        await sendErrorMail(errors, 'runHomesSummary.ts');
+        if (activePage) {
+            await processAndPostData(activePage);
+        }
+    } catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    } finally {
+        // 例外が起きても Chromium を必ず終了させる。
+        // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await closeBrowser(browser);
+        if (errors.length > 0) {
+            await sendErrorMail(errors, 'runHomesSummary.ts');
+        }
     }
 };

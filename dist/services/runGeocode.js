@@ -8,8 +8,9 @@ const axios_1 = __importDefault(require("axios"));
 const sendErrorMail_1 = require("./sendErrorMail");
 const API_KEY = process.env.API_KEY;
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-const errors = [];
 const RunGeoCode = async () => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors = [];
     const fetchLatLng = async (address) => {
         if (!API_KEY) {
             console.error("API_KEYが設定されていません");
@@ -137,7 +138,17 @@ const RunGeoCode = async () => {
             console.error("データ取得エラー:", e);
         }
     };
-    await fetchData();
-    (0, sendErrorMail_1.sendErrorMail)(errors, 'runGeocode.ts.ts');
+    try {
+        await fetchData();
+    }
+    catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    }
+    finally {
+        // await しないとエラーメール送信前に関数が終わり、未処理の rejection になる
+        await (0, sendErrorMail_1.sendErrorMail)(errors, 'runGeocode.ts');
+    }
 };
 exports.RunGeoCode = RunGeoCode;

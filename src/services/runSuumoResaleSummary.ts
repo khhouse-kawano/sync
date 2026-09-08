@@ -2,9 +2,9 @@ import { chromium } from 'playwright';
 import { readFile, writeFile } from 'fs/promises';
 import * as xlsx from 'xlsx'; // xlsxパッケージに変更
 import axios from 'axios';
+import { closeBrowser } from '../utils/portalPage';
 import { sendErrorMail } from './sendErrorMail';
 
-const errors: string[] = [];
 
 // 先ほど作成したテーブル(suumo_resale_summary)のカラム順（システムIDなどを除く）
 // Excelの2列目（インデックス1）から順番にマッピングするための配列
@@ -43,6 +43,8 @@ const summaryColumns = [
 ];
 
 export const runSuumoResaleSummary = async (id: string, pass: string) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors: string[] = [];
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -181,13 +183,20 @@ export const runSuumoResaleSummary = async (id: string, pass: string) => {
         }
     };
 
-    await login();
-    await summarySearch();
-    await processAndPostData();
-
-    await browser.close();
-    
-    if (errors.length > 0) {
-        await sendErrorMail(errors, 'runSuumoResaleSummary.ts');
+    try {
+        await login();
+        await summarySearch();
+        await processAndPostData();
+    } catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    } finally {
+        // 例外が起きても Chromium を必ず終了させる。
+        // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await closeBrowser(browser);
+        if (errors.length > 0) {
+            await sendErrorMail(errors, 'runSuumoResaleSummary.ts');
+        }
     }
 };

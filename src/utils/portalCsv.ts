@@ -29,6 +29,28 @@ export const readSjisText = async (filePath: string): Promise<string> => {
     return Encoding.codeToString(unicodeArray);
 };
 
+/**
+ * タブ区切りファイルを読み込む。
+ * SUUMO は通常 Shift_JIS で配信されるが UTF-8 のことがあるため、
+ * 変換後に文字化け（U+FFFD）が多い方を捨てて、区切り文字を含む方を採用する。
+ */
+export const readTabSeparatedText = async (filePath: string): Promise<string> => {
+    const buffer = await readFile(filePath);
+
+    const asSjis = Encoding.codeToString(
+        Encoding.convert(buffer, { to: "UNICODE", from: "SJIS" })
+    );
+    const asUtf8 = buffer.toString("utf8");
+
+    const brokenCount = (text: string): number => (text.match(/�/g) ?? []).length;
+
+    // タブを含まない＝区切りとして成立していないので、もう一方を採用する
+    if (!asSjis.includes("\t") && asUtf8.includes("\t")) return asUtf8;
+    if (!asUtf8.includes("\t") && asSjis.includes("\t")) return asSjis;
+
+    return brokenCount(asSjis) <= brokenCount(asUtf8) ? asSjis : asUtf8;
+};
+
 /** CSV 文字列をヘッダー付きでパースする */
 export const parseCsv = (text: string): Record<string, string>[] =>
     parse(text, {

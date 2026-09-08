@@ -1,5 +1,5 @@
 import { chromium, Browser, Page } from "playwright";
-import { portalShopList } from "../utils/portalShopList";
+import { notFoundShopFor, portalShopList } from "../utils/portalShopList";
 import {
     formatDate,
     mapColumns,
@@ -9,6 +9,7 @@ import {
     stripExcelFormula
 } from "../utils/portalCsv";
 import { postGateway, GatewayRow } from "../utils/postGateway";
+import { closeBrowser, downloadCsvFile, NAVIGATION_TIMEOUT } from "../utils/portalPage";
 import { sendErrorMail } from "./sendErrorMail";
 
 type TownlifeBrand = { id: string; pass: string; name: string };
@@ -58,7 +59,7 @@ const resolveShop = (record: Record<string, string>, brand: string): string => {
         shop => shop.brand === brand && record["city_townlife"]?.includes(shop.area)
     );
 
-    return fallback ? fallback.shop : `${brand.replace("Nagomi", "なごみ")}店舗未設定`;
+    return fallback ? fallback.shop : notFoundShopFor(brand);
 };
 
 export const runTownlifeOrder = async (): Promise<void> => {
@@ -75,8 +76,11 @@ export const runTownlifeOrder = async (): Promise<void> => {
     ];
 
     const loginEvent = async (page: Page, brand: TownlifeBrand): Promise<void> => {
-        page.setDefaultTimeout(50000);
-        await page.goto("https://www.town-life.jp/home/kanri/");
+        page.setDefaultTimeout(NAVIGATION_TIMEOUT);
+        await page.goto("https://www.town-life.jp/home/kanri/", {
+            waitUntil: "load",
+            timeout: NAVIGATION_TIMEOUT
+        });
         await page.fill("#login", brand.id);
         await page.fill("#pw", brand.pass);
         await page.click(
@@ -87,20 +91,16 @@ export const runTownlifeOrder = async (): Promise<void> => {
     };
 
     const downloadCsv = async (page: Page, brand: string): Promise<GatewayRow[]> => {
-        page.setDefaultTimeout(50000);
-        await page.goto(
-            "https://www.town-life.jp/home/kanri/index.php?action_AdminInquiryList=true"
-        );
+        page.setDefaultTimeout(NAVIGATION_TIMEOUT);
 
-        const [download] = await Promise.all([
-            page.waitForEvent("download", { timeout: 50000 }),
-            page.click(
-                "#main_container > div.main_content > div.center_content > form:nth-child(4) > div.btnArea > input[type=button]"
-            )
-        ]);
-
-        const filePath = portalTmpPath(`${brand}_${formatDate(new Date())}townlife.csv`);
-        await download.saveAs(filePath);
+        const filePath = await downloadCsvFile(page, {
+            url: "https://www.town-life.jp/home/kanri/index.php?action_AdminInquiryList=true",
+            selector:
+                "#main_container > div.main_content > div.center_content > form:nth-child(4) > div.btnArea > input[type=button]",
+            filePath: portalTmpPath(`${brand}_${formatDate(new Date())}townlife.csv`),
+            label: `${brand}_タウンライフ`
+        });
+        if (filePath === null) return [];
 
         const records = parseCsv(await readSjisText(filePath)).map(row =>
             mapColumns(row, columnMapping)
@@ -161,7 +161,7 @@ export const runTownlifeOrder = async (): Promise<void> => {
         errors.push(msg);
         console.error(msg);
     } finally {
-        if (browser) await browser.close();
+        await closeBrowser(browser);
     }
 
     if (rows.length > 0) {

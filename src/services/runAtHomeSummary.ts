@@ -2,9 +2,9 @@ import { chromium } from 'playwright';
 import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
+import { closeBrowser } from '../utils/portalPage';
 import { sendErrorMail } from './sendErrorMail';
 
-const errors: string[] = [];
 
 // テーブル定義順のカラム名配列（index順にマッピングするため）
 const athomeColumns = [
@@ -16,6 +16,8 @@ const athomeColumns = [
 ];
 
 export const runAtHomeSummary = async (id: string, pass: string) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors: string[] = [];
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -193,19 +195,26 @@ export const runAtHomeSummary = async (id: string, pass: string) => {
         }
     };
 
-    await login();
-    
-    // 💡 変数の受け取り方を変更
-    const searchResult = await summarySearch();
+    try {
+        await login();
 
-    if (searchResult) {
-        // 💡 取得した startDate と endDate を引数として渡す
-        await processAndPostData(searchResult.newPage, searchResult.startDate, searchResult.endDate);
-    }
+        // 💡 変数の受け取り方を変更
+        const searchResult = await summarySearch();
 
-    await browser.close();
-
-    if (errors.length > 0) {
-        await sendErrorMail(errors, 'runAtHomeSummary.ts');
+        if (searchResult) {
+            // 💡 取得した startDate と endDate を引数として渡す
+            await processAndPostData(searchResult.newPage, searchResult.startDate, searchResult.endDate);
+        }
+    } catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    } finally {
+        // 例外が起きても Chromium を必ず終了させる。
+        // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await closeBrowser(browser);
+        if (errors.length > 0) {
+            await sendErrorMail(errors, 'runAtHomeSummary.ts');
+        }
     }
 };

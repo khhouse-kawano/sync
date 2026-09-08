@@ -46,7 +46,8 @@ const sample = [
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       // targetTasks: [  'property', 'suumo_summary', 'suumo_summary_2', 'homes_summary', 'homes_summary_2', 'athome_summary', 'athome_summary_2'],
-      targetTasks: [  'homes_order'],
+      targetTasks: [  'homes_order', 'suumo_order', 'townlife_order', 'suumo_kaeru', 'suumo_resale', 'homes_kaeru', 'homes_resale' ,'sumai_step_resale','hotlead'],
+      // targetTasks: [  'allgrit'],
     }),
   });
 

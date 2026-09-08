@@ -1,8 +1,10 @@
 import { chromium } from 'playwright';
+// モジュール外のヘルパーからも参照するため宣言はここに置き、実行開始時にリセットする。
 const errors: string[] = [];
 import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
+import { closeBrowser, DOWNLOAD_TIMEOUT } from "../utils/portalPage";
 import { sendErrorMail } from "./sendErrorMail";
 import iconv from 'iconv-lite';
 import * as fs from 'fs';
@@ -66,6 +68,8 @@ const postToPhpApi = async (data: Record<string, string>[]) => {
 };
 
 export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) => {
+    // 前回実行のエラーが持ち越されないよう、実行の都度クリアする。
+    errors.length = 0;
     // HerokuのLinux環境でクラッシュを防ぐための引数を追加
     // ★ 修正: Heroku環境でのクラッシュ防止 ＆ Bot検知回避の引数を追加
     const browser = await chromium.launch({
@@ -130,7 +134,7 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
 
                 // ダウンロードイベントのキャッチ
                 const [download] = await Promise.all([
-                    page.waitForEvent('download'),
+                    page.waitForEvent('download', { timeout: DOWNLOAD_TIMEOUT }),
                     csvBtn.click()
                 ]);
 
@@ -199,10 +203,12 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
         await login();
         await propertySearch();
     } catch (e) {
-        console.error("致命的なエラーにより処理を中断しました", e);
+        const msg = `致命的なエラーにより処理を中断しました: ${e}`;
+        console.error(msg);
+        errors.push(msg);
     } finally {
         // ブラウザを確実に閉じる
-        await browser.close();
+        await closeBrowser(browser);
         await sendErrorMail(errors, 'runIeloveProperty.ts');
     }
 };

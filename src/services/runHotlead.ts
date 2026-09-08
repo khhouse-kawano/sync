@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import { sendErrorMail } from './sendErrorMail';
 import path from 'path';
 import axios from 'axios';
 
@@ -131,6 +132,9 @@ export async function runHotlead(id: string, pass: string) {
         await postTicketsToPhpApi(ticketsData);
 
     } catch (error: any) {
-        console.error('❌ エラー発生:', error.message);
+        const msg = `❌ エラー発生: ${error?.message ?? error}`;
+        console.error(msg);
+        // 握りつぶすと失敗に気づけないため、エラーメールで通知する
+        await sendErrorMail([msg], 'runHotlead.ts');
     }
 }

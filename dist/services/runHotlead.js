@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runHotlead = runHotlead;
 const promises_1 = __importDefault(require("fs/promises"));
+const sendErrorMail_1 = require("./sendErrorMail");
 const path_1 = __importDefault(require("path"));
 const axios_1 = __importDefault(require("axios"));
 const API_BASE_URL = 'https://public-api.hotlead.jp';
@@ -114,6 +115,9 @@ async function runHotlead(id, pass) {
         await postTicketsToPhpApi(ticketsData);
     }
     catch (error) {
-        console.error('❌ エラー発生:', error.message);
+        const msg = `❌ エラー発生: ${error?.message ?? error}`;
+        console.error(msg);
+        // 握りつぶすと失敗に気づけないため、エラーメールで通知する
+        await (0, sendErrorMail_1.sendErrorMail)([msg], 'runHotlead.ts');
     }
 }

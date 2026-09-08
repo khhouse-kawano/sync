@@ -1,8 +1,14 @@
 import { chromium, Browser, Page } from "playwright";
-import { readFile } from "fs/promises";
-import { portalShopList } from "../utils/portalShopList";
-import { formatDate, mapColumns, parseCsv, portalTmpPath, readSjisText } from "../utils/portalCsv";
+import { notFoundShopFor, portalShopList } from "../utils/portalShopList";
+import {
+    formatDate,
+    mapColumns,
+    parseCsv,
+    portalTmpPath,
+    readTabSeparatedText
+} from "../utils/portalCsv";
 import { postGateway, GatewayRow } from "../utils/postGateway";
+import { closeBrowser, downloadCsvFile, NAVIGATION_TIMEOUT } from "../utils/portalPage";
 import { sendErrorMail } from "./sendErrorMail";
 
 type SuumoBrand = { id: string; pass: string; name: string };
@@ -43,7 +49,7 @@ const resolveShop = (record: Record<string, string>, brand: string): string => {
         shop => shop.brand === brand && record["address3_suumo"]?.includes(shop.area)
     );
 
-    return fallback ? fallback.shop : `${brand.replace("Nagomi", "なごみ")}店舗未設定`;
+    return fallback ? fallback.shop : notFoundShopFor(brand);
 };
 
 export const runSuumoOrder = async (): Promise<void> => {
@@ -58,8 +64,11 @@ export const runSuumoOrder = async (): Promise<void> => {
     ];
 
     const loginEvent = async (page: Page, brand: SuumoBrand): Promise<void> => {
-        page.setDefaultTimeout(30000);
-        await page.goto("https://www.housingnavi.jp/house/hj/operation/download/E_600.do");
+        page.setDefaultTimeout(NAVIGATION_TIMEOUT);
+        await page.goto("https://www.housingnavi.jp/house/hj/operation/download/E_600.do", {
+            waitUntil: "load",
+            timeout: NAVIGATION_TIMEOUT
+        });
         await page.fill(
             "//html/body/div/table/tbody/tr/td/div/form/table[2]/tbody/tr[2]/td/table/tbody/tr[1]/td[2]/input",
             brand.id
@@ -76,7 +85,7 @@ export const runSuumoOrder = async (): Promise<void> => {
     };
 
     const downloadCsv = async (page: Page, brand: string): Promise<GatewayRow[]> => {
-        page.setDefaultTimeout(30000);
+        page.setDefaultTimeout(NAVIGATION_TIMEOUT);
 
         const today = new Date();
         // 1月は前年12月ではなく「01」を指定する移植元の挙動をそのまま維持する
@@ -99,21 +108,19 @@ export const runSuumoOrder = async (): Promise<void> => {
             "2"
         );
 
-        const fileName = portalTmpPath(`${brand}_${formatDate(today)}suumo.txt`);
+        const fileName = await downloadCsvFile(page, {
+            selector: "//html/body/div[2]/table/tbody/tr/td/form[2]/table[3]/tbody/tr/td/input",
+            filePath: portalTmpPath(`${brand}_${formatDate(today)}suumo.txt`),
+            label: `${brand}_SUUMO`,
+            // 検索条件を指定する画面であり一覧ではないため 0 件判定は行わない
+            checkEmpty: false
+        });
+        if (fileName === null) return [];
 
-        const [download] = await Promise.all([
-            page.waitForEvent("download"),
-            page.click("//html/body/div[2]/table/tbody/tr/td/form[2]/table[3]/tbody/tr/td/input")
-        ]);
-        await download.saveAs(fileName);
         console.log(`✅ ${fileName} を保存しました`);
 
         // SUUMO のダウンロードは Shift_JIS のタブ区切り。CSV として読めるようカンマへ置換する。
-        let text = await readSjisText(fileName);
-        if (!text.includes("\t")) {
-            // 稀に UTF-8 で配信されるケースがあるため、SJIS 変換で化けたら生の内容を使う
-            text = await readFile(fileName, "utf8");
-        }
+        const text = await readTabSeparatedText(fileName);
         const csvText = text
             .split("\n")
             .map(line => line.replace(/\t/g, ","))
@@ -164,7 +171,7 @@ export const runSuumoOrder = async (): Promise<void> => {
         errors.push(msg);
         console.error(msg);
     } finally {
-        if (browser) await browser.close();
+        await closeBrowser(browser);
     }
 
     if (rows.length > 0) {

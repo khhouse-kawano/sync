@@ -9,9 +9,11 @@ const fs_1 = __importDefault(require("fs"));
 const encoding_japanese_1 = __importDefault(require("encoding-japanese"));
 const csv_parser_1 = __importDefault(require("csv-parser"));
 const axios_1 = __importDefault(require("axios"));
+const portalPage_1 = require("../utils/portalPage");
 const sendErrorMail_1 = require("./sendErrorMail");
-const errors = [];
 const runSumaiStep = async (id, pass) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors = [];
     let browser;
     const fileName = "/tmp/data_sumaistep.csv";
     try {
@@ -26,12 +28,13 @@ const runSumaiStep = async (id, pass) => {
         await page.waitForLoadState("domcontentloaded");
         await page.goto("https://sumai-step.com/partner/conversions");
         const [download] = await Promise.all([
-            page.waitForEvent("download"),
+            page.waitForEvent("download", { timeout: portalPage_1.DOWNLOAD_TIMEOUT }),
             page.click("body > main > div > div > div:nth-child(4) > div > div:nth-child(1) > form > button")
         ]);
         await download.saveAs(fileName);
         console.log("ダウンロード完了。ブラウザを終了します。");
-        await browser.close();
+        // CSV 取得後はブラウザ不要なので早めに解放する（finally でも二重に閉じないよう保護済み）
+        await (0, portalPage_1.closeBrowser)(browser);
         const sjisBuffer = fs_1.default.readFileSync(fileName);
         const unicodeArray = encoding_japanese_1.default.convert(sjisBuffer, {
             to: "UNICODE",
@@ -140,9 +143,9 @@ const runSumaiStep = async (id, pass) => {
     }
     finally {
         if (browser && browser.isConnected()) {
-            await browser.close();
+            await (0, portalPage_1.closeBrowser)(browser);
         }
     }
-    (0, sendErrorMail_1.sendErrorMail)(errors, 'runSumaiStep.ts');
+    await (0, sendErrorMail_1.sendErrorMail)(errors, 'runSumaiStep.ts');
 };
 exports.runSumaiStep = runSumaiStep;

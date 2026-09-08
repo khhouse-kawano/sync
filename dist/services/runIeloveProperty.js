@@ -38,9 +38,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runIeloveProperty = void 0;
 const playwright_1 = require("playwright");
+// モジュール外のヘルパーからも参照するため宣言はここに置き、実行開始時にリセットする。
 const errors = [];
 const sync_1 = require("csv-parse/sync");
 const axios_1 = __importDefault(require("axios"));
+const portalPage_1 = require("../utils/portalPage");
 const sendErrorMail_1 = require("./sendErrorMail");
 const iconv_lite_1 = __importDefault(require("iconv-lite"));
 const fs = __importStar(require("fs"));
@@ -103,6 +105,8 @@ const postToPhpApi = async (data) => {
     }
 };
 const runIeloveProperty = async (ielove_id, ielove_pass) => {
+    // 前回実行のエラーが持ち越されないよう、実行の都度クリアする。
+    errors.length = 0;
     // HerokuのLinux環境でクラッシュを防ぐための引数を追加
     // ★ 修正: Heroku環境でのクラッシュ防止 ＆ Bot検知回避の引数を追加
     const browser = await playwright_1.chromium.launch({
@@ -157,7 +161,7 @@ const runIeloveProperty = async (ielove_id, ielove_pass) => {
                 await csvBtn.waitFor({ state: 'visible' });
                 // ダウンロードイベントのキャッチ
                 const [download] = await Promise.all([
-                    page.waitForEvent('download'),
+                    page.waitForEvent('download', { timeout: portalPage_1.DOWNLOAD_TIMEOUT }),
                     csvBtn.click()
                 ]);
                 const filePath = await download.path();
@@ -216,11 +220,13 @@ const runIeloveProperty = async (ielove_id, ielove_pass) => {
         await propertySearch();
     }
     catch (e) {
-        console.error("致命的なエラーにより処理を中断しました", e);
+        const msg = `致命的なエラーにより処理を中断しました: ${e}`;
+        console.error(msg);
+        errors.push(msg);
     }
     finally {
         // ブラウザを確実に閉じる
-        await browser.close();
+        await (0, portalPage_1.closeBrowser)(browser);
         await (0, sendErrorMail_1.sendErrorMail)(errors, 'runIeloveProperty.ts');
     }
 };

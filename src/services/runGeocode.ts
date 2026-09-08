@@ -10,9 +10,9 @@ interface LocationResult {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const errors: string[] = [];
-
 export const RunGeoCode = async (): Promise<void> => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors: string[] = [];
     const fetchLatLng = async (address: string): Promise<LocationResult> => {
         if (!API_KEY) {
             console.error("API_KEYが設定されていません");
@@ -158,7 +158,15 @@ export const RunGeoCode = async (): Promise<void> => {
         }
     };
 
-    await fetchData();
-    sendErrorMail(errors, 'runGeocode.ts.ts');
+    try {
+        await fetchData();
+    } catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    } finally {
+        // await しないとエラーメール送信前に関数が終わり、未処理の rejection になる
+        await sendErrorMail(errors, 'runGeocode.ts');
+    }
 
 };

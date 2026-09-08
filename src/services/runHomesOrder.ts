@@ -1,8 +1,9 @@
 import { chromium, Browser, Page } from "playwright";
-import { portalShopList } from "../utils/portalShopList";
+import { notFoundShopFor, portalShopList } from "../utils/portalShopList";
 import { modelHouseList } from "../utils/modelHouseList";
 import { formatDate, mapColumns, parseCsv, portalTmpPath, readSjisText } from "../utils/portalCsv";
 import { postGateway, GatewayRow } from "../utils/postGateway";
+import { closeBrowser, downloadCsvFile, NAVIGATION_TIMEOUT } from "../utils/portalPage";
 import { sendErrorMail } from "./sendErrorMail";
 
 type HomesBrand = { id: string; pass: string; name: string };
@@ -46,18 +47,30 @@ const reservationColumnMapping: Record<string, string> = {
 /** 来場予約の問合せ番号に付ける接頭辞（問合せメールとの採番衝突を避けるため） */
 const RESERVATION_ID_PREFIX = "reserve_";
 
-const notFoundShop = (brand: string): string => `${brand.replace("Nagomi", "なごみ")}店舗未設定`;
+// ⚠️ 店舗未設定名は utils/portalShopList.ts の notFoundShopFor に集約した。
+//   以前ここにあった `brand.replace("Nagomi","なごみ") + "店舗未設定"` は
+//   PG HOUSE を変換できず、shop_list に無い店舗名を作っていた。
+const notFoundShop = notFoundShopFor;
 
-const downloadTo = async (page: Page, url: string, fileName: string): Promise<string> => {
-    await page.goto(url);
-    const [download] = await Promise.all([
-        page.waitForEvent("download", { timeout: 30000 }),
-        page.click("//html/body/div[2]/div[2]/div[2]/div[2]/div/form/div/p/button")
-    ]);
-    const filePath = portalTmpPath(fileName);
-    await download.saveAs(filePath);
-    return filePath;
-};
+const DOWNLOAD_BUTTON = "//html/body/div[2]/div[2]/div[2]/div[2]/div/form/div/p/button";
+
+/**
+ * CSV をダウンロードして保存する。
+ * 対象データが 0 件、またはダウンロードボタンが存在しない場合は null を返す
+ * （エラーではなくスキップ扱い）。判定・待機は portalPage.ts に集約している。
+ */
+const downloadTo = (
+    page: Page,
+    url: string,
+    fileName: string,
+    label: string
+): Promise<string | null> =>
+    downloadCsvFile(page, {
+        url,
+        selector: DOWNLOAD_BUTTON,
+        filePath: portalTmpPath(fileName),
+        label
+    });
 
 export const runHomesOrder = async (): Promise<void> => {
     console.log("HOME'S（注文）スタート");
@@ -72,13 +85,13 @@ export const runHomesOrder = async (): Promise<void> => {
     ];
 
     const loginEvent = async (page: Page, brand: HomesBrand): Promise<void> => {
-        page.setDefaultTimeout(30000);
+        page.setDefaultTimeout(NAVIGATION_TIMEOUT);
         // 移植元同様、ログイン画面は不安定なため最大3回まで遷移を試みる
         for (let i = 0; i < 3; i++) {
             try {
                 const res = await page.goto("https://iezukuri-manager.homes.co.jp/login", {
                     waitUntil: "networkidle",
-                    timeout: 60000
+                    timeout: NAVIGATION_TIMEOUT
                 });
                 if (res && res.ok()) break;
             } catch (err) {
@@ -98,8 +111,10 @@ export const runHomesOrder = async (): Promise<void> => {
         const filePath = await downloadTo(
             page,
             "https://iezukuri-manager.homes.co.jp/inquire/mail",
-            `${brand}_${formatDate(today)}homes.csv`
+            `${brand}_${formatDate(today)}homes.csv`,
+            `${brand}_問合せ一覧`
         );
+        if (filePath === null) return [];
 
         const records = parseCsv(await readSjisText(filePath)).map(row =>
             mapColumns(row, inquiryColumnMapping)
@@ -138,8 +153,10 @@ export const runHomesOrder = async (): Promise<void> => {
         const filePath = await downloadTo(
             page,
             "https://iezukuri-manager.homes.co.jp/visit_reservation",
-            `${brand}_${formatDate(today)}homes_reservation.csv`
+            `${brand}_${formatDate(today)}homes_reservation.csv`,
+            `${brand}_来場予約一覧`
         );
+        if (filePath === null) return [];
 
         const records = parseCsv(await readSjisText(filePath)).map(row =>
             mapColumns(row, reservationColumnMapping)
@@ -212,7 +229,7 @@ export const runHomesOrder = async (): Promise<void> => {
         errors.push(msg);
         console.error(msg);
     } finally {
-        if (browser) await browser.close();
+        await closeBrowser(browser);
     }
 
     if (rows.length > 0) {

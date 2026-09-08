@@ -1,11 +1,13 @@
 import { chromium } from 'playwright';
-const errors: string[] = [];
 import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
+import { closeBrowser } from "../utils/portalPage";
 import { sendErrorMail } from "./sendErrorMail";
 
 export const runSuumoKaeru = async (suumo_kaeru_id: string, suumo_kaeru_pass: string) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors: string[] = [];
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -247,11 +249,18 @@ export const runSuumoKaeru = async (suumo_kaeru_id: string, suumo_kaeru_pass: st
         }
     };
 
-    await login();
-    await customerSearch();
-    await customerSave();
-
-    await browser.close();
-    await sendErrorMail(errors, 'runSuumoKaeru.ts');
-
+    try {
+        await login();
+        await customerSearch();
+        await customerSave();
+    } catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    } finally {
+        // 例外が起きても Chromium を必ず終了させる。
+        // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await closeBrowser(browser);
+        await sendErrorMail(errors, 'runSuumoKaeru.ts');
+    }
 };

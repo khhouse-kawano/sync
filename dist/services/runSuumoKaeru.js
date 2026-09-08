@@ -5,12 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runSuumoKaeru = void 0;
 const playwright_1 = require("playwright");
-const errors = [];
 const promises_1 = require("fs/promises");
 const sync_1 = require("csv-parse/sync");
 const axios_1 = __importDefault(require("axios"));
+const portalPage_1 = require("../utils/portalPage");
 const sendErrorMail_1 = require("./sendErrorMail");
 const runSuumoKaeru = async (suumo_kaeru_id, suumo_kaeru_pass) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors = [];
     const browser = await playwright_1.chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -226,10 +228,21 @@ const runSuumoKaeru = async (suumo_kaeru_id, suumo_kaeru_pass) => {
             errors.push(msg);
         }
     };
-    await login();
-    await customerSearch();
-    await customerSave();
-    await browser.close();
-    await (0, sendErrorMail_1.sendErrorMail)(errors, 'runSuumoKaeru.ts');
+    try {
+        await login();
+        await customerSearch();
+        await customerSave();
+    }
+    catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    }
+    finally {
+        // 例外が起きても Chromium を必ず終了させる。
+        // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await (0, portalPage_1.closeBrowser)(browser);
+        await (0, sendErrorMail_1.sendErrorMail)(errors, 'runSuumoKaeru.ts');
+    }
 };
 exports.runSuumoKaeru = runSuumoKaeru;

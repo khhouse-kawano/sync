@@ -1,13 +1,19 @@
 import { chromium } from 'playwright';
-import { readFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
+import { readFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
+import { closeBrowser, downloadCsvFile } from '../utils/portalPage';
+import { portalTmpPath } from '../utils/portalCsv';
+import {
+    ALLGRIT_ACCOUNT,
+    loginToAllgrit,
+    openAllgritAccount,
+    openAllgritCustomerList
+} from '../utils/allgritPage';
 import { sendErrorMail } from "./sendErrorMail";
 // ※shopsのインポートが必要な場合は有効化してください
 // import shops from "./shops.js";
 
-const errors: string[] = [];
 
 const headerMap: Record<string, string> = {
     "お客様ID": "customer_id",
@@ -56,9 +62,14 @@ const headerMap: Record<string, string> = {
 };
 
 export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors: string[] = [];
     console.log("ALLGRITスタート");
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
-    const context = await browser.newContext();
+    // ⚠️⚠️ ビューポートを明示する。既定は 1280x720 で、
+    //   Vuetify のアカウント一覧が折り返して絶対位置のセレクタがずれる。
+    //   ブラウザで確認したときの見え方（広い画面）に合わせる。
+    const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
     const page = await context.newPage();
     page.setDefaultTimeout(120000);
 
@@ -106,47 +117,94 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
         throw lastErr;
     }
 
-    const login = async () => {
-        try {
-            await page.goto("https://line-saas.auka.jp/builder/login");
-            await page.fill("//html/body/div[2]/div/div/div/main/div/div[1]/div/div/div/div/div[3]/form/div[1]/div/div[1]/div/input", allgrit_id);
-            await page.fill("//html/body/div[2]/div/div/div/main/div/div[1]/div/div/div/div/div[3]/form/div[2]/div/div[1]/div/input", allgrit_pass);
-            await page.click("//html/body/div[2]/div/div/div/main/div/div[1]/div/div/div/div/div[3]/form/div[3]/button/span");
-            await page.waitForLoadState("load");
-            console.log("ログイン完了");
-        } catch (e) {
-            const msg = `ログイン失敗:${e}`;
-            console.error(msg);
-            errors.push(msg);
+    /**
+     * ⚠️⚠️ 以前はここで絶対位置の XPath で入力し、クリック後に
+     *   `waitForLoadState("load")` を呼んで「ログイン完了」と表示していた。
+     *   ALLGRIT は SPA なので load は即座に解決し、**認証が終わる前に**
+     *   次の処理へ進んでいた。待ち方と成功判定は
+     *   utils/allgritPage.ts の loginToAllgrit に集約した。
+     *
+     * ⚠️ 失敗したら false を返す。呼び出し側で処理を止めること。
+     *   以前は失敗しても processData() へ進んでいた。
+     */
+    const login = async (): Promise<boolean> => {
+        const ok = await loginToAllgrit(page, allgrit_id, allgrit_pass, "ALLGRIT_かえる");
+        if (!ok) {
+            errors.push("ログイン失敗: アカウント一覧が表示されませんでした");
         }
+        return ok;
     };
 
     const processData = async () => {
         try {
             console.log("データダウンロード処理スタート");
-            await page.waitForLoadState("load");
-            await page.click('xpath=/html/body/div[2]/div/div/div/main/div/div/div/div/div/div[2]/div[4]/div[3]/button');
 
-            // 左上メニュー > お客様一覧 をクリック
-            await page.click("//html/body/div[2]/div/div/div/div[1]/nav/div[1]/div/div/div[1]/div");
-            await page.click("//html/body/div[2]/div/div/div/div[1]/div/div/a[2]");
-            await page.waitForLoadState("load");
-
-            // ダウンロードボタンをクリック
-            const downloadPromise = page.waitForEvent("download");
-            await page.waitForLoadState("load");
-            await page.click("//html/body/div[2]/div/div/div/main/div/div/div/div[1]/div/div[3]/div[4]/button[4]/span");
-            const download = await downloadPromise;
-
-            if (!existsSync("/tmp")) {
-                await mkdir("/tmp");
+            // ⚠️⚠️ 以前は絶対位置の XPath（4枚目のカード）を直接 click していた。
+            //   ALLGRIT は Nuxt + Vuetify の SPA で、描画が間に合わないと
+            //   「要素が無い」で例外になり、原因も分からなかった。
+            //   アカウント名で引き、待機・再試行・診断の保存もヘルパーに任せる。
+            const opened = await openAllgritAccount(
+                page,
+                ALLGRIT_ACCOUNT.KAERU,
+                // ⚠️ 旧セレクタ（4枚目のカード）は名前で引けないときの保険
+                'xpath=/html/body/div[2]/div/div/div/main/div/div/div/div/div/div[2]/div[4]/div[3]/button',
+                'かえるホーム'
+            );
+            if (!opened) {
+                const msg = 'ALLGRIT_かえるホームのアカウントに切り替えられませんでした';
+                console.log(msg);
+                errors.push(msg);
+                return;
             }
 
+            // 左メニュー > 顧客管理 > お客様一覧
+            const reached = await openAllgritCustomerList(
+                page,
+                "//html/body/div[2]/div/div/div/div[1]/nav/div[1]/div/div/div[1]/div",
+                "//html/body/div[2]/div/div/div/div[1]/div/div/a[2]",
+                'かえるホーム'
+            );
+            if (!reached) {
+                const msg = 'ALLGRIT_お客様一覧に到達できませんでした';
+                console.log(msg);
+                errors.push(msg);
+                return;
+            }
+
+            // ⚠️⚠️ ダウンロード処理は downloadCsvFile に統一した。
+            //   以前はここで直接 waitForEvent("download") していたが、
+            //   タイムアウトを渡していなかったため page の既定値（120秒）が
+            //   使われていた。**ALLGRIT はボタンを押してから実際に
+            //   ダウンロードが始まるまでラグがある**（サーバー側で CSV を
+            //   生成してから配信する）ため、120秒では足りないことがある。
+            //
+            //   downloadCsvFile に寄せることで以下も一緒に効く。
+            //     ・一覧の行が描画されるまで待ってから0件判定する
+            //     ・待機中に生存ログを出す（無言で固まったように見えない）
+            //     ・失敗時に画面のHTMLとスクリーンショットを残す
             const today = new Date();
             const yyyymmdd = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}`;
-            const savePath = `/tmp/${yyyymmdd}_ALLGRIT.csv`;
+            // ⚠️ 保存先を /tmp 直書きから portalTmpPath に変更した。
+            //   os.tmpdir() 配下を使うため Windows でも動き、
+            //   ディレクトリが無ければ自動で作られる（mkdir が不要になった）。
+            const savePath = portalTmpPath(`${yyyymmdd}_ALLGRIT_kaeru.csv`);
 
-            await download.saveAs(savePath);
+            const downloaded = await downloadCsvFile(page, {
+                selector: "//html/body/div[2]/div/div/div/main/div/div/div/div[1]/div/div[3]/div[4]/button[4]/span",
+                filePath: savePath,
+                label: "ALLGRIT_かえる",
+                // ⚠️ ラグがあるため5分まで待つ
+                downloadTimeout: 300000,
+                // ⚠️ 顧客一覧も XHR で描画される。行が出るまで待ってから0件判定する
+                listTimeout: 60000
+            });
+
+            if (downloaded === null) {
+                const msg = "ALLGRIT_かえる: CSVを取得できなかったため処理を終了します";
+                console.log(msg);
+                errors.push(msg);
+                return;
+            }
 
             // ファイル読み込みとパース
             const buf = await readFile(savePath);
@@ -225,9 +283,22 @@ export const runAllGritKaeru = async (allgrit_id: string, allgrit_pass: string) 
         }
     };
 
-    await login();
-    await processData();
-
-    await browser.close();
-    await sendErrorMail(errors, 'runAllgrit.ts');
+    try {
+        // ⚠️ ログインできていないまま processData() へ進むと、
+        //   「アカウントのカードが見つからない」で失敗し本当の原因が埋もれる
+        if (await login()) {
+            await processData();
+        } else {
+            console.log("ALLGRIT_ログインに失敗したため処理を中止しました");
+        }
+    } catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    } finally {
+        // 例外が起きても Chromium を必ず終了させる。
+        // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await closeBrowser(browser);
+        await sendErrorMail(errors, 'runAllgrit.ts');
+    }
 };

@@ -1,0 +1,509 @@
+import { chromium, Browser, Page } from "playwright";
+import { readFile } from "fs/promises";
+import axios from "axios";
+import { parse } from "csv-parse/sync";
+import { notFoundShopFor, portalShopList } from "../utils/portalShopList";
+import { formatDate, mapColumns, parseCsv, portalTmpPath } from "../utils/portalCsv";
+import { postGateway, GatewayRow } from "../utils/postGateway";
+import { closeBrowser, downloadCsvFile, NAVIGATION_TIMEOUT } from "../utils/portalPage";
+import {
+    ALLGRIT_ACCOUNT,
+    backToAllgritTop,
+    loginToAllgrit,
+    openAllgritAccount,
+    openAllgritCustomerList
+} from "../utils/allgritPage";
+import { sendErrorMail } from "./sendErrorMail";
+
+/**
+ * ALLGRIT（line-saas.auka.jp/builder）からの反響取り込み。
+ *
+ * ─────────────────────────────────────────────
+ * ⚠️ 2026-09-08 に runAllgritOrder.ts と runAllGritKaeru.ts を統合した。
+ *
+ *   ALLGRIT は1つのログインで複数の LINE アカウントを切り替える作りで、
+ *   注文（国分ハウジンググループ / デイジャストハウス）と
+ *   建売（かえるホーム公式）は**同じログインの中のアカウント違い**である。
+ *   別々のタスクにするとログインとブラウザ起動が2回になり、
+ *   ログイン周りの不具合も2箇所直す必要があった。
+ *
+ *   ⚠️ 旧ファイルは残してあるが actionMap からは外している。
+ *     どちらが本物か分からなくなるため、**旧ファイルを直さないこと。**
+ *
+ * ⚠️⚠️ 統合したのは「ブラウザ操作」だけである。
+ *   CSV の解釈と送信先は注文と建売でまったく違うため、
+ *   それぞれの処理を**そのまま**保持している。
+ *
+ *              注文（order）                  建売（kaeru）
+ *   列対応     ORDER_COLUMNS（*_allGrit）      KAERU_COLUMNS（customer_id 等）
+ *   絞り込み   来店予約/資料郵送後 ＋ 姓あり     来店予約=1 or ステータス ＋ 姓あり ＋ テスト除外
+ *   店舗判定   portalShopList で解決           行わない
+ *   追加処理   LINE登録日を当日で上書き          remarks に全項目を連結
+ *   送信       postGateway('allgrit_db_order') request:'allGrit_kaeru' を500件ずつ
+ * ─────────────────────────────────────────────
+ *
+ * ⚠️ 認証情報は `ALLGRIT_ID` / `ALLGRIT_PASS` に統一した（portalService.ts の
+ *   'allgrit' エントリ）。この1組で3アカウントすべてを開く。
+ *   ⚠️ 権限が足りない場合、openAllgritAccount が
+ *     「この認証情報で見えているアカウント」を列挙してログに出す。
+ */
+
+// ---------------------------------------------------------------------------
+// 取り込む対象（アカウント × 事業）
+// ---------------------------------------------------------------------------
+
+type Business = "order" | "kaeru";
+
+type AllgritTarget = {
+    /** アカウント選択画面に出るアカウント名。これで該当カードを引く */
+    account: string;
+    /**
+     * 旧来の絶対位置セレクタ。
+     * ⚠️ アカウント名で引けなかったときの保険としてのみ使う。
+     *   ALLGRIT の DOM が安定したら消してよい。
+     */
+    selector: string;
+    /** ログと保存ファイル名に使う識別子。注文は portalShopList の brand と一致させる */
+    name: string;
+    /** CSV の解釈と送信方法を決める */
+    business: Business;
+};
+
+/**
+ * ⚠️ selector の div[n] はアカウント選択画面のカードの並び（2026-09-08 時点）。
+ *   1枚目 国分ハウジンググループ / 2枚目 イベント情報（未使用）
+ *   3枚目 デイジャストハウス / 4枚目 かえるホーム公式
+ *   ⚠️ アカウントが増減すると番号がずれる。名前で引くのが本筋で、これは保険。
+ */
+const TARGETS: AllgritTarget[] = [
+    {
+        account: ALLGRIT_ACCOUNT.KH,
+        selector:
+            "//html/body/div[2]/div/div/div/main/div/div/div/div/div/div[2]/div[1]/div[3]/button",
+        name: "KH",
+        business: "order"
+    },
+    {
+        account: ALLGRIT_ACCOUNT.DJH,
+        selector:
+            "//html/body/div[2]/div/div/div/main/div/div/div/div/div/div[2]/div[3]/div[3]/button",
+        name: "DJH",
+        business: "order"
+    },
+    {
+        account: ALLGRIT_ACCOUNT.KAERU,
+        selector:
+            "xpath=/html/body/div[2]/div/div/div/main/div/div/div/div/div/div[2]/div[4]/div[3]/button",
+        name: "かえる",
+        business: "kaeru"
+    }
+];
+
+/** 左メニュー経由の旧セレクタ。⚠️ 現在は URL 直接遷移なので使われない（引数の互換用） */
+const LEGACY_MENU_XPATH = "//html/body/div[2]/div/div/div/div[1]/nav/div[1]/div/div/div[1]/div";
+const LEGACY_LIST_XPATH = "//html/body/div[2]/div/div/div/div[1]/div/div/a[2]";
+
+/** ダウンロードボタン。⚠️ span を指しているが、無効判定は button まで遡って行う */
+const DOWNLOAD_SELECTOR =
+    "//html/body/div[2]/div/div/div/main/div/div/div/div[1]/div/div[3]/div[4]/button[4]/span";
+
+/**
+ * ⚠️⚠️ ALLGRIT はボタンを押してから実際にダウンロードが始まるまでラグがある
+ *   （サーバー側で CSV を生成してから配信している）。既定の180秒では足りない。
+ */
+const DOWNLOAD_TIMEOUT = 300000;
+/** ⚠️ 顧客一覧も XHR で描画される。行が出るまで待ってから0件判定する */
+const LIST_TIMEOUT = 60000;
+
+// ---------------------------------------------------------------------------
+// 注文（order）の列対応と絞り込み
+// ---------------------------------------------------------------------------
+
+const ORDER_COLUMNS: Record<string, string> = {
+    お客様LINEUID: "id_allGrit",
+    LINE登録日: "date_allGrit",
+    リードステータス: "status_allGrit",
+    姓: "sei_allGrit",
+    名: "mei_allGrit",
+    フリガナ: "kana_allGrit",
+    連絡先メールアドレス: "mail_allGrit",
+    電話番号: "phone_allGrit",
+    郵便番号: "zip_allGrit",
+    住所: "address1_allGrit",
+    予算: "budget_allGrit",
+    希望エリアの都道府県: "pref_allGrit",
+    希望エリアの市区町村第1希望: "city_allGrit",
+    希望エリアの市区町村第2希望: "city_allGrit2",
+    希望エリアの市区町村第3希望: "city_allGrit3",
+    // ⚠️⚠️ 以前ここは "place_homes"（Homes 用のキー名）だった。
+    //   allGrit_db に place_homes 列が無く、allgrit_db_order.php の許可カラムにも
+    //   無いため、建築予定地は黙って捨てられていた。
+    //   列の追加: backend/scripts/sql/2026-09-08_allgrit_place.sql
+    "建築予定地（市区町村）": "place_allGrit",
+    来店予約: "reservation"
+};
+
+/**
+ * 移植元 reloadAllgrit.js の取り込み条件。
+ * 来店予約あり・資料郵送後・アンケート回答後のいずれかで、かつ姓が入力済みのものを対象とする。
+ */
+const isOrderTarget = (record: Record<string, string>): boolean => {
+    const status = record["status_allGrit"] ?? "";
+    const sei = record["sei_allGrit"] ?? "";
+    const mei = record["mei_allGrit"] ?? "";
+
+    const statusMatched =
+        (record["reservation"] ?? "") !== "" ||
+        status.includes("資料郵送後") ||
+        status.includes("アンケート回答後");
+
+    return (
+        statusMatched &&
+        sei !== "" &&
+        // ⚠️ 移植元のまま。姓と名の**両方**が「テスト」のときだけ除外する
+        //   （|| ではなく !a || !b）。片方だけなら通す。
+        (!sei.includes("テスト") || !mei.includes("テスト"))
+    );
+};
+
+/**
+ * 店舗判定。**建築予定地 → 希望エリア第1希望 → 住所** の順に見る。
+ *
+ * ⚠️ 順序の意味
+ *   建築予定地 … 建てる場所。店舗の担当エリアはこれで決まる
+ *   希望エリア … お客様の希望。建築予定地が未定のときの代替
+ *   住所       … 現住所。最後の手段。⚠️ 現住所と建築地が別県のことがあり、
+ *                これで判定すると引っ越し先ではなく今の家の近くの店舗になる
+ *
+ * ⚠️ 希望エリアの第2・第3希望は使わない。
+ *   第1希望で当たらないときに第2希望で拾うと、
+ *   お客様の優先順位と担当店舗がずれる。
+ */
+const resolveShop = (record: Record<string, string>, brand: string): string => {
+    // ⚠️ 空・未入力の項目は飛ばす。順に見ていることを読んで分かるようにするため。
+    //
+    // ⚠️⚠️ portalShopList の `area` に空文字が混じると危険。
+    //   `text.includes("")` は常に true になり、そのブランドの反響が
+    //   全件リスト先頭の店舗に寄る。area を追加するときは空でないことを確認する。
+    const candidates = [
+        record["place_allGrit"],
+        record["city_allGrit"],
+        record["address1_allGrit"]
+    ];
+
+    for (const text of candidates) {
+        if (!text) continue;
+        const matched = portalShopList.find(
+            shop => shop.brand === brand && text.includes(shop.area)
+        );
+        if (matched) return matched.shop;
+    }
+
+    return notFoundShopFor(brand);
+};
+
+// ---------------------------------------------------------------------------
+// 建売（kaeru）の列対応と絞り込み
+// ---------------------------------------------------------------------------
+
+const KAERU_COLUMNS: Record<string, string> = {
+    "お客様ID": "customer_id",
+    "お客様LINEUID": "line_uid",
+    "LINE登録日": "line_registered_at",
+    "種別": "customer_type",
+    "会社名": "company_name",
+    "リードステータス": "lead_status",
+    "引き渡し日": "delivery_date",
+    "LINE表示名": "line_display_name",
+    "姓": "last_name",
+    "名": "first_name",
+    "フリガナ": "name_kana",
+    "生年月日": "birth_date",
+    "性別": "gender",
+    "連絡先メールアドレス": "email",
+    "電話番号": "phone",
+    "郵便番号": "zip_code",
+    "住所": "address",
+    "予算": "budget",
+    "電話可能な時間帯": "available_time",
+    "土地探しの状況": "land_search_status",
+    "動機": "motivation",
+    "希望エリアの都道府県": "desired_pref",
+    "希望エリアの市区町村第1希望": "desired_city_1",
+    "希望エリアの市区町村第2希望": "desired_city_2",
+    "希望エリアの市区町村第3希望": "desired_city_3",
+    "資料請求状況": "document_request_status",
+    "その他の条件": "other_conditions",
+    "お友達登録状況": "friend_add_status",
+    "お友達登録経路": "friend_add_route",
+    "担当者": "staff",
+    "来店予約": "visit_reservation",
+    "メッセージ受信": "message_received",
+    "オーナーID": "owner_id",
+    "流入元キャンペーン": "source_campaign",
+    "流入元媒体": "source_media",
+    "流入元サイト": "source_site",
+    "GoogleClickId": "gclid",
+    "タグ": "tags",
+    "ご希望の都道府県": "desired_pref_alt",
+    "希望エリア（学校区など詳細をご記入ください）": "desired_area_detail",
+    "希望エリア【第1】": "desired_area_1",
+    "希望エリア【第2】": "desired_area_2",
+    "希望エリア【第3】": "desired_area_3"
+};
+
+/**
+ * 建売の1行を変換する。
+ *
+ * ⚠️ `remarks` に**CSVの全項目**を「見出し：値」で連結して入れる。
+ *   KAERU_COLUMNS に無い項目も含める。ALLGRIT はアンケート項目が
+ *   随時増えるため、対応表に無い回答を取りこぼさないための保険である。
+ *   ⚠️ 行が大きくなるが、消さないこと。
+ */
+const mapKaeruRecord = (jpRecord: Record<string, unknown>): Record<string, unknown> => {
+    const obj: Record<string, unknown> = {};
+    const remarksList: string[] = [];
+
+    for (const [jpKeyRaw, valRaw] of Object.entries(jpRecord)) {
+        // ⚠️ CSVの見出しに引用符が残ることがあるので落とす
+        const jpKey = String(jpKeyRaw).trim().replace(/^"|"$/g, "");
+        const cell = valRaw === undefined || valRaw === null ? "" : String(valRaw).trim();
+
+        if (jpKey) {
+            remarksList.push(`${jpKey}：${cell}`);
+        }
+
+        const mapped = KAERU_COLUMNS[jpKey];
+        if (!mapped) continue;
+        obj[mapped] = cell;
+    }
+
+    obj["remarks"] = remarksList.join("\n");
+    return obj;
+};
+
+/** 建売の取り込み条件。⚠️ 注文とは条件が違う（テスト客の除外は姓名どちらかで効く） */
+const isKaeruTarget = (rec: Record<string, unknown>): boolean => {
+    const isReserved = rec.visit_reservation === "1";
+    const status = String(rec.lead_status || "");
+    const isTargetStatus = status === "資料郵送後" || status.includes("アンケート回答後");
+
+    const lastName = String(rec.last_name || "");
+    const firstName = String(rec.first_name || "");
+    const isTestUser = lastName.includes("テスト") || firstName.includes("テスト");
+
+    return (isReserved || isTargetStatus) && lastName !== "" && !isTestUser;
+};
+
+/** 建売の送信先。⚠️ 注文の postGateway とは request 名も形も違う */
+const KAERU_POST_URL = "https://khg-marketing.info/dashboard/api/gateway/";
+/** ⚠️ 1回で全件送ると ① の PHP がメモリ上限を超えるため分割する */
+const KAERU_CHUNK_SIZE = 500;
+
+const postKaeruChunk = async (
+    chunk: Record<string, unknown>[],
+    retries = 2,
+    delayMs = 1000
+): Promise<unknown> => {
+    const payload = { request: "allGrit_kaeru", data: chunk };
+    let lastErr: unknown = null;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            const res = await axios.post(KAERU_POST_URL, payload, {
+                headers: { "Content-Type": "application/json" },
+                timeout: 60000
+            });
+            return res.data ?? {};
+        } catch (err) {
+            lastErr = err;
+            if (attempt < retries) await new Promise(r => setTimeout(r, delayMs));
+        }
+    }
+    throw lastErr;
+};
+
+// ---------------------------------------------------------------------------
+// 本体
+// ---------------------------------------------------------------------------
+
+/**
+ * @param id ALLGRIT_ID
+ * @param pass ALLGRIT_PASS
+ */
+export const runAllGrit = async (id: string, pass: string): Promise<void> => {
+    console.log("ALLGRIT スタート");
+
+    // ⚠️ 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される
+    const errors: string[] = [];
+
+    if (!id || !pass) {
+        const msg = "ALLGRIT_認証情報（ALLGRIT_ID / ALLGRIT_PASS）が未設定です";
+        errors.push(msg);
+        console.log(msg);
+        await sendErrorMail(errors, "runAllGrit.ts");
+        return;
+    }
+
+    /** 注文の送信待ち。⚠️ 3アカウント分をまとめて1回で送る（移植元と同じ） */
+    const orderRows: GatewayRow[] = [];
+
+    let browser: Browser | undefined;
+
+    /** 1アカウント分のCSVを落として保存先を返す。取れなければ null */
+    const downloadFor = async (page: Page, target: AllgritTarget): Promise<string | null> => {
+        console.log(`${target.name}_スタート`);
+
+        // ⚠️ 前のアカウントの状態を引きずらないよう、毎回アカウント選択画面から始める。
+        //   遷移・待機・再試行・診断の保存は openAllgritAccount がまとめて行う。
+        if (!await openAllgritAccount(page, target.account, target.selector, target.name)) {
+            return null;
+        }
+
+        // ⚠️ 左メニューは display:none で押せないため、URL で直接開く
+        if (!await openAllgritCustomerList(page, LEGACY_MENU_XPATH, LEGACY_LIST_XPATH, target.name)) {
+            return null;
+        }
+
+        return downloadCsvFile(page, {
+            selector: DOWNLOAD_SELECTOR,
+            filePath: portalTmpPath(
+                `${target.name}_${formatDate(new Date())}ALLGRIT_${target.business}.csv`
+            ),
+            label: `${target.name}_オールグリット`,
+            downloadTimeout: DOWNLOAD_TIMEOUT,
+            listTimeout: LIST_TIMEOUT
+        });
+    };
+
+    /** 注文のCSVを解釈して送信待ちに積む */
+    const collectOrder = async (filePath: string, target: AllgritTarget): Promise<void> => {
+        const records = parseCsv(await readFile(filePath, "utf8")).map(row =>
+            mapColumns(row, ORDER_COLUMNS)
+        );
+
+        const rows = records.filter(isOrderTarget).map(record => {
+            // ⚠️ 移植元は LINE 登録日を「取り込んだ当日」で上書きしている
+            if (record["date_allGrit"]) {
+                const now = new Date();
+                record["date_allGrit"] = `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getDate()).padStart(2, "0")}`;
+            }
+            record["shop_allGrit"] = target.name;
+            record["shop"] = resolveShop(record, target.name);
+            return record as GatewayRow;
+        });
+
+        console.log(`${target.name}_対象 ${rows.length}件 / CSV ${records.length}件`);
+        orderRows.push(...rows);
+    };
+
+    /** 建売のCSVを解釈してその場で送信する */
+    const sendKaeru = async (filePath: string, target: AllgritTarget): Promise<void> => {
+        const text = (await readFile(filePath)).toString("utf8");
+        const jpRecords = parse(text, {
+            bom: true,
+            columns: true,
+            skip_empty_lines: true,
+            relax_column_count: true,
+            trim: true
+        }) as Array<Record<string, unknown>>;
+
+        const mapped = jpRecords.map(mapKaeruRecord).filter(isKaeruTarget);
+
+        // ⚠️ 登録日は「YYYY-MM-DD HH:MM」で来る。日付だけにする
+        for (const record of mapped) {
+            if (typeof record.line_registered_at === "string" && record.line_registered_at) {
+                record.line_registered_at = record.line_registered_at.split(" ")[0];
+            }
+        }
+
+        console.log(`${target.name}_対象 ${mapped.length}件 / CSV ${jpRecords.length}件`);
+
+        let success = 0;
+        let failed = 0;
+        for (let i = 0; i < mapped.length; i += KAERU_CHUNK_SIZE) {
+            const chunk = mapped.slice(i, i + KAERU_CHUNK_SIZE);
+            const chunkNumber = Math.floor(i / KAERU_CHUNK_SIZE) + 1;
+            try {
+                console.log(`${target.name}_${chunkNumber}件目のかたまり（${chunk.length}件）を送信します`);
+                await postKaeruChunk(chunk);
+                success++;
+            } catch (err) {
+                failed++;
+                // ⚠️ ① が返すエラー本文まで出す。DBのどの列で落ちたかが分かる
+                const detail =
+                    (err as { response?: { data?: unknown } }).response?.data !== undefined
+                        ? JSON.stringify((err as { response: { data: unknown } }).response.data)
+                        : "";
+                const msg = `${target.name}_送信失敗（${chunkNumber}件目）: ${err instanceof Error ? err.message : String(err)}`;
+                console.error(msg);
+                if (detail) console.error(`  ① からのエラー詳細: ${detail}`);
+                errors.push(detail ? `${msg} / ${detail}` : msg);
+            }
+        }
+        console.log(`${target.name}_送信完了 成功 ${success} / 失敗 ${failed}`);
+    };
+
+    try {
+        browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
+        // ⚠️⚠️ ビューポートを明示する。既定は 1280x720 で、
+        //   Vuetify のアカウント一覧が折り返して絶対位置のセレクタがずれる。
+        const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
+        const page = await context.newPage();
+        page.setDefaultTimeout(NAVIGATION_TIMEOUT);
+
+        // ⚠️ ログインできていないままアカウントごとの処理へ進むと、
+        //   全アカウントが「カードが見つからない」で失敗し、
+        //   本当の原因（ログイン）が埋もれる。ここで止める。
+        if (!await loginToAllgrit(page, id, pass, "ALLGRIT")) {
+            const msg = "ALLGRIT_ログインに失敗したため処理を中止しました";
+            errors.push(msg);
+            console.log(msg);
+            await sendErrorMail(errors, "runAllGrit.ts");
+            await closeBrowser(browser);
+            return;
+        }
+
+        for (const target of TARGETS) {
+            try {
+                const filePath = await downloadFor(page, target);
+                if (filePath === null) {
+                    // ⚠️ 0件・到達できずはスキップ扱い。理由は downloadCsvFile が出す
+                    continue;
+                }
+
+                if (target.business === "order") {
+                    await collectOrder(filePath, target);
+                } else {
+                    await sendKaeru(filePath, target);
+                }
+            } catch (err) {
+                // ⚠️ 1アカウントの失敗で他を止めない
+                const msg = `${target.name}_オールグリット_処理失敗: ${err}`;
+                errors.push(msg);
+                console.log(msg);
+            }
+
+            // ⚠️ 次のアカウントは goto でトップから始めるため、復帰は失敗しても無視してよい
+            await backToAllgritTop(page, target.name);
+        }
+    } catch (err) {
+        const msg = `ALLGRIT_処理に失敗: ${err}`;
+        errors.push(msg);
+        console.error(msg);
+    } finally {
+        // ⚠️ 例外が起きても Chromium を必ず終了させる。
+        //   閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await closeBrowser(browser);
+    }
+
+    // ⚠️ 注文は3アカウント分をまとめて送る（移植元と同じ）。
+    //   ブラウザを閉じた後に送るので、送信中にセッションが切れる心配がない。
+    if (orderRows.length > 0) {
+        const result = await postGateway("allgrit_db_order", orderRows);
+        errors.push(...result.errors.map(e => `ALLGRIT_注文_送信失敗: ${e}`));
+        console.log(`ALLGRIT_注文 ${orderRows.length}件を送信しました`);
+    }
+
+    await sendErrorMail(errors, "runAllGrit.ts");
+};

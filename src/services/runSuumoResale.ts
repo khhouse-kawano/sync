@@ -3,8 +3,8 @@ import { readFile, writeFile } from 'fs/promises';
 import iconv from 'iconv-lite';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
+import { closeBrowser } from '../utils/portalPage';
 import { sendErrorMail } from './sendErrorMail';
-const errors: string[] = [];
 // テーブル定義順のカラム名配列（id と created_at は除外）
 const resaleColumns = [
     'received_at', 'sequence_no', 'source_campaign', 'recipient_type', 'recipient_code',
@@ -70,6 +70,8 @@ const columnNameMap: Record<string, string> = {
 };
 
 export const runSuumoResale = async (id: string, pass: string) => {
+    // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
+    const errors: string[] = [];
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -206,11 +208,18 @@ export const runSuumoResale = async (id: string, pass: string) => {
         }
     };
 
-    await login();
-    await customerSearch();
-    await processAndPostData();
-
-    await browser.close();
-    await sendErrorMail(errors, 'runSuumoResale.ts');
-
+    try {
+        await login();
+        await customerSearch();
+        await processAndPostData();
+    } catch (err) {
+        const msg = `処理全体が中断しました: ${err}`;
+        console.error(msg);
+        errors.push(msg);
+    } finally {
+        // 例外が起きても Chromium を必ず終了させる。
+        // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
+        await closeBrowser(browser);
+        await sendErrorMail(errors, 'runSuumoResale.ts');
+    }
 };

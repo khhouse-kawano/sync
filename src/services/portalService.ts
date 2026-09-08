@@ -9,7 +9,6 @@ import { runIei } from "./runIei";
 import { runAthomeKaeru } from "./runAtHomeKaeru";
 import { RunGeoCode } from "./runGeocode";
 import { runIeuru } from "./runIeuru";
-import { runAllGritKaeru } from "./runAllGritKaeru";
 import { runReserveKaeru } from "./runReserveKaeru";
 import { runReserveResale } from "./runReserveResale";
 import { runCatalogResale } from "./runCatalogResale";
@@ -25,17 +24,7 @@ import { runHotlead } from "./runHotlead";
 import { runSuumoOrder } from "./runSuumoOrder";
 import { runHomesOrder } from "./runHomesOrder";
 import { runTownlifeOrder } from "./runTownlifeOrder";
-import { runAllgritOrder } from "./runAllgritOrder";
-
-// 認証情報を portal 配列で持たないタスク。
-// geoCode は認証不要、*_order は各サービスがブランドごとの認証情報を process.env から直接読む。
-const noCredentialTasks = new Set([
-  'geoCode',
-  'suumo_order',
-  'homes_order',
-  'townlife_order',
-  'allgrit_order'
-]);
+import { runAllGrit } from "./runAllGrit";
 
 export const portalService = {
   process: async (options?: { targetTasks?: string[] }) => {
@@ -51,7 +40,6 @@ export const portalService = {
       'athome': runAthomeKaeru,
       'geoCode': RunGeoCode,
       'ieuru_resale': runIeuru,
-      'allGrit_kaeru': runAllGritKaeru,
       'reserve_kaeru': runReserveKaeru,
       'reserve_resale': runReserveResale,
       'catalog_resale': runCatalogResale,
@@ -70,7 +58,15 @@ export const portalService = {
       'suumo_order': runSuumoOrder,
       'homes_order': runHomesOrder,
       'townlife_order': runTownlifeOrder,
-      'allgrit_order': runAllgritOrder
+      // ⚠️⚠️ 2026-09-08 に注文（allgrit_order）と建売（allGrit_kaeru）を
+      //   runAllGrit.ts へ統合した。ALLGRIT は1つのログインで
+      //   複数の LINE アカウントを切り替える作りで、注文と建売は
+      //   同じログインの中のアカウント違いだったため。
+      //
+      // ⚠️ 旧ファイル（runAllgritOrder.ts / runAllGritKaeru.ts）は
+      //   残してあるが、**ここから外してある**。
+      //   どちらが本物か分からなくなるので旧ファイルを直さないこと。
+      'allgrit': runAllGrit
     };
 
     const portal = [
@@ -90,7 +86,6 @@ export const portalService = {
       { name: 'athome_summary_2', id: process.env.ATHOME_SUMMARY_ID_RESALE ?? "", pass: process.env.ATHOME_SUMMARY_PASS_RESALE ?? "" },
       { name: 'athome', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'ieuru_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
-      { name: 'allGrit_kaeru', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
       { name: 'reserve_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'reserve_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'catalog_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
@@ -101,11 +96,23 @@ export const portalService = {
       { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'hotlead', id: process.env.HOTLEAD_ID ?? "", pass: process.env.HOTLEAD_PASS ?? ""},
       { name: 'geoCode' },
-      // 注文事業のポータル反響（portal-app から移植）。認証情報は各サービスが直接読む。
-      { name: 'suumo_order' },
-      { name: 'homes_order' },
-      { name: 'townlife_order' },
-      { name: 'allgrit_order' },
+      // 注文事業のポータル反響（portal-app から移植）。
+      // ここには代表ブランド（KH）の認証情報を持たせて未設定時のスキップ判定に使う。
+      // 実際のログインは各サービスがブランドごとに process.env から読み込む。
+      { name: 'suumo_order', id: process.env.SUUMO_ID_KH ?? "", pass: process.env.SUUMO_PASS_KH ?? "" },
+      { name: 'homes_order', id: process.env.HOMES_ID_KH ?? "", pass: process.env.HOMES_PASS_KH ?? "" },
+      { name: 'townlife_order', id: process.env.TOWNLIFE_ID_KH ?? "", pass: process.env.TOWNLIFE_PASS_KH ?? "" },
+      // ⚠️⚠️ 注文（旧 allgrit_order）と建売（旧 allGrit_kaeru）を統合した1本。
+      //   ALLGRIT は1つのログインで複数の LINE アカウントを切り替える作りで、
+      //   注文（国分ハウジンググループ / デイジャストハウス）と
+      //   建売（かえるホーム公式）は同じログインの中のアカウント違いである。
+      //
+      // ⚠️ 認証情報は ALLGRIT_ID / ALLGRIT_PASS に統一した。
+      //   ALLGRIT_ORDER_ID / ALLGRIT_ORDER_PASS は**使わなくなった**が、
+      //   切り戻せるよう環境変数自体は残してある。
+      //   ⚠️ この認証情報で注文の2アカウントが見えない場合、
+      //     runAllGrit がログに「見えているアカウント」を列挙する。
+      { name: 'allgrit', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
     ];
 
     const results = [];
@@ -117,7 +124,7 @@ export const portalService = {
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     for (const brand of targets) {
-      if (!noCredentialTasks.has(brand.name) && (!brand.id || !brand.pass)) {
+      if (brand.name !== 'geoCode' && (!brand.id || !brand.pass)) {
         results.push({
           name: brand.name,
           ok: false,
