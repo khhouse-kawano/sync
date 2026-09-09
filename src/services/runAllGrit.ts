@@ -144,8 +144,31 @@ const ORDER_COLUMNS: Record<string, string> = {
 };
 
 /**
- * 移植元 reloadAllgrit.js の取り込み条件。
- * 来店予約あり・資料郵送後・アンケート回答後のいずれかで、かつ姓が入力済みのものを対象とする。
+ * 注文の取り込み条件。
+ *
+ * ─────────────────────────────────────────────
+ * ⚠️⚠️ **移植元 portal-app/reloadAllgrit.js（115行目付近）と
+ *   1文字も変えてはいけない。** 取り込む反響の母数が変わる。
+ *
+ *   原本:
+ *     (record.reservation === "1" ||
+ *       record.status_allGrit === "資料郵送後" ||
+ *       record.status_allGrit.includes("アンケート回答後")) &&
+ *     record.sei_allGrit !== "" &&
+ *     (!record.sei_allGrit.includes("テスト") ||
+ *       !record.mei_allGrit.includes("テスト"))
+ *
+ * ⚠️ 2026-09-08 の統合作業で、ここを一度**緩めてしまった**。
+ *     reservation === "1"        → reservation !== ""        （誤）
+ *     status === "資料郵送後"     → status.includes("資料郵送後")（誤）
+ *   その結果、対象外の反響まで取り込まれていた。原本に戻してある。
+ *
+ * ⚠️ 3つの比較で「完全一致」と「部分一致」が混在しているのは**原本のまま**である。
+ *     reservation … 完全一致（"1" 以外は対象外）
+ *     資料郵送後   … 完全一致（「資料郵送後キャンセル」等は対象外）
+ *     アンケート回答後 … 部分一致（前後に文字が付く運用がある）
+ *   揃えたくなるが、揃えると件数が変わる。触らないこと。
+ * ─────────────────────────────────────────────
  */
 const isOrderTarget = (record: Record<string, string>): boolean => {
     const status = record["status_allGrit"] ?? "";
@@ -153,8 +176,11 @@ const isOrderTarget = (record: Record<string, string>): boolean => {
     const mei = record["mei_allGrit"] ?? "";
 
     const statusMatched =
-        (record["reservation"] ?? "") !== "" ||
-        status.includes("資料郵送後") ||
+        // ⚠️ 完全一致。"1" 以外（"0" や空）は対象外
+        record["reservation"] === "1" ||
+        // ⚠️ 完全一致。includes にしないこと
+        status === "資料郵送後" ||
+        // ⚠️ ここだけ部分一致。原本のまま
         status.includes("アンケート回答後");
 
     return (
@@ -178,6 +204,26 @@ const isOrderTarget = (record: Record<string, string>): boolean => {
  * ⚠️ 希望エリアの第2・第3希望は使わない。
  *   第1希望で当たらないときに第2希望で拾うと、
  *   お客様の優先順位と担当店舗がずれる。
+ *
+ * ─────────────────────────────────────────────
+ * ⚠️⚠️ **ここは移植元 portal-app/reloadAllgrit.js と意図的に違う。**
+ *   `isOrderTarget` のように原本へ揃えてはいけない（2026-09-09 に判断済み）。
+ *
+ *   原本は **希望エリア第1希望 → 住所** の2段だけで、建築予定地は見ていない。
+ *   正確には、原本は CSV の「建築予定地（市区町村）」を `place_homes`
+ *   （Homes 用のキー名）にマップしたあと**どこからも参照しておらず**、
+ *   allGrit_db にも allgrit_db_order.php の許可カラムにも place_homes が
+ *   無いため、建築予定地は黙って捨てられていた。
+ *   つまり原本の2段構成は設計ではなく、キー名の間違いの結果である。
+ *
+ *   建てる場所で担当店舗が決まるという実務に合わせ、
+ *   列を追加（backend/scripts/sql/2026-09-08_allgrit_place.sql）した上で
+ *   建築予定地を最優先にしている。
+ *
+ * ⚠️ そのため、同じ反響でも原本と担当店舗が変わることがある。
+ *   （建築予定地と希望エリアが違う市区町村のとき）
+ *   件数は変わらず、割り振り先だけが変わる。
+ * ─────────────────────────────────────────────
  */
 const resolveShop = (record: Record<string, string>, brand: string): string => {
     // ⚠️ 空・未入力の項目は飛ばす。順に見ていることを読んで分かるようにするため。
