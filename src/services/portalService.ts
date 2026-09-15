@@ -111,6 +111,13 @@ export const portalService = {
       { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'hotlead', id: process.env.HOTLEAD_ID ?? "", pass: process.env.HOTLEAD_PASS ?? ""},
       { name: 'geoCode' },
+      // ⚠️⚠️ 自社店舗の Google クチコミ（google_review テーブル）。
+      //   ⚠️ ログインを伴わないので id / pass を持たない。**geoCode と同じ形**である。
+      //     認証情報の必須チェックからも外してある（下の NO_CREDENTIAL_TASKS）。
+      //   ⚠️ 使う鍵は runGeocode.ts と同じ `process.env.API_KEY`。
+      //     ⚠️ 同じ GCP プロジェクトで **Places API (New) を有効化**しておくこと。
+      //     キーに API 制限をかけている場合は Places API を許可すること。
+      { name: 'google_review' },
       // 注文事業のポータル反響（portal-app から移植）。
       // ここには代表ブランド（KH）の認証情報を持たせて未設定時のスキップ判定に使う。
       // 実際のログインは各サービスがブランドごとに process.env から読み込む。
@@ -153,8 +160,16 @@ export const portalService = {
 
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+    /**
+     * ID / パスワードを持たないタスク。
+     * ⚠️ ログインを伴わず、API キーだけで動くもの（鍵は各 runner が
+     *   process.env から直接読む）。⚠️ ここに入れないと
+     *   「認証情報が不足しています」で**実行されずに終わる。**
+     */
+    const NO_CREDENTIAL_TASKS = ['geoCode', 'google_review'];
+
     for (const brand of targets) {
-      if (brand.name !== 'geoCode' && (!brand.id || !brand.pass)) {
+      if (!NO_CREDENTIAL_TASKS.includes(brand.name) && (!brand.id || !brand.pass)) {
         results.push({
           name: brand.name,
           ok: false,
