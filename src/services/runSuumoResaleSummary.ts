@@ -42,7 +42,13 @@ const summaryColumns = [
     'highlight_detail'        // 32列目: ハイライト
 ];
 
-export const runSuumoResaleSummary = async (id: string, pass: string) => {
+/**
+ * @param brand 呼び出し元（portalService）が渡すアカウント識別子。
+ *   ⚠️ サマリーの保存先を分けるために使う。suumo_summary と suumo_summary_2 は
+ *     同じ関数を2アカウントで実行するため、これが無いと
+ *     **2つ目が1つ目のサマリーを上書きする**（2026-09-09 のログで確認）。
+ */
+export const runSuumoResaleSummary = async (id: string, pass: string, brand?: string) => {
     // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
     const errors: string[] = [];
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
@@ -88,7 +94,8 @@ export const runSuumoResaleSummary = async (id: string, pass: string) => {
 
             // Excelファイルとして保存
             const savePath = '/tmp/resale_summary.xlsx';
-            const summaryPath = '/tmp/resale_summary_import.json';
+            // ⚠️ アカウントごとに分ける（引数 brand のコメント参照）
+            const summaryPath = `/tmp/resale_summary_import_${brand ?? 'default'}.json`;
             await download.saveAs(savePath);
             console.log('Excelダウンロード完了');
 

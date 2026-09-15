@@ -55,6 +55,28 @@ const homesColumns = [
 const runHomesSummary = async (id, pass, brand) => {
     // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
     const errors = [];
+    /**
+     * この実行を失敗として扱うか。
+     *
+     * ─────────────────────────────────────────────
+     * ⚠️⚠️ **例外を投げないと portalService は成功として扱う。**
+     *   portalService.ts は `await executeTask(...)` が例外を投げなければ
+     *   `ok: true, message: '... の更新が完了しました'` を積む
+     *   （portalService.ts:167 付近）。
+     *
+     *   2026-09-11 まで、この関数は errors に積んでメールを送るだけで
+     *   例外を投げていなかった。そのため
+     *
+     *     お客様ページへの遷移に失敗: TimeoutError: ...
+     *     { name: 'homes_summary', ok: true, message: '... 完了しました' }
+     *
+     *   という状態になり、**spec のデータが1件も取れていないのに
+     *   成功と報告されていた**。failedTasks も空だった。
+     *
+     * ⚠️ 成功したときの挙動は変えていない。失敗が失敗として見えるようにしただけ。
+     * ─────────────────────────────────────────────
+     */
+    let fatal = false;
     const target = {
         spec: {
             name: 'かえるホーム',
@@ -65,24 +87,54 @@ const runHomesSummary = async (id, pass, brand) => {
             path: 'xpath=/html/body/div[5]/div/div[9]/div/div/div/div[2]/form/div[2]/table/tbody/tr[2]/td/a'
         }
     };
-    if (!brand || !(brand in target))
-        return;
+    /**
+     * ⚠️⚠️ **黙って return しない。**
+     *   ここで return すると例外が出ず、portalService が成功として扱う。
+     *   brand の指定漏れは設定の誤りなので、はっきり失敗させる。
+     *   ⚠️ portal 定義（portalService.ts）で homes_summary に
+     *     brand: 'spec' / 'used' を必ず付けること。
+     */
+    if (!brand || !(brand in target)) {
+        throw new Error(`runHomesSummary: brand が不正です（受け取った値: ${brand ?? 'undefined'}）。` +
+            `portalService.ts の portal 定義で 'spec' か 'used' を指定してください。`);
+    }
     const brandTarget = target[brand];
     const browser = await playwright_1.chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
+    /** ログインフォームのID欄。⚠️ ログイン成功の判定にも使う */
+    const LOGIN_ID_PATH = 'xpath=/html/body/div/div/div[2]/form/div[1]/div/div/dl[1]/dd[1]/input';
     const login = async () => {
         try {
             await page.goto('https://lifull.my.site.com/pro/UserLogin');
             await page.waitForLoadState("networkidle");
-            await page.fill('xpath=/html/body/div/div/div[2]/form/div[1]/div/div/dl[1]/dd[1]/input', id);
+            await page.fill(LOGIN_ID_PATH, id);
             await page.fill('xpath=/html/body/div/div/div[2]/form/div[1]/div/div/dl[2]/dd[1]/input', pass);
             await page.click('xpath=/html/body/div/div/div[2]/form/div[1]/div/div/ul/li[2]/input');
+            await waitForMinute();
+            /**
+             * ⚠️⚠️ **ログインできたか必ず確かめる。**
+             *   2026-09-11 まで確認していなかったため、ログインに失敗しても
+             *   そのまま summarySearch へ進み、ログイン画面でメニューを探して
+             *   「tr[3] が見えない」という**無関係なエラー**になっていた。
+             *   真の原因が隠れるので、ここで止める。
+             *
+             * ⚠️ 判定はログインフォームが残っているかで行う。
+             *   成功すると画面が遷移してこの要素は消える。
+             */
+            const stillOnLoginForm = await page.locator(LOGIN_ID_PATH)
+                .isVisible()
+                .catch(() => false);
+            if (stillOnLoginForm) {
+                await (0, portalPage_1.logPageState)(page, `homes-summary-${brand}-ログイン失敗`);
+                throw new Error('ログイン後もログインフォームが残っています（ID・パスワードか、フォームのxpathを確認してください）');
+            }
         }
         catch (err) {
             const msg = `ログイン処理に失敗: ${err}`;
             console.log(msg);
             errors.push(msg);
+            fatal = true;
         }
     };
     const waitForMinute = async (targetPage = page) => {
@@ -114,7 +166,21 @@ const runHomesSummary = async (id, pass, brand) => {
             if (brand === 'spec') {
                 const menuPath = 'xpath=/html/body/div[1]/div[2]/div[1]/div[1]/div/div[1]/h3/a/span';
                 const menuLocator = page.locator(menuPath);
-                await menuLocator.evaluate((node) => node.click()).catch(() => { });
+                /**
+                 * ⚠️⚠️ **クリックの失敗を握りつぶさない。**
+                 *   2026-09-11 まで `.catch(() => { })` で捨てていた。
+                 *   メニューが無い（＝ログインできていない、xpathがずれた）場合でも
+                 *   そのまま進み、15秒後に「tr[3] が見えない」で落ちるため、
+                 *   **原因がモーダル側にあるように見えていた**。
+                 *
+                 * ⚠️⚠️ **`visible` ではなく `attached` で待つこと。**
+                 *   クリックは `evaluate(node.click())` で直接発火させており、
+                 *   これは**非表示の要素でも動く**。`visible` を求めると、
+                 *   今まで動いていたケースを新たに失敗させてしまう。
+                 *   ⚠️ 同ファイルの jsClick も attached を使っている。揃えること。
+                 */
+                await menuLocator.waitFor({ state: 'attached', timeout: 15000 });
+                await menuLocator.evaluate((node) => node.click());
                 console.log(`${brandTarget.name} のモーダル/メニュー表示を待機します...`);
                 const brandLocator = page.locator(brandTarget.path);
                 await brandLocator.waitFor({ state: 'visible', timeout: 15000 });
@@ -140,6 +206,19 @@ const runHomesSummary = async (id, pass, brand) => {
             const msg = `お客様ページへの遷移に失敗: ${err}`;
             console.error(msg);
             errors.push(msg);
+            fatal = true;
+            /**
+             * ⚠️⚠️ **失敗したページの現物を残す。**
+             *   この関数は 2026-09-11 まで何も保存しておらず、
+             *   「tr[3] が見えない」という文言しか手がかりが無かった。
+             *   at-home 側（runAtHomeSummary / athomeModal）は
+             *   HTML とスクリーンショットを残しており、それで原因
+             *   （約款モーダルのボタンが disabled）を特定できた。
+             *   同じことが spec でもできるようにする。
+             *
+             * ⚠️ 保存の失敗で本処理を止めないこと。診断のための付加機能である。
+             */
+            await (0, portalPage_1.logPageState)(page, `homes-summary-${brand}-遷移失敗`).catch(() => { });
             return null;
         }
     };
@@ -156,7 +235,10 @@ const runHomesSummary = async (id, pass, brand) => {
                 downloadBtn.evaluate((node) => node.click())
             ]);
             const savePath = '/tmp/homes_summary.csv';
-            const summaryPath = '/tmp/homes_summary_import_result.json';
+            // ⚠️ アカウントごとに分ける。homes_summary（spec）と
+            //   homes_summary_2（used）は同じ関数なので、固定名だと
+            //   **2つ目が1つ目のサマリーを上書きする**（2026-09-09 に確認）
+            const summaryPath = `/tmp/homes_summary_import_result_${brand ?? 'default'}.json`;
             await download.saveAs(savePath);
             console.log('CSVダウンロード完了');
             const buf = await (0, promises_1.readFile)(savePath);
@@ -237,19 +319,27 @@ const runHomesSummary = async (id, pass, brand) => {
         catch (err) {
             console.error('処理中にエラーが発生しました:', err);
             errors.push(`処理エラー: ${err}`);
+            fatal = true;
+            // ⚠️ CSVの取得や送信で落ちたときも現物を残す
+            await (0, portalPage_1.logPageState)(targetPage, `homes-summary-${brand}-処理失敗`).catch(() => { });
         }
     };
     try {
         await login();
-        const activePage = await summarySearch();
-        if (activePage) {
-            await processAndPostData(activePage);
+        // ⚠️ ログインに失敗したら先へ進まない。
+        //   進むとログイン画面でメニューを探し、無関係なエラーになる。
+        if (!fatal) {
+            const activePage = await summarySearch();
+            if (activePage) {
+                await processAndPostData(activePage);
+            }
         }
     }
     catch (err) {
         const msg = `処理全体が中断しました: ${err}`;
         console.error(msg);
         errors.push(msg);
+        fatal = true;
     }
     finally {
         // 例外が起きても Chromium を必ず終了させる。
@@ -258,6 +348,18 @@ const runHomesSummary = async (id, pass, brand) => {
         if (errors.length > 0) {
             await (0, sendErrorMail_1.sendErrorMail)(errors, 'runHomesSummary.ts');
         }
+    }
+    /**
+     * ⚠️⚠️ **finally の「後」で投げること。**
+     *   finally の中で投げると closeBrowser や sendErrorMail が
+     *   最後まで走らないおそれがある。ブラウザの閉じ残りは
+     *   後続タスクまで巻き込むため、片付けを終えてから投げる。
+     *
+     * ⚠️ ここで投げて初めて portalService が ok: false にする。
+     *   投げないと「データ0件なのに成功」に戻る。
+     */
+    if (fatal) {
+        throw new Error(errors.join(' / '));
     }
 };
 exports.runHomesSummary = runHomesSummary;

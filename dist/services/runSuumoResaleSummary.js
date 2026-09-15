@@ -78,7 +78,13 @@ const summaryColumns = [
     'total_images', // 31列目: 総画像数
     'highlight_detail' // 32列目: ハイライト
 ];
-const runSuumoResaleSummary = async (id, pass) => {
+/**
+ * @param brand 呼び出し元（portalService）が渡すアカウント識別子。
+ *   ⚠️ サマリーの保存先を分けるために使う。suumo_summary と suumo_summary_2 は
+ *     同じ関数を2アカウントで実行するため、これが無いと
+ *     **2つ目が1つ目のサマリーを上書きする**（2026-09-09 のログで確認）。
+ */
+const runSuumoResaleSummary = async (id, pass, brand) => {
     // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
     const errors = [];
     const browser = await playwright_1.chromium.launch({ args: ["--no-sandbox"], headless: true });
@@ -121,7 +127,8 @@ const runSuumoResaleSummary = async (id, pass) => {
             ]);
             // Excelファイルとして保存
             const savePath = '/tmp/resale_summary.xlsx';
-            const summaryPath = '/tmp/resale_summary_import.json';
+            // ⚠️ アカウントごとに分ける（引数 brand のコメント参照）
+            const summaryPath = `/tmp/resale_summary_import_${brand ?? 'default'}.json`;
             await download.saveAs(savePath);
             console.log('Excelダウンロード完了');
             const buf = await (0, promises_1.readFile)(savePath);

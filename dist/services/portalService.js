@@ -73,8 +73,11 @@ exports.portalService = {
         const portal = [
             { name: 'suumo_kaeru', id: process.env.SUUMO_KAERU_ID ?? "", pass: process.env.SUUMO_KAERU_PASS ?? "" },
             { name: 'suumo_resale', id: process.env.SUUMO_RESALE_ID ?? "", pass: process.env.SUUMO_RESALE_PASS ?? "" },
-            { name: 'suumo_summary', id: process.env.SUUMO_KAERU_SUMMARY_ID ?? "", pass: process.env.SUUMO_KAERU_SUMMARY_PASS ?? "" },
-            { name: 'suumo_summary_2', id: process.env.SUUMO_RESALE_SUMMARY_ID ?? "", pass: process.env.SUUMO_RESALE_SUMMARY_PASS ?? "" },
+            // ⚠️ brand はサマリーの保存先を分けるためだけに使う（各 runner のコメント参照）。
+            //   homes_summary の brand（spec / used）は集計の分岐にも使われているので
+            //   同じ値にしないこと。
+            { name: 'suumo_summary', id: process.env.SUUMO_KAERU_SUMMARY_ID ?? "", pass: process.env.SUUMO_KAERU_SUMMARY_PASS ?? "", brand: 'kaeru' },
+            { name: 'suumo_summary_2', id: process.env.SUUMO_RESALE_SUMMARY_ID ?? "", pass: process.env.SUUMO_RESALE_SUMMARY_PASS ?? "", brand: 'resale' },
             { name: 'homes_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'homes_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'homes_summary', id: process.env.HOMES_SUMMARY_ID ?? "", pass: process.env.HOMES_SUMMARY_PASS ?? "", brand: 'spec' },
@@ -83,8 +86,8 @@ exports.portalService = {
             { name: 'member_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'sumai_step_resale', id: process.env.SUMAI_STEP_ID ?? "", pass: process.env.SUMAI_STEP_PASS ?? "" },
             { name: 'iei_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
-            { name: 'athome_summary', id: process.env.ATHOME_SUMMARY_ID_KAERU ?? "", pass: process.env.ATHOME_SUMMARY_PASS_KAERU ?? "" },
-            { name: 'athome_summary_2', id: process.env.ATHOME_SUMMARY_ID_RESALE ?? "", pass: process.env.ATHOME_SUMMARY_PASS_RESALE ?? "" },
+            { name: 'athome_summary', id: process.env.ATHOME_SUMMARY_ID_KAERU ?? "", pass: process.env.ATHOME_SUMMARY_PASS_KAERU ?? "", brand: 'kaeru' },
+            { name: 'athome_summary_2', id: process.env.ATHOME_SUMMARY_ID_RESALE ?? "", pass: process.env.ATHOME_SUMMARY_PASS_RESALE ?? "", brand: 'resale' },
             { name: 'athome', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'ieuru_resale', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'reserve_kaeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
@@ -116,8 +119,23 @@ exports.portalService = {
             { name: 'allgrit', id: process.env.ALLGRIT_ID ?? "", pass: process.env.ALLGRIT_PASS ?? "" },
         ];
         const results = [];
+        /**
+         * 実行対象。
+         *
+         * ⚠️⚠️ **targetTasks で指定された順に実行する。**
+         *   2026-09-09 まで `portal.filter(...)` と書いていたため、
+         *   並び順が **portal 配列の定義順**になっていた。
+         *   実際のログでは targetTasks の先頭に property を指定したのに
+         *   **最後に実行されていた**（意図した順に流せない）。
+         *
+         * ⚠️ targetTasks に portal へ無い名前が混じっていても落とさない。
+         *   下のループで「実行関数がマッピングされていません」として
+         *   results に残るほうが、黙って無視されるより気づける。
+         */
         const targets = options?.targetTasks && options.targetTasks.length > 0
-            ? portal.filter(p => options.targetTasks.includes(p.name))
+            ? options.targetTasks
+                .map(name => portal.find(p => p.name === name) ?? { name })
+                .filter((p) => p !== undefined)
             : portal;
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
         for (const brand of targets) {
@@ -145,22 +163,45 @@ exports.portalService = {
                     ok: true,
                     message: `${brand.name} の更新が完了しました`
                 });
-                console.log(`[待機] ${brand.name} の実行後、5秒待機します...`);
-                await delay(5000);
             }
             catch (err) {
                 const errorMessage = err instanceof Error ? err.message : String(err);
+                console.error(`[失敗] ${brand.name}: ${errorMessage}`);
                 results.push({
                     name: brand.name,
                     ok: false,
                     message: `${brand.name} の更新中にエラー: ${errorMessage}`
                 });
             }
+            finally {
+                // ⚠️ 成功・失敗どちらでも待つ。
+                //   2026-09-09 まで成功時だけ待っていたため、失敗が続くと
+                //   ポータル側へ間を置かずに連続アクセスしていた。
+                console.log(`[待機] ${brand.name} の実行後、5秒待機します...`);
+                await delay(5000);
+            }
         }
+        /**
+         * ⚠️⚠️ **ok は results の中身から決める。**
+         *
+         *   2026-09-09 まで `ok: true` を固定で返していた。そのため
+         *   3件が失敗した実行でも応答は
+         *     { ok: true, message: '7件のブランド処理が完了しました' }
+         *   となり、**呼び出し側は成功と判断していた**。
+         *   失敗はコンソールとエラーメールにしか出ていなかった。
+         *
+         * ⚠️ 失敗したタスク名を message に含める。
+         *   「何件失敗」だけだと、どれを再実行すればよいか分からない。
+         */
+        const failed = results.filter(r => !r.ok);
         return {
-            ok: true,
-            message: `${targets.length}件のブランド処理が完了しました`,
-            results
+            ok: failed.length === 0,
+            message: failed.length === 0
+                ? `${targets.length}件のブランド処理が完了しました`
+                : `${targets.length}件中 ${failed.length}件が失敗しました（${failed.map(f => f.name).join(', ')}）`,
+            results,
+            // ⚠️ 再実行する対象をそのまま targetTasks へ渡せる形で返す
+            failedTasks: failed.map(f => f.name)
         };
     }
 };

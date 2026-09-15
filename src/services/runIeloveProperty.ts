@@ -4,7 +4,7 @@ const errors: string[] = [];
 import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
-import { closeBrowser, DOWNLOAD_TIMEOUT } from "../utils/portalPage";
+import { closeBrowser, DOWNLOAD_TIMEOUT, logPageState } from "../utils/portalPage";
 import { sendErrorMail } from "./sendErrorMail";
 import iconv from 'iconv-lite';
 import * as fs from 'fs';
@@ -70,6 +70,19 @@ const postToPhpApi = async (data: Record<string, string>[]) => {
 export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) => {
     // 前回実行のエラーが持ち越されないよう、実行の都度クリアする。
     errors.length = 0;
+
+    /**
+     * ⚠️⚠️ **致命的なエラーがあったか。** 最後に throw して呼び出し側へ伝える。
+     *
+     *   2026-09-09 まで、ログイン失敗で「致命的なエラーにより処理を中断しました」と
+     *   出しているのに**例外を投げずに正常終了**していた。そのため
+     *   portalService の応答は `{ name: 'property', ok: true }` になり、
+     *   失敗が応答から消えていた。
+     *
+     * ⚠️ errors はモジュールスコープなので毎回 length = 0 でリセットしている。
+     *   fatal は関数スコープなのでその必要は無い。
+     */
+    let fatal = false;
     // HerokuのLinux環境でクラッシュを防ぐための引数を追加
     // ★ 修正: Heroku環境でのクラッシュ防止 ＆ Bot検知回避の引数を追加
     const browser = await chromium.launch({
@@ -91,13 +104,95 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
     });
     const page = await context.newPage();
 
+    /**
+     * ログイン欄のセレクタ。
+     *
+     * ─────────────────────────────────────────────
+     * ⚠️⚠️ **絶対XPathをやめた。**
+     *
+     *   2026-09-09 の実行で timeout した:
+     *     page.fill: waiting for locator(
+     *       'xpath=/html/body/div[2]/article/div/section[2]/div[1]/dl/form/dd/ul/li[2]/input')
+     *
+     *   絶対XPathは div が1つ増えるだけで壊れる。
+     *
+     * ⚠️ 代わりに「パスワード欄を含む form」を起点にした相対指定にする。
+     *   ログイン画面にパスワード欄があるのは構造が変わっても揺らがない。
+     *   ⚠️ name / id 属性は実物を見ずには決められないので推測しない。
+     *
+     * ⚠️ 旧XPathも候補に残す。新セレクタで取れない画面（別レイアウト）が
+     *   あった場合の保険。上から順に試す。
+     * ─────────────────────────────────────────────
+     */
+    const LOGIN_FORM = 'form:has(input[type="password"])';
+    const ID_SELECTORS = [
+        // パスワード欄と同じ form の中の、最初のテキスト系入力
+        `${LOGIN_FORM} input:not([type="password"]):not([type="hidden"]):not([type="checkbox"]):not([type="submit"]):not([type="button"])`,
+        // ⚠️ 旧実装（2026-09-09 に timeout した）
+        'xpath=/html/body/div[2]/article/div/section[2]/div[1]/dl/form/dd/ul/li[1]/input',
+    ];
+    const PASS_SELECTORS = [
+        `${LOGIN_FORM} input[type="password"]`,
+        'xpath=/html/body/div[2]/article/div/section[2]/div[1]/dl/form/dd/ul/li[2]/input',
+    ];
+    const SUBMIT_SELECTORS = [
+        `${LOGIN_FORM} button[type="submit"]`,
+        `${LOGIN_FORM} input[type="submit"]`,
+        `${LOGIN_FORM} button`,
+        // ⚠️ ielove は <p> をボタンとして使っている（旧実装のまま）
+        'xpath=/html/body/div[2]/article/div/section[2]/div[1]/dl/form/dd/p',
+    ];
+
+    /**
+     * 候補を順に試して、最初に使えたものを使う。
+     * ⚠️ 1つあたりの待ち時間を短くする。候補が4つあるので、
+     *   既定の30秒だと全部外れたときに2分待つことになる。
+     */
+    const fillFirst = async (selectors: string[], value: string, label: string) => {
+        for (const selector of selectors) {
+            const ok = await page
+                .locator(selector)
+                .first()
+                .fill(value, { timeout: 5000 })
+                .then(() => true)
+                .catch(() => false);
+            if (ok) return selector;
+        }
+        // ⚠️⚠️ 全部外れたら、次回セレクタを直せるようHTMLとPNGを保存する。
+        //   保存せずに throw すると、また同じ推測を繰り返すことになる
+        await logPageState(page, `ielove-login-${label}`);
+        throw new Error(
+            `ielove のログイン欄（${label}）が見つかりませんでした。` +
+            '保存したHTMLとスクリーンショットでフォームの構造を確認してください。'
+        );
+    };
+
+    const clickFirst = async (selectors: string[], label: string) => {
+        for (const selector of selectors) {
+            const ok = await page
+                .locator(selector)
+                .first()
+                .click({ timeout: 5000 })
+                .then(() => true)
+                .catch(() => false);
+            if (ok) return selector;
+        }
+        await logPageState(page, `ielove-login-${label}`);
+        throw new Error(`ielove のログインボタン（${label}）が見つかりませんでした。`);
+    };
+
     const login = async () => {
         try {
             await page.goto('https://cloud.ielove.jp/');
             await page.waitForLoadState("networkidle");
-            await page.fill('xpath=/html/body/div[2]/article/div/section[2]/div[1]/dl/form/dd/ul/li[1]/input', ielove_id);
-            await page.fill('xpath=/html/body/div[2]/article/div/section[2]/div[1]/dl/form/dd/ul/li[2]/input', ielove_pass);
-            await page.click('xpath=/html/body/div[2]/article/div/section[2]/div[1]/dl/form/dd/p');
+
+            const idSelector = await fillFirst(ID_SELECTORS, ielove_id, 'id');
+            const passSelector = await fillFirst(PASS_SELECTORS, ielove_pass, 'pass');
+            const submitSelector = await clickFirst(SUBMIT_SELECTORS, 'submit');
+            // ⚠️ どのセレクタで通ったかを残す。旧XPathで通ったなら
+            //   新セレクタが効いていないということなので、直す手がかりになる
+            console.log(`[ielove] ログイン欄: id=${idSelector} / pass=${passSelector} / submit=${submitSelector}`);
+
             await page.waitForLoadState("networkidle");
         } catch (err) {
             const msg = `ログイン処理に失敗${err}`;
@@ -206,9 +301,26 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
         const msg = `致命的なエラーにより処理を中断しました: ${e}`;
         console.error(msg);
         errors.push(msg);
+        fatal = true;
     } finally {
         // ブラウザを確実に閉じる
         await closeBrowser(browser);
-        await sendErrorMail(errors, 'runIeloveProperty.ts');
+        // ⚠️ エラーが無いときは送らない。以前は無条件に呼んでいた
+        if (errors.length > 0) {
+            await sendErrorMail(errors, 'runIeloveProperty.ts');
+        }
+    }
+
+    /**
+     * ⚠️⚠️ **致命的なエラーは呼び出し側へ投げる。**
+     *   2026-09-09 まで、ログイン失敗で「致命的なエラーにより処理を中断しました」と
+     *   出しているのに例外を投げずに正常終了していた。そのため portalService の
+     *   応答は `{ name: 'property', ok: true }` になり、失敗が消えていた。
+     *
+     * ⚠️ finally の**後**に置くこと。finally の中で throw すると
+     *   closeBrowser が終わる前に抜けて Chromium が残る。
+     */
+    if (fatal) {
+        throw new Error(errors.join(' / '));
     }
 };

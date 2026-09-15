@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
 import { closeBrowser } from '../utils/portalPage';
+import { dismissAthomeModal } from '../utils/athomeModal';
 import { sendErrorMail } from './sendErrorMail';
 
 
@@ -15,9 +16,30 @@ const athomeColumns = [
     'favorite_count', 'movie_play_count', 'secondary_ad_auto'
 ];
 
-export const runAtHomeSummary = async (id: string, pass: string) => {
+/**
+ * @param brand 呼び出し元（portalService）が渡すアカウント識別子。
+ *   ⚠️ サマリーの保存先を分けるために使う。athome_summary と athome_summary_2 は
+ *     同じ関数を2アカウントで実行するため、これが無いと
+ *     2つ目が1つ目のサマリーを上書きする。
+ */
+export const runAtHomeSummary = async (id: string, pass: string, brand?: string) => {
     // 実行ごとに初期化する。モジュールスコープだと前回のエラーが次回に持ち越される。
     const errors: string[] = [];
+    /**
+     * ⚠️⚠️ **致命的なエラーがあったか。** 最後に throw して呼び出し側へ伝える。
+     *
+     *   2026-09-09 まで、エラーは errors に積んでメールを送るだけで
+     *   **例外を投げずに正常終了していた**。そのため portalService の
+     *   try/catch に届かず、応答は
+     *     { name: 'athome_summary', ok: true, message: '...更新が完了しました' }
+     *   となり、**失敗が応答から消えていた**（実際に約款モーダルで
+     *   2アカウントとも失敗したのに ok: true が返っていた）。
+     *
+     * ⚠️ 「0件だった」のような軽微なものは errors に積むだけにして、
+     *   ここは立てないこと。全部を致命的にすると、警告のたびに
+     *   タスク全体が失敗扱いになる。
+     */
+    let fatal = false;
     const browser = await chromium.launch({ args: ["--no-sandbox"], headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
@@ -33,6 +55,8 @@ export const runAtHomeSummary = async (id: string, pass: string) => {
             const msg = `ログイン処理に失敗: ${err}`;
             console.log(msg);
             errors.push(msg);
+            // ⚠️ ログインできなければ以降は何もできない。致命的として扱う
+            fatal = true;
         }
     };
 
@@ -48,6 +72,19 @@ export const runAtHomeSummary = async (id: string, pass: string) => {
     const summarySearch = async () => {
         try {
             await waitForMinute();
+
+            /**
+             * ⚠️⚠️ **メニューをクリックする前に約款モーダルを閉じる。**
+             *
+             *   at home は約款が更新された日に同意モーダル（#colorbox）を
+             *   最前面に出す。要素は見つかるのにクリックだけが奪われるため、
+             *   「セレクタが違う」ように見えて実際は違う。
+             *   2026-09-09 に athome_summary / athome_summary_2 の
+             *   2アカウントとも30秒 timeout で失敗した。
+             *
+             * ⚠️ 詳細と force:true を使わない理由は utils/athomeModal.ts を参照。
+             */
+            await dismissAthomeModal(page);
 
             // 1. メニューをクリックして展開する
             const menuTrigger = page.locator('a.header_link', { hasText: 'アクセスログ・反響' });
@@ -92,6 +129,8 @@ export const runAtHomeSummary = async (id: string, pass: string) => {
             const msg = `お客様ページへの遷移に失敗: ${err}`;
             console.error(msg);
             errors.push(msg);
+            // ⚠️ 一覧ページに行けなければデータが1件も取れない。致命的として扱う
+            fatal = true;
             return null;
         }
     };
@@ -105,7 +144,8 @@ export const runAtHomeSummary = async (id: string, pass: string) => {
             ]);
 
             const savePath = '/tmp/athome_summary.csv';
-            const summaryPath = '/tmp/athome_summary_import_result.json';
+            // ⚠️ アカウントごとに分ける（引数 brand のコメント参照）
+            const summaryPath = `/tmp/athome_summary_import_result_${brand ?? 'default'}.json`;
             await download.saveAs(savePath);
             console.log('CSVダウンロード完了');
 
@@ -209,6 +249,7 @@ export const runAtHomeSummary = async (id: string, pass: string) => {
         const msg = `処理全体が中断しました: ${err}`;
         console.error(msg);
         errors.push(msg);
+        fatal = true;
     } finally {
         // 例外が起きても Chromium を必ず終了させる。
         // 閉じ残るとメモリを圧迫し、後続タスクや次回以降の実行まで巻き込んで失敗する。
@@ -216,5 +257,15 @@ export const runAtHomeSummary = async (id: string, pass: string) => {
         if (errors.length > 0) {
             await sendErrorMail(errors, 'runAtHomeSummary.ts');
         }
+    }
+
+    /**
+     * ⚠️⚠️ **致命的なエラーは呼び出し側へ投げる。**
+     *   finally の**後**に置くこと。finally の中で throw すると、
+     *   closeBrowser が終わる前に抜けて Chromium が残る。
+     *   （残るとメモリを圧迫し、後続タスクまで巻き込んで失敗する）
+     */
+    if (fatal) {
+        throw new Error(errors.join(' / '));
     }
 };
