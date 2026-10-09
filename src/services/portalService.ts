@@ -112,8 +112,10 @@ export const portalService = {
       { name: 'property', id: process.env.IELOVE_MAIL ?? "", pass: process.env.IELOVE_PASS ?? "" },
       { name: 'pg_mail', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
       { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
-      { name: 'hotlead', id: process.env.HOTLEAD_ID ?? "", pass: process.env.HOTLEAD_PASS ?? ""},
-      { name: 'hotlead_2', id: process.env.HOTLEAD_ID_2 ?? "", pass: process.env.HOTLEAD_PASS_2 ?? ""},
+      // ⚠️ 2026-10-09: brand は Dashboard の hotlead.php が担当店舗名の頭に使う（'KH' + 霧島店 → KH霧島店）。
+      //   ⚠️ hotlead_2 は DJH のアカウント。⚠️ hotlead.php が受けるのは 'KH' / 'DJH' だけ（それ以外は KH 扱い）。
+      { name: 'hotlead', id: process.env.HOTLEAD_ID ?? "", pass: process.env.HOTLEAD_PASS ?? "", brand: 'KH' },
+      { name: 'hotlead_2', id: process.env.HOTLEAD_ID_2 ?? "", pass: process.env.HOTLEAD_PASS_2 ?? "", brand: 'DJH' },
       { name: 'geoCode' },
       // ⚠️⚠️ 自社店舗の Google クチコミ（google_review テーブル）。
       //   ⚠️ ログインを伴わないので id / pass を持たない。**geoCode と同じ形**である。
