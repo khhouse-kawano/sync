@@ -4,6 +4,9 @@ import nodemailer from 'nodemailer';
 import { pgLogin } from '../utils/function';
 const errors: string[] = [];
 
+/** Dashboard のゲートウェイ。⚠️ 旧API（dashboard/api/）は廃止済み */
+const GATEWAY_URL = "https://khg-marketing.info/dashboard/api/gateway/";
+
 export const runBeforeSurvey = async (updateData: any, pg_mail: string, pg_pass: string) => {
     const browser = await chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
@@ -80,13 +83,17 @@ export const runBeforeSurvey = async (updateData: any, pg_mail: string, pg_pass:
         }
     }
 
+    // ⚠️⚠️ **2026-09-30、旧API（changeShop.php）からゲートウェイへ移した。**
+    //   ⚠️ 旧APIは `demand` で枝分かれしていたが、⚠️ **現行は `request` + `roll`。**
+    //   ⚠️ 受け口は dashboard の backend/src/handlers/inquiry_update.php。
     const postData = {
+        request: 'inquiry_update',
+        roll: 'before_survey',
         sbid: updateData.sbid,
-        demand: 'before_survey',
     };
 
     try {
-        await axios.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
+        await axios.post(GATEWAY_URL, postData, {
             headers: { "Content-Type": "application/json" }
         });
         console.log("POST完了");

@@ -11,3 +11,7 @@ tmp/
 .env
 
 20250917.txt
+
+# 競合他社 Place ID 収集の生成物（CSV・座標キャッシュ）
+# ⚠️ exports/ 自体は pptx が管理下にあるため、この配下だけを外している
+exports/competitor/

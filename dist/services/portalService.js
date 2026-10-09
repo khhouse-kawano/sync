@@ -28,6 +28,7 @@ const runSuumoOrder_1 = require("./runSuumoOrder");
 const runHomesOrder_1 = require("./runHomesOrder");
 const runTownlifeOrder_1 = require("./runTownlifeOrder");
 const runAllGrit_1 = require("./runAllGrit");
+const runGoogleReview_1 = require("./runGoogleReview");
 exports.portalService = {
     process: async (options) => {
         const actionMap = {
@@ -57,6 +58,9 @@ exports.portalService = {
             'homes_summary_2': runHomesSummary_1.runHomesSummary,
             'kaeeru': runKaeeru_1.runKaeeru,
             'hotlead': runHotlead_1.runHotlead,
+            // ⚠️ 2026-10-07 追加。Hotlead の2つ目のアカウント（HOTLEAD_ID_2 / HOTLEAD_PASS_2）。
+            //   ⚠️ 処理は hotlead と同じ runHotlead（⚠️ 認証情報だけ違う）。
+            'hotlead_2': runHotlead_1.runHotlead,
             'suumo_order': runSuumoOrder_1.runSuumoOrder,
             'homes_order': runHomesOrder_1.runHomesOrder,
             'townlife_order': runTownlifeOrder_1.runTownlifeOrder,
@@ -68,7 +72,17 @@ exports.portalService = {
             // ⚠️ 旧ファイル（runAllgritOrder.ts / runAllGritKaeru.ts）は
             //   残してあるが、**ここから外してある**。
             //   どちらが本物か分からなくなるので旧ファイルを直さないこと。
-            'allgrit': runAllGrit_1.runAllGrit
+            'allgrit': runAllGrit_1.runAllGrit,
+            // ⚠️⚠️ 2026-09-15 新規。自社店舗の Google クチコミ（google_review テーブル）。
+            //   以前の実装は失われており、取得は **2026-04-10 で止まっていた**。
+            //
+            // ⚠️⚠️ **毎日何度も回さないこと。** Places API で `reviews` を取ると
+            //   Place Details Enterprise SKU になり単価が上がる。
+            //   31店舗 × 実行回数ぶん課金される。
+            //
+            // ⚠️ クチコミ本文は Google の仕様で**最大5件**しか返らない。
+            //   毎回5件を取り、まだ持っていないものだけを足していく形である。
+            'google_review': runGoogleReview_1.runGoogleReview
         };
         const portal = [
             { name: 'suumo_kaeru', id: process.env.SUUMO_KAERU_ID ?? "", pass: process.env.SUUMO_KAERU_PASS ?? "" },
@@ -99,7 +113,15 @@ exports.portalService = {
             { name: 'pg_mail', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
             { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
             { name: 'hotlead', id: process.env.HOTLEAD_ID ?? "", pass: process.env.HOTLEAD_PASS ?? "" },
+            { name: 'hotlead_2', id: process.env.HOTLEAD_ID_2 ?? "", pass: process.env.HOTLEAD_PASS_2 ?? "" },
             { name: 'geoCode' },
+            // ⚠️⚠️ 自社店舗の Google クチコミ（google_review テーブル）。
+            //   ⚠️ ログインを伴わないので id / pass を持たない。**geoCode と同じ形**である。
+            //     認証情報の必須チェックからも外してある（下の NO_CREDENTIAL_TASKS）。
+            //   ⚠️ 使う鍵は runGeocode.ts と同じ `process.env.API_KEY`。
+            //     ⚠️ 同じ GCP プロジェクトで **Places API (New) を有効化**しておくこと。
+            //     キーに API 制限をかけている場合は Places API を許可すること。
+            { name: 'google_review' },
             // 注文事業のポータル反響（portal-app から移植）。
             // ここには代表ブランド（KH）の認証情報を持たせて未設定時のスキップ判定に使う。
             // 実際のログインは各サービスがブランドごとに process.env から読み込む。
@@ -138,8 +160,15 @@ exports.portalService = {
                 .filter((p) => p !== undefined)
             : portal;
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        /**
+         * ID / パスワードを持たないタスク。
+         * ⚠️ ログインを伴わず、API キーだけで動くもの（鍵は各 runner が
+         *   process.env から直接読む）。⚠️ ここに入れないと
+         *   「認証情報が不足しています」で**実行されずに終わる。**
+         */
+        const NO_CREDENTIAL_TASKS = ['geoCode', 'google_review'];
         for (const brand of targets) {
-            if (brand.name !== 'geoCode' && (!brand.id || !brand.pass)) {
+            if (!NO_CREDENTIAL_TASKS.includes(brand.name) && (!brand.id || !brand.pass)) {
                 results.push({
                     name: brand.name,
                     ok: false,

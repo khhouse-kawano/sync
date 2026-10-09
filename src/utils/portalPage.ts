@@ -317,6 +317,18 @@ export type DownloadOptions = {
      *   短くすると「押したのに始まらない」で失敗する。
      */
     downloadTimeout?: number;
+    /**
+     * ダウンロードボタンを押したあとに出る確認モーダルの、押すべき要素（2026-10-09 追加）。
+     *
+     * ⚠️ ALLGRIT は 2026-10 のページ改修で、ダウンロードボタンを押すと
+     *   **小さなモーダルが開き、その中の項目を押して初めてダウンロードが始まる**ようになった。
+     * ⚠️ 指定したときだけ「ボタン → モーダルの項目」の2段で押す。
+     *   ⚠️ 省略すれば従来どおりボタン1回（⚠️ 他のポータルは変わらない）。
+     * ⚠️ `/` で始まる値は XPath として扱う。
+     */
+    confirmSelector?: string;
+    /** 確認モーダルの項目が出るまで待つ時間（既定 30 秒） */
+    confirmTimeout?: number;
 };
 
 /**
@@ -336,6 +348,8 @@ export const downloadCsvFile = async (
         checkEmpty = true,
         listTimeout = LIST_RENDER_TIMEOUT,
         downloadTimeout = DOWNLOAD_TIMEOUT,
+        confirmSelector,
+        confirmTimeout = 30000,
     } = options;
 
     if (url) {
@@ -406,13 +420,41 @@ export const downloadCsvFile = async (
         console.log(`${label}: ダウンロード待機中… ${elapsed()}秒`);
     }, 30000);
 
+    /**
+     * 押す操作（2026-10-09 に確認モーダルへ対応）。
+     *   ・confirmSelector なし … ボタンを1回押す（従来どおり）
+     *   ・confirmSelector あり … ボタン → モーダルの項目が出るのを待つ → 項目を押す
+     * ⚠️ 項目が出なければ画面を保存して投げる（⚠️ 「ダウンロードが始まらない」と区別できるように）。
+     */
+    const clickToStart = async (): Promise<void> => {
+        await target.click();
+        if (!confirmSelector) return;
+
+        const confirm = page
+            .locator(confirmSelector.startsWith("/") ? `xpath=${confirmSelector}` : confirmSelector)
+            .first();
+        try {
+            await confirm.waitFor({ state: "visible", timeout: confirmTimeout });
+        } catch (err) {
+            console.log(
+                `${label}: ダウンロードの確認モーダルが開きませんでした（${Math.round(confirmTimeout / 1000)}秒待機）。` +
+                `⚠️ モーダルの作りが変わっていないか、保存した画面を確認してください`
+            );
+            await logPageState(page, `${label}_確認モーダル`);
+            throw err;
+        }
+        console.log(`${label}: 確認モーダルの項目を押します`);
+        await confirm.click();
+    };
+
     let download;
     try {
         // ⚠️ waitForEvent を先に置くこと。click を先に await すると、
         //   ラグが無い場合に download イベントを取りこぼす。
+        // ⚠️ 確認モーダルがある場合も同じ。待ち受けを先に登録してから「ボタン → 項目」を押す。
         [download] = await Promise.all([
             page.waitForEvent("download", { timeout: downloadTimeout }),
-            target.click(),
+            clickToStart(),
         ]);
     } catch (err) {
         clearInterval(heartbeat);

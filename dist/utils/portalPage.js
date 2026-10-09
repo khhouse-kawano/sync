@@ -265,7 +265,7 @@ exports.closeBrowser = closeBrowser;
  * （エラーではなくスキップ扱い）。
  */
 const downloadCsvFile = async (page, options) => {
-    const { url, selector, filePath, label, checkEmpty = true, listTimeout = exports.LIST_RENDER_TIMEOUT, downloadTimeout = exports.DOWNLOAD_TIMEOUT, } = options;
+    const { url, selector, filePath, label, checkEmpty = true, listTimeout = exports.LIST_RENDER_TIMEOUT, downloadTimeout = exports.DOWNLOAD_TIMEOUT, confirmSelector, confirmTimeout = 30000, } = options;
     if (url) {
         await page.goto(url, { waitUntil: "networkidle", timeout: exports.NAVIGATION_TIMEOUT });
     }
@@ -322,13 +322,39 @@ const downloadCsvFile = async (page, options) => {
     const heartbeat = setInterval(() => {
         console.log(`${label}: ダウンロード待機中… ${elapsed()}秒`);
     }, 30000);
+    /**
+     * 押す操作（2026-10-09 に確認モーダルへ対応）。
+     *   ・confirmSelector なし … ボタンを1回押す（従来どおり）
+     *   ・confirmSelector あり … ボタン → モーダルの項目が出るのを待つ → 項目を押す
+     * ⚠️ 項目が出なければ画面を保存して投げる（⚠️ 「ダウンロードが始まらない」と区別できるように）。
+     */
+    const clickToStart = async () => {
+        await target.click();
+        if (!confirmSelector)
+            return;
+        const confirm = page
+            .locator(confirmSelector.startsWith("/") ? `xpath=${confirmSelector}` : confirmSelector)
+            .first();
+        try {
+            await confirm.waitFor({ state: "visible", timeout: confirmTimeout });
+        }
+        catch (err) {
+            console.log(`${label}: ダウンロードの確認モーダルが開きませんでした（${Math.round(confirmTimeout / 1000)}秒待機）。` +
+                `⚠️ モーダルの作りが変わっていないか、保存した画面を確認してください`);
+            await (0, exports.logPageState)(page, `${label}_確認モーダル`);
+            throw err;
+        }
+        console.log(`${label}: 確認モーダルの項目を押します`);
+        await confirm.click();
+    };
     let download;
     try {
         // ⚠️ waitForEvent を先に置くこと。click を先に await すると、
         //   ラグが無い場合に download イベントを取りこぼす。
+        // ⚠️ 確認モーダルがある場合も同じ。待ち受けを先に登録してから「ボタン → 項目」を押す。
         [download] = await Promise.all([
             page.waitForEvent("download", { timeout: downloadTimeout }),
-            target.click(),
+            clickToStart(),
         ]);
     }
     catch (err) {

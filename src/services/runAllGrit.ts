@@ -108,6 +108,18 @@ const DOWNLOAD_SELECTOR =
     "//html/body/div[2]/div/div/div/main/div/div/div/div[1]/div/div[3]/div[4]/button[4]/span";
 
 /**
+ * ダウンロードボタンを押すと開く小さなモーダルの、押すべき項目（2026-10-09 追加）。
+ *
+ * ⚠️ ALLGRIT のページ改修で、
+ *     以前: DOWNLOAD_SELECTOR を押す → ダウンロード
+ *     現在: DOWNLOAD_SELECTOR を押す → モーダルが開く → この項目を押す → ダウンロード
+ *   に変わった。
+ * ⚠️ 絶対位置の XPath（利用者から共有されたもの）。⚠️ モーダルの作りが変わると外れる。
+ *   外れたときは「確認モーダルが開きませんでした」のログと画面の保存（logPageState）が出る。
+ */
+const DOWNLOAD_CONFIRM_SELECTOR = "/html/body/div[2]/div/div/div[2]/div/div[2]/div";
+
+/**
  * ⚠️⚠️ ALLGRIT はボタンを押してから実際にダウンロードが始まるまでラグがある
  *   （サーバー側で CSV を生成してから配信している）。既定の180秒では足りない。
  */
@@ -418,7 +430,9 @@ export const runAllGrit = async (id: string, pass: string): Promise<void> => {
             ),
             label: `${target.name}_オールグリット`,
             downloadTimeout: DOWNLOAD_TIMEOUT,
-            listTimeout: LIST_TIMEOUT
+            listTimeout: LIST_TIMEOUT,
+            // ⚠️ 2026-10-09: ボタンのあとに確認モーダルの項目を押す（ページ改修への対応）
+            confirmSelector: DOWNLOAD_CONFIRM_SELECTOR
         });
     };
 

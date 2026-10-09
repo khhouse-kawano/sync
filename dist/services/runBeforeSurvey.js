@@ -9,6 +9,8 @@ const axios_1 = __importDefault(require("axios"));
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const function_1 = require("../utils/function");
 const errors = [];
+/** Dashboard のゲートウェイ。⚠️ 旧API（dashboard/api/）は廃止済み */
+const GATEWAY_URL = "https://khg-marketing.info/dashboard/api/gateway/";
 const runBeforeSurvey = async (updateData, pg_mail, pg_pass) => {
     const browser = await playwright_1.chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
@@ -78,12 +80,16 @@ const runBeforeSurvey = async (updateData, pg_mail, pg_pass) => {
             console.error("メール送信に失敗しました:", err);
         }
     }
+    // ⚠️⚠️ **2026-09-30、旧API（changeShop.php）からゲートウェイへ移した。**
+    //   ⚠️ 旧APIは `demand` で枝分かれしていたが、⚠️ **現行は `request` + `roll`。**
+    //   ⚠️ 受け口は dashboard の backend/src/handlers/inquiry_update.php。
     const postData = {
+        request: 'inquiry_update',
+        roll: 'before_survey',
         sbid: updateData.sbid,
-        demand: 'before_survey',
     };
     try {
-        await axios_1.default.post("https://khg-marketing.info/dashboard/api/changeShop.php", postData, {
+        await axios_1.default.post(GATEWAY_URL, postData, {
             headers: { "Content-Type": "application/json" }
         });
         console.log("POST完了");

@@ -4,6 +4,9 @@ const errors: string[] = [];
 import nodemailer from 'nodemailer';
 import axios from 'axios';
 
+/** Dashboard のゲートウェイ。⚠️ 旧API（dashboard/api/）は廃止済み */
+const GATEWAY_URL = "https://khg-marketing.info/dashboard/api/gateway/";
+
 export const runMyHomeRobo = async (updateData: any, roboId: string, roboPass: string) => {
     let mhl_id;
     let mhl_url;
@@ -150,9 +153,13 @@ export const runMyHomeRobo = async (updateData: any, roboId: string, roboPass: s
         const nowString = now.toDateString();
         console.log(`${nowString}_同期処理完了:`, `${updateData.firstName}様`);
 
+        // ⚠️⚠️ **2026-09-30、旧API（changeShop.php）からゲートウェイへ移した。**
+        //   ⚠️ 旧APIは `demand` で枝分かれしていたが、⚠️ **現行は `request` + `roll`。**
+        //   ⚠️ 受け口は dashboard の backend/src/handlers/inquiry_update.php。
         const postData = {
+            request: "inquiry_update",
+            roll: "robo",
             inquiry_id: updateData.id,
-            demand: "robo",
             mhl_id: mhl_id,
             mhl_url: mhl_url ? mhl_url : "",
         };
@@ -160,13 +167,9 @@ export const runMyHomeRobo = async (updateData: any, roboId: string, roboPass: s
         console.log(postData);
 
         try {
-            await axios.post(
-                "https://khg-marketing.info/dashboard/api/changeShop.php",
-                postData,
-                {
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
+            await axios.post(GATEWAY_URL, postData, {
+                headers: { "Content-Type": "application/json" },
+            });
             console.log("POST完了");
         } catch (error) {
             console.error("エラー:", error);

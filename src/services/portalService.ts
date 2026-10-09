@@ -56,6 +56,9 @@ export const portalService = {
       'homes_summary_2': runHomesSummary,
       'kaeeru': runKaeeru,
       'hotlead': runHotlead,
+      // ⚠️ 2026-10-07 追加。Hotlead の2つ目のアカウント（HOTLEAD_ID_2 / HOTLEAD_PASS_2）。
+      //   ⚠️ 処理は hotlead と同じ runHotlead（⚠️ 認証情報だけ違う）。
+      'hotlead_2': runHotlead,
       'suumo_order': runSuumoOrder,
       'homes_order': runHomesOrder,
       'townlife_order': runTownlifeOrder,
@@ -110,6 +113,7 @@ export const portalService = {
       { name: 'pg_mail', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_APP_PASS ?? "" },
       { name: 'kaeeru', id: process.env.GMAIL ?? "", pass: process.env.GMAIL_PASS ?? "" },
       { name: 'hotlead', id: process.env.HOTLEAD_ID ?? "", pass: process.env.HOTLEAD_PASS ?? ""},
+      { name: 'hotlead_2', id: process.env.HOTLEAD_ID_2 ?? "", pass: process.env.HOTLEAD_PASS_2 ?? ""},
       { name: 'geoCode' },
       // ⚠️⚠️ 自社店舗の Google クチコミ（google_review テーブル）。
       //   ⚠️ ログインを伴わないので id / pass を持たない。**geoCode と同じ形**である。
