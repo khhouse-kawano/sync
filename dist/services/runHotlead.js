@@ -52,7 +52,13 @@ const findTickets = async (token) => {
     console.log(`✅ 追客情報を保存しました: ${filePath}`);
     return data;
 };
-const postTicketsToPhpApi = async (ticketsData) => {
+/**
+ * ⚠️ 2026-10-09: brand は portalService の brand（hotlead → 'KH' ／ hotlead_2 → 'DJH'）。
+ *   `hotlead_brand` として送る。Dashboard の hotlead.php が担当店舗名の頭に使う
+ *   （⚠️ HOTLEAD の store_name は「霧島店」のようにブランドが付かない）。
+ *   ⚠️ キー名を `brand` にしないこと（⚠️ ゲートウェイや他の項目とぶつからないように専用の名前にしている）。
+ */
+const postTicketsToPhpApi = async (ticketsData, brand) => {
     if (!POST_API_URL) {
         console.warn('⚠️ POST_API_URL が設定されていないため、POST送信をスキップします。');
         return;
@@ -66,7 +72,7 @@ const postTicketsToPhpApi = async (ticketsData) => {
     let masterLinkedTotal = 0;
     for (const [index, item] of list.entries()) {
         try {
-            const response = await axios_1.default.post(POST_API_URL, { ...item, request: 'hotlead' }, {
+            const response = await axios_1.default.post(POST_API_URL, { ...item, hotlead_brand: brand, request: 'hotlead' }, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -104,15 +110,15 @@ const postTicketsToPhpApi = async (ticketsData) => {
     console.log(`・master_data紐付け合計  : ${masterLinkedTotal} 件`);
     console.log(`----------------------------------------`);
 };
-async function runHotlead(id, pass) {
+async function runHotlead(id, pass, brand = 'KH') {
     try {
         console.log('認証トークンを取得中...');
         const token = await getAccessToken(id, pass);
         console.log('✅ トークン取得成功！\n');
         console.log('追客情報(Tickets)を取得・保存中...');
         const ticketsData = await findTickets(token);
-        console.log('\nPHP APIへデータのPOST送信を開始します...');
-        await postTicketsToPhpApi(ticketsData);
+        console.log(`\nPHP APIへデータのPOST送信を開始します...（ブランド: ${brand}）`);
+        await postTicketsToPhpApi(ticketsData, brand);
     }
     catch (error) {
         const msg = `❌ エラー発生: ${error?.message ?? error}`;
