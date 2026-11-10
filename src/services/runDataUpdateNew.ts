@@ -1,5 +1,5 @@
+import { sendErrorMail } from './sendErrorMail';
 import { chromium } from 'playwright';
-import nodemailer from 'nodemailer';
 import { pgLogin, safeUpdateFill, safeGetValue, safeUpdateSelect } from '../utils/function';
 
 const errors: string[] = [];
@@ -571,31 +571,7 @@ export const runDataUpdateNew = async (postData: any, brand: string, pg_mail: st
 
     await browser.close();
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.GMAIL,
-            pass: process.env.GMAIL_PASS,
-        },
-    });
-
-    if (errors.length > 0) {
-        const mailOptions = {
-            from: 'error@khg-marketing.info',
-            to: 'shinji.kawano@kh-group.jp',
-            subject: '【自動送信】データ更新作業中にエラー発生',
-            text: `以下のエラーが発生しました:\nrunDataUpdateNew.js\nID:${postData.id
-                }\n${errors.join('\n')}`,
-        };
-
-        try {
-            await transporter.sendMail(mailOptions);
-            console.log('エラーメールを送信しました');
-        } catch (err) {
-            console.error('メール送信に失敗しました:', err);
-        } finally{
-            errors.length = 0;
-        }
-    }
+    // ⚠️ 2026-11-10: エラーのメールはやめ、Dashboard の DB（同期の実行結果）に残す（utils/syncLog.ts）
+    await sendErrorMail(errors, 'runDataUpdateNew.ts');
 };
 

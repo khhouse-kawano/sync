@@ -15,6 +15,7 @@ import mailScrapingRoutes from "./routes/mailScrapingRoutes";
 import pdfToTtpRoutes from "./routes/pdfToPptRoutes";
 import estateInfoRoutes from "./routes/estateInfoRoutes";
 import portalRoutes from "./routes/portalRoutes";
+import { syncLogMiddleware } from "./utils/syncLog";
 
 process.on('uncaughtException', (err) => {
     console.error('💥 補足されなかったエラーが発生しましたが、サーバーは稼働を続けます:', err.message);
@@ -24,6 +25,8 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.text({ limit: '50mb' }));
+// ⚠️ 2026-11-10: 実行結果を Dashboard の DB に残す（メールはやめた）。⚠️ ルーターより前に置くこと（utils/syncLog.ts）
+app.use(syncLogMiddleware);
 
 app.use("/api/", indexRoutes);
 app.use("/api/update", updateRoutes);

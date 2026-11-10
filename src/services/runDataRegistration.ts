@@ -1,6 +1,6 @@
+import { sendErrorMail } from './sendErrorMail';
 import { chromium } from 'playwright';
 import axios from 'axios';
-import nodemailer from 'nodemailer';
 import { pgLogin, safeFill, safeSelect, safeGetValue } from '../utils/function';
 const errors: string[] = [];
 
@@ -397,33 +397,8 @@ export const runDataRegistration = async (registerData: any, brand: string, pg_m
 
     await browser.close();
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.GMAIL,
-            pass: process.env.GMAIL_PASS,
-        },
-    });
-
-    if (errors.length > 0) {
-        const mailOptions = {
-            from: 'error@khg-marketing.info',
-            to: process.env.GMAIL,
-            subject: '【自動送信】データ登録作業中にエラー発生',
-            text: `以下のエラーが発生しました:\nrunDataRegistration\n\n${errors.join(
-                '\n'
-            )}`,
-        };
-
-        try {
-            await transporter.sendMail(mailOptions);
-            console.log('エラーメールを送信しました');
-        } catch (err) {
-            console.error('メール送信に失敗しました:', err);
-        } finally {
-            errors.length = 0;
-        }
-    }
+    // ⚠️ 2026-11-10: エラーのメールはやめ、Dashboard の DB（同期の実行結果）に残す（utils/syncLog.ts）
+    await sendErrorMail(errors, 'runDataRegistration.ts');
 
     // if (pg_id) {
     //     const now = new Date();

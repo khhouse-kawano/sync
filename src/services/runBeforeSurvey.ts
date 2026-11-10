@@ -1,6 +1,6 @@
+import { recordErrors } from '../utils/syncLog';
 import { chromium } from 'playwright';
 import axios from 'axios';
-import nodemailer from 'nodemailer';
 import { pgLogin } from '../utils/function';
 const errors: string[] = [];
 
@@ -59,29 +59,8 @@ export const runBeforeSurvey = async (updateData: any, pg_mail: string, pg_pass:
 
     await browser.close();
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.GMAIL,
-            pass: process.env.GMAIL_PASS,
-        },
-    });
-
-    if (errors.length > 0) {
-        const mailOptions = {
-            from: 'error@khg-marketing.info',
-            to: process.env.GMAIL,
-            subject: "【自動送信】アンケート登録中にエラー発生",
-            text: `以下のエラーが発生しました:\n\nrunDataRegistrationBeforeInterview\n\n${errors.join("\n")}`,
-        };
-
-        try {
-            await transporter.sendMail(mailOptions);
-            console.log("エラーメールを送信しました");
-        } catch (err) {
-            console.error("メール送信に失敗しました:", err);
-        }
-    }
+    // ⚠️ 2026-11-10: エラーのメールはやめ、Dashboard の DB（同期の実行結果）に残す（utils/syncLog.ts）
+    recordErrors(errors, 'runBeforeSurvey.ts');
 
     // ⚠️⚠️ **2026-09-30、旧API（changeShop.php）からゲートウェイへ移した。**
     //   ⚠️ 旧APIは `demand` で枝分かれしていたが、⚠️ **現行は `request` + `roll`。**

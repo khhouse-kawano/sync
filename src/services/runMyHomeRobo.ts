@@ -1,7 +1,7 @@
+import { sendErrorMail } from './sendErrorMail';
 import { chromium } from 'playwright';
 import { myHomeRoboLogin } from '../utils/function';
 const errors: string[] = [];
-import nodemailer from 'nodemailer';
 import axios from 'axios';
 
 /** Dashboard のゲートウェイ。⚠️ 旧API（dashboard/api/）は廃止済み */
@@ -124,29 +124,9 @@ export const runMyHomeRobo = async (updateData: any, roboId: string, roboPass: s
 
     await browser.close();
 
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: "shinji.kawano@kh-group.jp",
-            pass: "bdrm wqln tlcr gwmq",
-        },
-    });
-
-    if (errors.length > 0) {
-        const mailOptions = {
-            from: "error@khg-marketing.info",
-            to: "shinji.kawano@kh-group.jp",
-            subject: "マイホームロボ登録中にエラー発生",
-            text: `以下のエラーが発生しました:\n\n${errors.join("\n")}`,
-        };
-
-        try {
-            await transporter.sendMail(mailOptions);
-            console.log("エラーメールを送信しました");
-        } catch (err) {
-            console.error("メール送信に失敗しました:", err);
-        }
-    }
+    // ⚠️ 2026-11-10: エラーのメールはやめ、Dashboard の DB（同期の実行結果）に残す（utils/syncLog.ts）
+    // ⚠️ 配列はモジュールで1つで、以前は空にしていなかった（毎回、前回の理由まで送っていた）。残したら空にする
+    await sendErrorMail(errors, 'runMyHomeRobo.ts');
 
     if (mhl_id) {
         const now = new Date();

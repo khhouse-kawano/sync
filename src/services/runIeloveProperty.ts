@@ -46,7 +46,8 @@ const propertyHeaderMap: Record<string, string> = {
     "社内用メモ１": "internal_note"
 };
 
-const postToPhpApi = async (data: Record<string, string>[]) => {
+/** ① の property_db_update へ送る。⚠️ 送れたら true（2026-11-10: 店舗ごとの結果をコンソールに出すため） */
+const postToPhpApi = async (data: Record<string, string>[]): Promise<boolean> => {
     const API_URL = "https://khg-marketing.info/dashboard/api/gateway/";
     const payload = {
         data: data,
@@ -55,6 +56,7 @@ const postToPhpApi = async (data: Record<string, string>[]) => {
     try {
         const response = await axios.post(API_URL, payload, { headers: { "Content-Type": "application/json" } });
         console.log("DB登録成功:", response.data);
+        return true;
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error(`APIエラー: ${error.response?.status} ${error.response?.statusText}`);
@@ -64,6 +66,7 @@ const postToPhpApi = async (data: Record<string, string>[]) => {
             console.error("API送信中に予期せぬエラーが発生しました:", error);
             errors.push(`API予期せぬエラー`);
         }
+        return false;
     }
 };
 
@@ -194,6 +197,18 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
             console.log(`[ielove] ログイン欄: id=${idSelector} / pass=${passSelector} / submit=${submitSelector}`);
 
             await page.waitForLoadState("networkidle");
+
+            /**
+             * ⚠️⚠️ 2026-11-10: ログインが通ったかを確かめる。
+             *   以前は欄に入れて押しただけで次へ進んでいたため、通っていなくても一覧の失敗（403 など）としか出なかった。
+             *   送信のあとにパスワード欄がまだ見えていれば、ログイン画面のまま＝失敗とする。
+             */
+            const stillLogin = await page.locator(PASS_SELECTORS[0]).first().isVisible().catch(() => false);
+            if (stillLogin) {
+                await logPageState(page, 'ielove-login-result');
+                throw new Error(`ログイン画面のままです（ID・パスワードの誤り、またはログインが拒否された）。URL: ${page.url()} / 画面タイトル: ${await page.title().catch(() => '取得不可')}`);
+            }
+            console.log(`[ielove] ✅ ログイン成功（URL: ${page.url()} / 画面タイトル: ${await page.title().catch(() => '取得不可')}）`);
         } catch (err) {
             const msg = `ログイン処理に失敗${err}`;
             console.log(msg);
@@ -205,6 +220,8 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
     const propertySearch = async () => {
         // 店舗ID（value値）の配列
         const storeIds = ["86679", "96031", "150319"];
+        /** 店舗ごとの結果（最後にまとめて出す） */
+        const summary: string[] = [];
 
         for (const storeId of storeIds) {
             console.log(`=== 店舗ID: ${storeId} の処理を開始します ===`);
@@ -212,8 +229,20 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
             try {
                 const targetUrl = `https://cloud.ielove.jp/sale/index/index/num/500/search/1/scow/0/sccm/0/renmm/0/spdtm/1/kcdt/0/scld/0/grid/${storeId}/notAddBknTo/0/udcdr/1/ttcd1/0/ttcd2/0/ttcd3/0/ttcd4/0/ttcd5/0/ttcd8/0/ttcd99/0/kyzk/0/ptcm/0/exun/0/ices/2/exes/1/pbst/1/past/1/ipco/0/dluf/0/buda/0/ortgr/1/optt/1/`;
 
-                await page.goto(targetUrl);
+                const response = await page.goto(targetUrl);
                 await page.waitForLoadState("networkidle");
+
+                /**
+                 * ⚠️⚠️ 2026-11-10: 一覧の応答の HTTP ステータスを見る。
+                 *   2026-11-10 の Heroku の実行で、3店舗とも「403 Forbidden」の画面になっていた（ローカルでは成功）。
+                 *   以前は 403 の画面でもダウンロードボタンを60秒待ってから失敗していた。すぐ失敗にし、画面の状態を残す。
+                 */
+                const httpStatus = response?.status() ?? 0;
+                if (httpStatus >= 400) {
+                    await logPageState(page, `ielove-list-${storeId}`);
+                    throw new Error(`物件一覧が HTTP ${httpStatus}（画面タイトル: ${await page.title().catch(() => '取得不可')}）。接続元（Heroku の IP）が弾かれている可能性があります`);
+                }
+                console.log(`[ielove][店舗: ${storeId}] ✅ 物件一覧を開きました（HTTP ${httpStatus}）`);
 
                 await page.waitForTimeout(5000);
 
@@ -237,6 +266,7 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
                 if (!filePath) {
                     throw new Error(`店舗ID: ${storeId} のファイルダウンロードに失敗しました`);
                 }
+                console.log(`[ielove][店舗: ${storeId}] ✅ CSV をダウンロードしました`);
 
                 // Shift-JISからUTF-8に変換
                 const buffer = fs.readFileSync(filePath);
@@ -278,7 +308,14 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
 
                 // API送信
                 if (finalRecords.length > 0) {
-                    await postToPhpApi(finalRecords);
+                    const posted = await postToPhpApi(finalRecords);
+                    console.log(posted
+                        ? `[ielove][店舗: ${storeId}] ✅ DB 登録に成功しました（${finalRecords.length}件）`
+                        : `[ielove][店舗: ${storeId}] ❌ DB 登録に失敗しました（${finalRecords.length}件。理由は上の APIエラー）`);
+                    summary.push(`${storeId}: ${posted ? `成功 ${finalRecords.length}件` : 'DB 登録に失敗'}`);
+                } else {
+                    console.log(`[ielove][店舗: ${storeId}] ⚠️ CSV に物件がありませんでした（0件）`);
+                    summary.push(`${storeId}: 0件`);
                 }
 
             } catch (err) {
@@ -289,9 +326,11 @@ export const runIeloveProperty = async (ielove_id: string, ielove_pass: string) 
                 const msg = `[店舗: ${storeId}] の処理中にエラーが発生しました: ${err}\n👉 【デバッグ】現在地URL: ${currentUrl}\n👉 【デバッグ】画面タイトル: ${pageTitle}`;
                 console.error(msg);
                 errors.push(msg);
+                summary.push(`${storeId}: 失敗`);
                 // エラーが起きても continue で次の店舗の処理へ進む
             }
         }
+        console.log(`[ielove] 店舗ごとの結果: ${summary.join(' / ')}`);
     };
 
     try {
