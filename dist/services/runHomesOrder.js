@@ -85,9 +85,9 @@ const runHomesOrder = async () => {
                 console.error(`${brand.name}_ログイン画面への遷移を再試行します:`, err);
             }
         }
-        await page.fill("//html/body/div[3]/div/div/div/form/div/dl/dd[1]/input", brand.id);
-        await page.fill("//html/body/div[3]/div/div/div/form/div/dl/dd[2]/input", brand.pass);
-        await page.click("//html/body/div[3]/div/div/div/form/div/div/div/button");
+        await page.fill("//html/body/div[2]/div/div/div/form/div/dl/dd[1]/input", brand.id);
+        await page.fill("//html/body/div[2]/div/div/div/form/div/dl/dd[2]/input", brand.pass);
+        await page.click("//html/body/div[2]/div/div/div/form/div/div/div/button");
         await page.waitForLoadState("networkidle");
         console.log(`${brand.name}_ログイン成功`);
     };
