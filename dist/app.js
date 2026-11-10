@@ -20,6 +20,7 @@ const mailScrapingRoutes_1 = __importDefault(require("./routes/mailScrapingRoute
 const pdfToPptRoutes_1 = __importDefault(require("./routes/pdfToPptRoutes"));
 const estateInfoRoutes_1 = __importDefault(require("./routes/estateInfoRoutes"));
 const portalRoutes_1 = __importDefault(require("./routes/portalRoutes"));
+const syncLog_1 = require("./utils/syncLog");
 process.on('uncaughtException', (err) => {
     console.error('💥 補足されなかったエラーが発生しましたが、サーバーは稼働を続けます:', err.message);
 });
@@ -27,6 +28,8 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json({ limit: '50mb' }));
 app.use(express_1.default.text({ limit: '50mb' }));
+// ⚠️ 2026-11-10: 実行結果を Dashboard の DB に残す（メールはやめた）。⚠️ ルーターより前に置くこと（utils/syncLog.ts）
+app.use(syncLog_1.syncLogMiddleware);
 app.use("/api/", indexRoutes_1.default);
 app.use("/api/update", updateRoutes_1.default);
 app.use("/api/robo", roboRoutes_1.default);

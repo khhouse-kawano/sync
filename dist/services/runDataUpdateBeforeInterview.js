@@ -1,13 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runDataUpdateBeforeInterview = void 0;
+const sendErrorMail_1 = require("./sendErrorMail");
 const playwright_1 = require("playwright");
 const function_1 = require("../utils/function");
 const errors = [];
-const nodemailer_1 = __importDefault(require("nodemailer"));
 const runDataUpdateBeforeInterview = async (updateData, brand, pg_mail, pg_pass) => {
     const browser = await playwright_1.chromium.launch({ args: ['--no-sandbox'] });
     const context = await browser.newContext();
@@ -331,30 +328,7 @@ const runDataUpdateBeforeInterview = async (updateData, brand, pg_mail, pg_pass)
     const nowString = now.toDateString();
     console.log(`${nowString}_${updateData.staff}_アップデート完了:`);
     await browser.close();
-    const transporter = nodemailer_1.default.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.GMAIL,
-            pass: process.env.GMAIL_PASS,
-        },
-    });
-    if (errors.length > 0) {
-        const mailOptions = {
-            from: 'error@khg-marketing.info',
-            to: 'shinji.kawano@kh-group.jp',
-            subject: '【自動送信】アンケート登録中にエラー発生',
-            text: `以下のエラーが発生しました:\n\nrunDataUpdateBeforeInterview\n\n${errors.join('\n')}`,
-        };
-        try {
-            await transporter.sendMail(mailOptions);
-            console.log('エラーメールを送信しました');
-        }
-        catch (err) {
-            console.error('メール送信に失敗しました:', err);
-        }
-        finally {
-            errors.length = 0;
-        }
-    }
+    // ⚠️ 2026-11-10: エラーのメールはやめ、Dashboard の DB（同期の実行結果）に残す（utils/syncLog.ts）
+    await (0, sendErrorMail_1.sendErrorMail)(errors, 'runDataUpdateBeforeInterview.ts');
 };
 exports.runDataUpdateBeforeInterview = runDataUpdateBeforeInterview;

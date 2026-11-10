@@ -29,6 +29,7 @@ const runHomesOrder_1 = require("./runHomesOrder");
 const runTownlifeOrder_1 = require("./runTownlifeOrder");
 const runAllGrit_1 = require("./runAllGrit");
 const runGoogleReview_1 = require("./runGoogleReview");
+const syncLog_1 = require("../utils/syncLog");
 exports.portalService = {
     process: async (options) => {
         const actionMap = {
@@ -171,28 +172,31 @@ exports.portalService = {
         const NO_CREDENTIAL_TASKS = ['geoCode', 'google_review'];
         for (const brand of targets) {
             if (!NO_CREDENTIAL_TASKS.includes(brand.name) && (!brand.id || !brand.pass)) {
-                results.push({
-                    name: brand.name,
-                    ok: false,
-                    message: `${brand.name} の認証情報が不足しています`
-                });
+                const message = `${brand.name} の認証情報が不足しています`;
+                results.push({ name: brand.name, ok: false, message });
+                (0, syncLog_1.recordTaskResult)(brand.name, 'failure', message);
                 continue;
             }
             const executeTask = actionMap[brand.name];
             if (!executeTask) {
-                results.push({
-                    name: brand.name,
-                    ok: false,
-                    message: `${brand.name} に対応する実行関数がマッピングされていません`
-                });
+                const message = `${brand.name} に対応する実行関数がマッピングされていません`;
+                results.push({ name: brand.name, ok: false, message });
+                (0, syncLog_1.recordTaskResult)(brand.name, 'failure', message);
                 continue;
             }
             try {
-                await executeTask(brand.id ?? '', brand.pass ?? '', brand.brand);
+                /**
+                 * ⚠️⚠️ 2026-11-10: タスクごとの実行結果を Dashboard の DB に残す（utils/syncLog.ts の runTask）。
+                 *   ⚠️ 例外を投げずに途中で失敗したもの（sendErrorMail に理由が来たもの。例：ielove の店舗ごとの 403）は partial。
+                 *     以前はそれも ok: true（「更新が完了しました」）になり、失敗が隠れていた。
+                 */
+                const { status, errorCount } = await (0, syncLog_1.runTask)(brand.name, () => executeTask(brand.id ?? '', brand.pass ?? '', brand.brand));
                 results.push({
                     name: brand.name,
-                    ok: true,
-                    message: `${brand.name} の更新が完了しました`
+                    ok: status === 'success',
+                    message: status === 'success'
+                        ? `${brand.name} の更新が完了しました`
+                        : `${brand.name} は最後まで動きましたが、途中で ${errorCount}件の失敗がありました`
                 });
             }
             catch (err) {

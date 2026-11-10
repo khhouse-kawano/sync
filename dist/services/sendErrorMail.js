@@ -1,35 +1,20 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendErrorMail = void 0;
-const nodemailer_1 = __importDefault(require("nodemailer"));
+const syncLog_1 = require("../utils/syncLog");
+/**
+ * 失敗の理由を残す。
+ *
+ * ⚠️⚠️ 2026-11-10 から**メールは送らない**（利用者の決定）。名前は呼び出し元（32ファイル）を変えずに済むよう残した。
+ *   理由は、今のタスク（入口）の実行結果に足され、Dashboard の DB（sync_run_log）に残る（utils/syncLog.ts）。
+ *   画面は Dashboard のシステム管理 →「同期の実行結果」。
+ *   ⚠️ 以前は Gmail で送っていたが、認証が切れて（535）届かなくなっていた。
+ * ⚠️ 渡した配列は空にする（以前と同じ。呼び出し元がモジュールの配列を使い回しているため）
+ */
 const sendErrorMail = async (errors, project) => {
-    const transporter = nodemailer_1.default.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.GMAIL,
-            pass: process.env.GMAIL_PASS,
-        },
-    });
-    if (errors.length > 0) {
-        const mailOptions = {
-            from: 'error@khg-marketing.info',
-            to: process.env.GMAIL,
-            subject: '【自動送信】 Dashboard処理作業中にエラー発生',
-            text: `以下のエラーが発生しました:\n${project}\n\n${errors.join('\n')}`,
-        };
-        try {
-            await transporter.sendMail(mailOptions);
-            console.log('エラーメールを送信しました');
-        }
-        catch (err) {
-            console.error('メール送信に失敗しました:', err);
-        }
-        finally {
-            errors.length = 0;
-        }
-    }
+    if (errors.length === 0)
+        return;
+    (0, syncLog_1.recordErrors)(errors, project);
+    errors.length = 0;
 };
 exports.sendErrorMail = sendErrorMail;

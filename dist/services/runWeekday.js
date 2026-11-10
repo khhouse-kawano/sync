@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runWeekday = void 0;
+const syncLog_1 = require("../utils/syncLog");
 const nodemailer_1 = __importDefault(require("nodemailer"));
 const valueList_1 = require("../utils/valueList");
 const runWeekday = async (postData) => {
@@ -44,19 +45,9 @@ const runWeekday = async (postData) => {
     }
     catch (err) {
         console.error("メール送信に失敗しました:", err);
-        const errMailOptions = {
-            from: 'error@khg-marketing.info',
-            to: process.env.GMAIL,
-            subject: '【自動送信】平日来場キャンペーンのメール送信でエラー発生',
-            text: `以下のエラーが発生しました:${err}`,
-        };
-        try {
-            await transporter.sendMail(errMailOptions);
-            console.log('エラーメールを送信しました');
-        }
-        catch (err) {
-            console.error('エラーメール送信に失敗しました:', err);
-        }
+        // ⚠️ 2026-11-10: エラーのメールはやめ、Dashboard の DB（同期の実行結果）に残す（utils/syncLog.ts）。
+        //   ⚠️ 反響のメール（上）は業務のメールなので、そのまま送る
+        (0, syncLog_1.recordErrors)([`平日来場キャンペーンの反響メールを送れませんでした（${postData.shop}）: ${err}`], 'runWeekday.ts');
     }
 };
 exports.runWeekday = runWeekday;
