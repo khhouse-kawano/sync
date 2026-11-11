@@ -232,6 +232,16 @@ const runIeloveProperty = async (ielove_id, ielove_pass) => {
              *   送信のあとにパスワード欄がまだ見えていれば、ログイン画面のまま＝失敗とする。
              */
             const stillLogin = await page.locator(PASS_SELECTORS[0]).first().isVisible().catch(() => false);
+            /**
+             * ⚠️⚠️ 2026-11-10: 送信の直後の画面が 403 Forbidden のこともある（Heroku から。ローカルでは成功）。
+             *   パスワード欄が消えるので、上の確かめだけでは「成功」になっていた。画面のタイトルでも見る。
+             *   ⚠️ ログインの送信そのものが接続元の IP で拒否されている（いえらぶの IP 制限か、データセンターの IP の遮断）
+             */
+            const afterTitle = await page.title().catch(() => '');
+            if (/\b(401|403|404|429|5\d\d)\b|Forbidden|Access Denied|Too Many Requests/i.test(afterTitle)) {
+                await (0, portalPage_1.logPageState)(page, 'ielove-login-result');
+                throw new Error(`ログインの送信が拒否されました（画面タイトル: ${afterTitle} / URL: ${page.url()}）。接続元の IP が、いえらぶに弾かれている可能性があります`);
+            }
             if (stillLogin) {
                 await (0, portalPage_1.logPageState)(page, 'ielove-login-result');
                 throw new Error(`ログイン画面のままです（ID・パスワードの誤り、またはログインが拒否された）。URL: ${page.url()} / 画面タイトル: ${await page.title().catch(() => '取得不可')}`);
