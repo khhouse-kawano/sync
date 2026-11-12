@@ -56,7 +56,7 @@ const sample = [
       // ],
       // targetTasks: [  'homes_order', 'suumo_order', 'townlife_order', 'suumo_kaeru', 'suumo_resale', 'homes_kaeru', 'homes_resale' ,'sumai_step_resale','hotlead'],
       // targetTasks: [ 'allgrit'],
-      targetTasks: [ 'homes_order'],
+      targetTasks: [ 'suumo_kaeru'],
       //
       // targetTasks: [ 'hotlead_2'],
       // targetTasks: [ 'geoCode', 'google_review'], // 月に一回のみ
