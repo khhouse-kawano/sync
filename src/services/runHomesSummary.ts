@@ -4,6 +4,7 @@ import { parse } from 'csv-parse/sync';
 import axios from 'axios';
 import { closeBrowser, logPageState } from '../utils/portalPage';
 import { sendErrorMail } from './sendErrorMail';
+import { sendPropertyDbPortal } from '../utils/propertyDbPortal';
 import * as iconv from 'iconv-lite'; // 💡 追加: Shift-JIS変換用の堅牢なライブラリ
 
 
@@ -316,6 +317,9 @@ const responseData = res.data ?? {};
 
             await writeFile(summaryPath, JSON.stringify({ success: successes, errors: failures }, null, 2), 'utf8');
             console.log('サマリーを保存しました:', summaryPath);
+
+            // Dashboard v2.2.301 物件DB を補う（② の property_db_portal）。⚠️ 失敗しても上の summary の結果は変えない（errors に足すだけ）
+            await sendPropertyDbPortal('homes', brand, filteredRecords, errors);
 
         } catch (err) {
             console.error('処理中にエラーが発生しました:', err);

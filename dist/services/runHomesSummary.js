@@ -43,6 +43,7 @@ const sync_1 = require("csv-parse/sync");
 const axios_1 = __importDefault(require("axios"));
 const portalPage_1 = require("../utils/portalPage");
 const sendErrorMail_1 = require("./sendErrorMail");
+const propertyDbPortal_1 = require("../utils/propertyDbPortal");
 const iconv = __importStar(require("iconv-lite")); // 💡 追加: Shift-JIS変換用の堅牢なライブラリ
 // テーブル定義順のカラム名配列
 const homesColumns = [
@@ -315,6 +316,8 @@ const runHomesSummary = async (id, pass, brand) => {
             console.log(`処理完了！ 成功チャンク: ${successes.length}, 失敗チャンク: ${failures.length}`);
             await (0, promises_1.writeFile)(summaryPath, JSON.stringify({ success: successes, errors: failures }, null, 2), 'utf8');
             console.log('サマリーを保存しました:', summaryPath);
+            // Dashboard v2.2.301 物件DB を補う（② の property_db_portal）。⚠️ 失敗しても上の summary の結果は変えない（errors に足すだけ）
+            await (0, propertyDbPortal_1.sendPropertyDbPortal)('homes', brand, filteredRecords, errors);
         }
         catch (err) {
             console.error('処理中にエラーが発生しました:', err);
