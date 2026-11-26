@@ -4,6 +4,7 @@ import * as xlsx from 'xlsx'; // xlsxパッケージに変更
 import axios from 'axios';
 import { closeBrowser } from '../utils/portalPage';
 import { sendErrorMail } from './sendErrorMail';
+import { sendPropertyDbPortal } from '../utils/propertyDbPortal';
 
 
 // 先ほど作成したテーブル(suumo_resale_summary)のカラム順（システムIDなどを除く）
@@ -183,6 +184,9 @@ export const runSuumoResaleSummary = async (id: string, pass: string, brand?: st
 
             await writeFile(summaryPath, JSON.stringify({ success: successes, errors: failures }, null, 2), 'utf8');
             console.log('サマリーを保存しました:', summaryPath);
+
+            // Dashboard v2.2.301 物件DB を補う（② の property_db_portal）。⚠️ 失敗しても上の summary の結果は変えない（errors に足すだけ）
+            await sendPropertyDbPortal('suumo', brand, filteredRecords, errors);
 
         } catch (err) {
             console.error('処理中にエラーが発生しました:', err);
